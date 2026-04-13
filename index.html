@@ -996,6 +996,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <option value="new">ใหม่ → เก่า</option>
           <option value="old">เก่า → ใหม่</option>
         </select>
+        <button onclick="openAIFill()" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--f);height:32px">✨ AI กรอกงาน</button>
         <button class="btn btn-r" id="btn-add-gig" onclick="openGig()" style="position:relative">
           + เพิ่มงาน
           <span id="draft-dot" style="display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#FDCB6E;border-radius:50%;border:1.5px solid #fff"></span>
@@ -1522,6 +1523,31 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
     </div>
   </div>
 
+
+<!-- AI FILL MODAL -->
+<div class="overlay" id="modal-ai-fill" style="align-items:center;justify-content:center">
+  <div style="background:var(--wh);border-radius:16px;width:500px;max-width:95vw;padding:24px;box-shadow:var(--sh-lg);position:relative">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--ink)">AI กรอกข้อมูลงาน</div>
+        <div style="font-size:11px;color:var(--ink3)">วาง text จาก LINE/WhatsApp แล้วให้ AI วิเคราะห์</div>
+      </div>
+      <button onclick="cx('modal-ai-fill')" style="margin-left:auto;width:28px;height:28px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:12px;color:var(--ink3)">✕</button>
+    </div>
+    <textarea id="ai-fill-input" rows="6" class="fi" placeholder="วางข้อความที่นี่ เช่น:
+งานแต่งงาน คุณสมชาย × คุณสมหญิง
+วันที่ 15 พฤษภาคม 2026
+โรงแรม Marriott กรุงเทพ
+ค่าจ้าง 35,000 บาท
+เวลา 18:00-22:00" style="width:100%;resize:vertical;font-size:12px;line-height:1.6;margin-bottom:12px"></textarea>
+    <div id="ai-fill-result" style="display:none;padding:10px 12px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--ink3);margin-bottom:12px;white-space:pre-wrap;max-height:120px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-r" style="flex:1;background:linear-gradient(135deg,#6366F1,#8B5CF6);border:none" onclick="doAIFill()">✨ วิเคราะห์และกรอก</button>
+      <button class="btn btn-o" onclick="cx('modal-ai-fill')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 </div>
 </div><!-- /shell -->
 
@@ -1739,7 +1765,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <span>💾 draft</span>
           <button onclick="clearGigDraft()" style="background:none;border:none;cursor:pointer;color:#92400E;font-size:10px;font-weight:600;padding:0;text-decoration:underline">ล้าง</button>
         </div>
-        <button onclick="if(!S.eid)saveGigDraft();cx('mgig')" style="width:26px;height:26px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:13px;color:var(--ink3);display:flex;align-items:center;justify-content:center">✕</button>
+<button onclick="if(!S.eid)saveGigDraft();cx('mgig')" style="width:26px;height:26px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:13px;color:var(--ink3);display:flex;align-items:center;justify-content:center">✕</button>
       </div>
     </div>
 
@@ -2293,25 +2319,35 @@ async function loadFromCloud() {
   if(!SUPABASE_URL || !_sbBandId) return false;
   toast('☁ กำลังโหลดข้อมูล...');
   try {
-    const [
-      members, clients, sources, jobTypes, users,
-      gigs, gigMusicians, gigPayments, gigMemberPays,
-      gigIncomeItems, gigExpenses, bandExpenses, band
-    ] = await Promise.all([
+    /* Step 1: load gigs first to get IDs */
+    const [members, clients, sources, jobTypes, users, gigs, bandExpenses, band] = await Promise.all([
       sbGet('members',      `band_id=eq.${_sbBandId}&order=created_at`),
       sbGet('clients',      `band_id=eq.${_sbBandId}&order=name`),
       sbGet('sources',      `band_id=eq.${_sbBandId}&order=sort_order`),
       sbGet('job_types',    `band_id=eq.${_sbBandId}&order=sort_order`),
       sbGet('users',        `band_id=eq.${_sbBandId}`),
       sbGet('gigs',         `band_id=eq.${_sbBandId}&order=date.desc`),
-      sbGet('gig_musicians','select=*,gigs!inner(band_id)&gigs.band_id=eq.'+_sbBandId),
-      sbGet('gig_payments', 'select=*,gigs!inner(band_id)&gigs.band_id=eq.'+_sbBandId),
-      sbGet('member_payments','select=*,gigs!inner(band_id)&gigs.band_id=eq.'+_sbBandId),
-      sbGet('gig_income_items','select=*,gigs!inner(band_id)&gigs.band_id=eq.'+_sbBandId),
-      sbGet('gig_expenses', 'select=*,gigs!inner(band_id)&gigs.band_id=eq.'+_sbBandId),
       sbGet('band_expenses',`band_id=eq.${_sbBandId}&order=date.desc`),
       sbGet('bands',        `id=eq.${_sbBandId}&limit=1`)
     ]);
+
+    console.log('loadFromCloud: gigs=',gigs?.length,'members=',members?.length);
+
+    /* Step 2: load child tables by gig_id list */
+    const gigIds=(gigs||[]).map(g=>g.id);
+    let gigMusicians=[], gigPayments=[], gigMemberPays=[], gigIncomeItems=[], gigExpenses=[];
+
+    if(gigIds.length>0){
+      const ids=gigIds.join(',');
+      [gigMusicians, gigPayments, gigMemberPays, gigIncomeItems, gigExpenses] = await Promise.all([
+        sbGet('gig_musicians',    `gig_id=in.(${ids})`),
+        sbGet('gig_payments',     `gig_id=in.(${ids})`),
+        sbGet('member_payments',  `gig_id=in.(${ids})`),
+        sbGet('gig_income_items', `gig_id=in.(${ids})`),
+        sbGet('gig_expenses',     `gig_id=in.(${ids})`)
+      ]);
+      console.log('loadFromCloud: musicians=',gigMusicians?.length,'payments=',gigPayments?.length);
+    }
 
     /* Map to S object shape */
     S.members  = (members  ||[]).map(mapMember);
@@ -2380,6 +2416,7 @@ async function syncGig(gig) {
   if(!SUPABASE_URL || !_sbBandId) { console.warn('syncGig: no session'); return; }
   try {
     const isNew = typeof gig.id === 'number';
+    const isUUID = v => typeof v==='string' && /^[0-9a-f-]{36}$/.test(v);
     const gigRow = {
       band_id:    _sbBandId,
       job_no:     gig.jobNo,
@@ -2398,12 +2435,18 @@ async function syncGig(gig) {
       note:       gig.note||null,
       source_name: gig.source||null,
       type_name:  gig.type||null,
-      client_id:  gig.clientId||null,
+      client_id:  isUUID(gig.clientId)?gig.clientId:null, /* only UUID */
       client_name:gig.clientName||null,
       client_phone:gig.clientPhone||null
     };
     let dbId = isNew ? null : gig.id;
     if(isNew) {
+      /* Get next job_no from DB atomically */
+      const seqRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/next_job_no`,{
+        method:'POST', headers:sbHeaders(),
+        body:JSON.stringify({p_band_id:_sbBandId})
+      }).then(r=>r.json()).catch(()=>null);
+      if(seqRes!=null) gigRow.job_no=seqRes;
       const r = await fetch(`${SUPABASE_URL}/rest/v1/gigs`, {
         method:'POST', headers:sbHeaders(),
         body:JSON.stringify(gigRow)
@@ -2411,9 +2454,9 @@ async function syncGig(gig) {
       const d = await r.json();
       if(!r.ok){ console.error('❌ syncGig insert:', r.status, d); return; }
       dbId = d[0]?.id;
-      const li = S.gigs.findIndex(x=>x.id===gig.id);
-      if(li>=0 && dbId) S.gigs[li].id = dbId;
-      console.log('✅ syncGig insert:', dbId);
+      const li = S.gigs.findIndex(x=>String(x.id)===String(gig.id));
+      if(li>=0 && dbId){ S.gigs[li].id=dbId; S.gigs[li].jobNo=gigRow.job_no; }
+      console.log('✅ syncGig insert:', dbId, 'job_no:', gigRow.job_no);
     } else {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/gigs?id=eq.${dbId}`, {
         method:'PATCH', headers:sbHeaders(),
@@ -2424,10 +2467,11 @@ async function syncGig(gig) {
     }
     if(!dbId) return;
 
-    /* Musicians */
+    /* Musicians — only include rows with valid UUID member_id */
     await fetch(`${SUPABASE_URL}/rest/v1/gig_musicians?gig_id=eq.${dbId}`,{method:'DELETE',headers:sbHeaders({'Prefer':''})});
-    if(gig.musicians&&gig.musicians.length)
-      await sbInsert('gig_musicians', gig.musicians.map(m=>({gig_id:dbId,member_id:m.memberId,pct:m.pct})));
+    const validMus=(gig.musicians||[]).filter(m=>isUUID(String(m.memberId)));
+    if(validMus.length)
+      await sbInsert('gig_musicians', validMus.map(m=>({gig_id:dbId,member_id:m.memberId,pct:m.pct})));
 
     /* Income items */
     await fetch(`${SUPABASE_URL}/rest/v1/gig_income_items?gig_id=eq.${dbId}`,{method:'DELETE',headers:sbHeaders({'Prefer':''})});
@@ -2949,7 +2993,7 @@ function rg(){
     const netVal=gigNet(g);
     const isCancelled=g.status==='cancelled';
     return`<tr class="${isCancelled?'cancelled-row':''}" id="gig-row-${g.id}"
-      onclick="toggleGigRow(${g.id},event)"
+      onclick="toggleGigRow('${g.id}',event)"
       style="cursor:pointer;transition:background .1s">
       <td style="padding:0 0 0 14px;width:36px" onclick="event.stopPropagation()">
         <input type="checkbox" class="gig-cb" data-id="${g.id}"
@@ -3042,7 +3086,7 @@ function ri(){
   const getMemCut=(g,mem)=>{
     const mus=g.musicians&&g.musicians.length?g.musicians:null;
     if(!mus) return 0; /* ยังไม่ assign นักดนตรี → ไม่นับ */
-    const mu=mus.find(x=>x.memberId===mem.id);
+    const mu=mus.find(x=>String(x.memberId)===String(mem.id));
     return mu?Math.round(gigNet(g)*(mu.pct/100)):0;
   };
   const isMemPaid=(g,mem)=>{
@@ -3051,7 +3095,7 @@ function ri(){
   };
   /* งานที่สมาชิกถูก assign แล้ว (มีชื่อใน musicians) */
   const isMemAssigned=(g,mem)=>{
-    return g.musicians&&g.musicians.length>0&&g.musicians.some(x=>x.memberId===mem.id);
+    return g.musicians&&g.musicians.length>0&&g.musicians.some(x=>String(x.memberId)===String(mem.id));
   };
 
   /* ── 4 KPI ── */
@@ -3109,7 +3153,7 @@ function ri(){
 
   document.getElementById('itable').innerHTML=memData.map(mem=>{
     const isSelected=mem.id===incomeSelectedMid;
-    return`<tr style="cursor:pointer;${isSelected?'background:var(--rl);':''}transition:background .12s" onclick="selectIncomeMember(${mem.id})">
+    return`<tr style="cursor:pointer;${isSelected?'background:var(--rl);':''}transition:background .12s" onclick="selectIncomeMember('${mem.id}')">
       <td><div style="display:flex;align-items:center;gap:8px">
         ${isSelected?`<div style="width:3px;height:32px;background:var(--red);border-radius:2px;margin-right:2px;flex-shrink:0"></div>`:'<div style="width:5px;flex-shrink:0"></div>'}
         ${avx(mem.nick)}
@@ -3150,7 +3194,7 @@ function renderIncomeDetail(m,y,gg){
 
   document.getElementById('idetail').innerHTML=gg.map(g=>{
     const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(x=>x.status==='active').map(x=>({memberId:x.id,pct:100/S.members.filter(a=>a.status==='active').length}));
-    const mu=mus.find(x=>x.memberId===mem.id);
+    const mu=mus.find(x=>String(x.memberId)===String(mem.id));
     if(!mu)return'';
     const myIncome=Math.round(gigNet(g)*(mu.pct/100));
     const isPaid=!!(g.memberPayments||{})[mem.id];
@@ -3231,7 +3275,7 @@ function rcal(){
       const textColor=isCancelled?'#94A3B8':getJobTypeColor(g.type);
       const borderColor=isCancelled?'transparent':getJobTypeColor(g.type)+'33';
       const timeStr=g.timeStart?(g.timeStart+(g.timeEnd?'–'+g.timeEnd:'')):'';
-      return`<div class="cal-ev${isCancelled?' type-cancelled':''}" onclick="openCalPopup(${g.id})"
+      return`<div class="cal-ev${isCancelled?' type-cancelled':''}" onclick="openCalPopup('${g.id}')"
         style="background:${bg};color:${textColor};border-left:3px solid ${getJobTypeColor(g.type)};border-radius:0 5px 5px 0;${isCancelled?'opacity:.5':''}">
         <div class="ev-name">${g.name}</div>
         ${timeStr?`<div class="ev-meta">⏱ ${timeStr}</div>`:''}
@@ -3321,7 +3365,7 @@ function rmem(){
     const stxt=isActive?'Active':'Inactive';
     const jd=mem.joinDate?fmtJoin(mem.joinDate):'—';
     return`<div class="mem-card" style="${isActive?'':'opacity:0.7'}">
-      <div class="mem-card-photo" onclick="editMem(${mem.id})">
+      <div class="mem-card-photo" onclick="editMem('${mem.id}')">
         ${photoHtml}
         <div class="ph-overlay">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -3348,7 +3392,7 @@ function rmem(){
         </div>
       </div>
       <div class="mem-card-foot">
-        <button class="btn btn-o" onclick="editMem(${mem.id})">แก้ไข</button>
+        <button class="btn btn-o" onclick="editMem('${mem.id}')">แก้ไข</button>
         <button class="btn btn-r" onclick="nav('income',document.querySelector('[onclick*=income]'))">รายได้</button>
       </div>
     </div>`;
@@ -3712,7 +3756,7 @@ function getGigMembers(){
       fixedAmt=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;
       pct=netB2>0?Math.round(fixedAmt/netB2*100):0;
     } else {pct=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;}
-    res.push({memberId:memId?parseInt(memId):null,pct,fixedAmt,splitMode:gigState.splitMode});
+    res.push({memberId:memId||null,pct,fixedAmt,splitMode:gigState.splitMode});
   }
   return res;
 }
@@ -3788,7 +3832,7 @@ function clearGigDraft(){
   toast('🗑 ล้าง draft แล้ว');
 }
 function editGig(id){
-  const g=S.gigs.find(x=>x.id===id);if(!g)return;
+  const g=S.gigs.find(x=>String(x.id)===String(id));if(!g)return;
   S.eid=id;gigState={splitMode:g.splitMode||'equal',count:(g.musicians||[]).length};
   _gigLoadedVersion=g._v||0; /* capture version at open time */
   document.getElementById('mgig-t').textContent='แก้ไขงาน';
@@ -3815,14 +3859,50 @@ function editGig(id){
   document.getElementById('gprov').value=g.province||'';
   // client
   populateSourceDropdown();
-  if(g.clientId){setCtype('old');const cl=S.clients.find(x=>x.id===g.clientId);if(cl){document.getElementById('gclient-search').value=cl.name;document.getElementById('gcphone').value=cl.phone||'';document.getElementById('gcbank-name').value=cl.bankName||'';document.getElementById('gcbank-no').value=cl.bankNo||'';}}
-  else{setCtype('new');document.getElementById('gcname-new').value=g.clientName||'';document.getElementById('gcphone-new').value=g.clientPhone||'';document.getElementById('gcbank-name-new').value=g.clientBankName||'';document.getElementById('gcbank-no-new').value=g.clientBankNo||'';}
+  if(g.clientId){
+    setCtype('old');
+    gigState.selectedClientId=g.clientId; /* ← fix: set selectedClientId */
+    const cl=S.clients.find(x=>x.id===g.clientId);
+    if(cl){
+      document.getElementById('gclient-search').value=cl.name;
+      document.getElementById('gcphone').value=cl.phone||'';
+      document.getElementById('gcbank-name').value=cl.bankName||'';
+      document.getElementById('gcbank-no').value=cl.bankNo||'';
+    }
+  } else {
+    setCtype('new');
+    document.getElementById('gcname-new').value=g.clientName||'';
+    document.getElementById('gcphone-new').value=g.clientPhone||'';
+    document.getElementById('gcbank-name-new').value=g.clientBankName||'';
+    document.getElementById('gcbank-no-new').value=g.clientBankNo||'';
+  }
   if(g.musicians&&g.musicians.length){
     document.getElementById('gcount').value=g.musicians.length;
     setSplit(gigState.splitMode);
     document.getElementById('gig-members-wrap').style.display='block';
-    setTimeout(()=>{g.musicians.forEach((mu,i)=>{const sel=document.getElementById('gmem-'+i);if(sel&&mu.memberId)sel.value=mu.memberId;if(gigState.splitMode==='pct'){const pi=document.getElementById('gpct-'+i);if(pi)pi.value=mu.pct;}else if(gigState.splitMode==='amt'){const pi=document.getElementById('gpct-'+i);if(pi)pi.value=mu.fixedAmt||'';}});updateSummary();},50);
-  } else {document.getElementById('gcount').value='';document.getElementById('gig-members-wrap').style.display='none';}
+    /* เพิ่ม timeout ให้ DOM render dropdowns ทันก่อน set value */
+    setTimeout(()=>{
+      g.musicians.forEach((mu,i)=>{
+        const sel=document.getElementById('gmem-'+i);
+        if(!sel||!mu.memberId)return;
+        const midStr=String(mu.memberId);
+        /* หา UUID จาก S.members ที่ตรงกับ memberId (UUID หรือ number ก็ได้) */
+        const matchMem=S.members.find(m=>String(m.id)===midStr);
+        const targetId=matchMem?String(matchMem.id):midStr;
+        /* set dropdown value */
+        sel.value=targetId;
+        const pi=document.getElementById('gpct-'+i);
+        if(pi){
+          if(gigState.splitMode==='pct') pi.value=mu.pct||0;
+          else if(gigState.splitMode==='amt') pi.value=mu.fixedAmt||0;
+        }
+      });
+      updateSummary();
+    },150);
+  } else {
+    document.getElementById('gcount').value='';
+    document.getElementById('gig-members-wrap').style.display='none';
+  }
   document.getElementById('mgig').classList.add('open');
 }
 function sg(){
@@ -3894,7 +3974,7 @@ function sg(){
 }
 function cancelGig(id){
   if(!requireAdmin('ยกเลิกงาน'))return;
-  const g=S.gigs.find(x=>x.id===id);if(!g)return;
+  const g=S.gigs.find(x=>String(x.id)===String(id));if(!g)return;
   if(g.status==='cancelled'){toast('งานนี้ถูกยกเลิกแล้ว');return;}
   if(!confirm('ต้องการยกเลิกงาน "'+g.name+'" ใช่ไหม?\nงานจะยังคงอยู่ในระบบ แต่ status จะเปลี่ยนเป็น "ยกเลิก"'))return;
   g.status='cancelled';g.cancelledAt=new Date().toISOString().split('T')[0];
@@ -4054,7 +4134,7 @@ function renderRecvPageList(){
             </div>
           </div>`).join('')}
         </div>`:''}
-        <button class="btn btn-r" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" onclick="openRecv(${g.id})">
+        <button class="btn btn-r" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" onclick="openRecv('${g.id}')">
           + บันทึกการรับเงิน
         </button>
       </div>
@@ -4133,7 +4213,7 @@ function renderPayPageList(){
             </div>`;
           }).join('')}
         </div>
-        <button class="btn btn-r" style="width:100%;padding:10px 0;font-size:13px" onclick="openPay(${g.id})">
+        <button class="btn btn-r" style="width:100%;padding:10px 0;font-size:13px" onclick="openPay('${g.id}')">
           💰 จัดการการจ่ายเงิน
         </button>
       </div>
@@ -4176,8 +4256,8 @@ function setRecvType(t){
   updateRecvStatus();
 }
 function updateRecvStatus(){
-  const gigId=parseInt(document.getElementById('recv-gig-id').value);
-  const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
+  const gigId=document.getElementById('recv-gig-id').value;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
   const amount=parseFloat(document.getElementById('recv-amount').value)||0;
   const pays=g.payments||[];const paidBefore=pays.reduce((s,p)=>s+p.amount,0);
   const totalAfter=paidBefore+amount;
@@ -4363,10 +4443,10 @@ async function viewSlip(src){
 }
 function saveRecv(){
   if(!requireAdmin('บันทึกรับเงิน'))return;
-  const gigId=parseInt(document.getElementById('recv-gig-id').value);
+  const gigId=document.getElementById('recv-gig-id').value; /* UUID string */
   const amount=parseFloat(document.getElementById('recv-amount').value)||0;
   if(!amount){toast('กรุณาระบุจำนวนเงิน');return;}
-  const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g){toast('ไม่พบข้อมูลงาน');return;}
   if(!g.payments)g.payments=[];
   const newPay={date:document.getElementById('recv-date').value||new Date().toISOString().split('T')[0],amount,type:gigState._recvType||'deposit',note:document.getElementById('recv-note').value,slip:recvSlipData||null};
   g.payments.push(newPay);
@@ -4417,7 +4497,7 @@ function renderPayList(){
         <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">
           ${mus.map(mu=>{const mem=S.members.find(x=>x.id===mu.memberId);if(!mem)return'';const cut=getMemberCut(g,S.members.find(x=>x.id===mu.memberId)||{id:mu.memberId});const payData=paid[mu.memberId];const isPaid=!!payData;const slip=typeof payData==='object'&&payData.slip?payData.slip:null;return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--bd);gap:8px"><div style="display:flex;align-items:center;gap:6px;flex:1"><span style="width:7px;height:7px;border-radius:50%;background:${isPaid?'var(--green)':'var(--bd2)'};display:inline-block;flex-shrink:0"></span><span style="color:var(--ink2)">${mem.name} (${mem.nick})</span></div>${slip?`${slipImg(slip,24)}`:'<span style="width:24px"></span>'}<span style="font-weight:600;color:${isPaid?'var(--green)':'var(--red)'}">฿${f(cut)}</span></div>`;}).join('')}
         </div>
-        <button class="btn btn-r" style="width:100%;padding:9px 0" onclick="openPay(${g.id})">จัดการการจ่าย</button>
+        <button class="btn btn-r" style="width:100%;padding:9px 0" onclick="openPay('${g.id}')">จัดการการจ่าย</button>
       </div>
     </div>`;
   }).join('');
@@ -4427,7 +4507,8 @@ let paySlips={};
 
 function openPay(gigId){
   if(!requireAdmin('จ่ายเงิน'))return;
-  const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
+  const g=S.gigs.find(x=>x.id===gigId||String(x.id)===String(gigId));if(!g)return;
+  console.log('openPay gig:', g.id, 'musicians:', g.musicians, 'members:', S.members.map(m=>m.id));
   paySlips={};
   document.getElementById('pay-gig-id').value=gigId;
   document.getElementById('pay-modal-title').textContent='จ่ายเงินสมาชิก — '+g.name;
@@ -4436,15 +4517,16 @@ function openPay(gigId){
   const paid=g.memberPayments||{};
   const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length}));
   document.getElementById('pay-member-rows').innerHTML=mus.map((mu,i)=>{
-    const mem=S.members.find(x=>x.id===mu.memberId);if(!mem)return'';
+    /* fix: compare as string to handle UUID vs number mismatch */
+    const mem=S.members.find(x=>String(x.id)===String(mu.memberId));if(!mem)return'';
     const cut=getMemberCut(g,mem||{id:mu.memberId});
     const payData=paid[mu.memberId];
     const isPaid=!!payData;
     const existSlip=typeof payData==='object'&&payData.slip?payData.slip:null;
     const mid=mu.memberId;
     return`<div class="pay-mem-card${isPaid?' paid-done':''}" id="pay-card-${mid}">
-      <div class="pay-mem-header" onclick="togglePayRow(${mid},${cut})">
-        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" onclick="event.stopPropagation();togglePayRow(${mid},${cut},this.checked)">
+      <div class="pay-mem-header" onclick="togglePayRow('${mid}',${cut})">
+        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" onclick="event.stopPropagation();togglePayRow('${mid}',${cut},this.checked)">
         <div style="flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--ink)">${mem.name} <span style="color:var(--ink3);font-weight:400;font-size:12px">(${mem.nick}) — ${mem.role}</span></div>
           <div style="font-size:10px;color:var(--ink3);margin-top:2px">${Math.round(mu.pct)}% ของ ฿${f(gigNet(g))}</div>
@@ -4458,10 +4540,12 @@ function openPay(gigId){
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div>
             <div style="font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase">แนบสลิป</div>
-            <div id="pay-slip-thumb-${mid}" class="${existSlip?'pay-slip-thumb':'pay-slip-empty'}" onclick="triggerPaySlip(${mid})" style="${existSlip?'':''}" >
-              ${existSlip?`${existSlip?('<img id="es_'+mid+'" src="" style="width:100%;height:100%;object-fit:cover;border-radius:6px" onload="" />'+(existSlip.startsWith('slip_')?'<script>SlipStore.load("'+existSlip+'").then(d=>{const e=document.getElementById("es_'+mid+'");if(e&&d)e.src=d})<\/script>':'')):''}` :'<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>อัปโหลด</span>'}
+            <div id="pay-slip-thumb-${mid}" class="${existSlip?'pay-slip-thumb':'pay-slip-empty'}" onclick="triggerPaySlip('${mid}')" style="${existSlip?'':''}" >
+              ${existSlip
+                ?`<img id="es_${mid}" src="" data-slip-key="${existSlip}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`
+                :'<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>อัปโหลด</span>'}
             </div>
-            <input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip(${mid},this)">
+            <input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip('${mid}',this)">
           </div>
           <div style="flex:1">
             <div style="font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase">หมายเหตุ</div>
@@ -4474,9 +4558,20 @@ function openPay(gigId){
   }).join('');
   updatePayTotal();
   document.getElementById('modal-pay').classList.add('open');
+  /* โหลดรูปสลิปจาก IndexedDB แบบ async หลัง render */
+  setTimeout(()=>{
+    document.querySelectorAll('[data-slip-key]').forEach(async img=>{
+      const key=img.getAttribute('data-slip-key');
+      if(!key)return;
+      const data=await SlipStore.load(key).catch(()=>null);
+      if(data)img.src=data;
+      img.onclick=()=>viewSlip(key);
+    });
+  },50);
 }
 
 function togglePayRow(mid,cut,forceVal){
+  mid=String(mid); /* ensure string */
   const cb=document.querySelector(`[data-mid="${mid}"].pay-check`);
   if(forceVal!==undefined)cb.checked=forceVal;
   else cb.checked=!cb.checked;
@@ -4520,11 +4615,11 @@ function updatePayTotal(){
 
 function savePay(){
   if(!requireAdmin('บันทึกจ่ายเงิน'))return;
-  const gigId=parseInt(document.getElementById('pay-gig-id').value);
-  const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
+  const gigId=document.getElementById('pay-gig-id').value; /* UUID string */
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g){toast('ไม่พบข้อมูลงาน');return;}
   if(!g.memberPayments)g.memberPayments={};
   document.querySelectorAll('.pay-check').forEach(cb=>{
-    const mid=parseInt(cb.dataset.mid);
+    const mid=cb.dataset.mid; /* UUID string */
     if(cb.checked){
       /* บันทึกหรืออัปเดตการจ่าย */
       const slip=paySlips[mid]||(typeof g.memberPayments[mid]==='object'?g.memberPayments[mid].slip:null)||null;
@@ -4568,7 +4663,7 @@ function renderClientList(items){
     list.innerHTML=`<div style="padding:10px 12px;font-size:12px;color:var(--ink3);text-align:center">ไม่พบลูกค้า</div>`;
     openCmb('cmb-client');return;
   }
-  list.innerHTML=items.map(cl=>`<div class="cmb-opt" onclick="selectClient(${cl.id})" style="display:flex;flex-direction:column;gap:2px">
+  list.innerHTML=items.map(cl=>`<div class="cmb-opt" onclick="selectClient('${cl.id}')" style="display:flex;flex-direction:column;gap:2px">
     <span style="font-weight:500">${cl.name}</span>
     ${cl.phone?`<span style="font-size:10px;color:var(--ink3)">${cl.phone}</span>`:''}
   </div>`).join('');
@@ -4647,7 +4742,7 @@ function renderSourceMaster(){
         ${inUse?`<span style="font-size:10px;color:var(--green);font-weight:500">(มี ${S.gigs.filter(g=>g.source===s).length} งาน)</span>`:''}
       </div>
       <button style="background:none;border:1px solid ${inUse?'var(--bd2)':'var(--rb)'};color:${inUse?'var(--ink3)':'var(--red)'};cursor:${inUse?'not-allowed':'pointer'};font-size:11px;border-radius:5px;padding:2px 8px;font-family:var(--f)"
-        onclick="removeSource(${i})" ${inUse?'disabled title="มีงานใช้แหล่งที่มานี้อยู่ ไม่สามารถลบได้"':''}>ลบ</button>
+        onclick="removeSource('${i}')" ${inUse?'disabled title="มีงานใช้แหล่งที่มานี้อยู่ ไม่สามารถลบได้"':''}>ลบ</button>
     </div>`;
   }).join('')||'<div style="font-size:12px;color:var(--ink3);padding:8px 0">ยังไม่มีแหล่งที่มา</div>';
 }
@@ -4696,7 +4791,7 @@ function renderJobTypeMaster(){
         ${inUse?`<span style="font-size:10px;color:var(--ink3)">${useCnt} งาน</span>`:'<span style="font-size:10px;color:var(--ink3)">ยังไม่มีงาน</span>'}
       </div>
       <button style="background:none;border:1px solid ${inUse?'var(--bd2)':'var(--rb)'};color:${inUse?'var(--ink3)':'var(--red)'};cursor:${inUse?'not-allowed':'pointer'};font-size:11px;border-radius:5px;padding:2px 8px;font-family:var(--f)"
-        onclick="removeJobType(${i})" ${inUse?'disabled title="มีงานใช้ประเภทนี้อยู่ ไม่สามารถลบได้"':''}>ลบ</button>
+        onclick="removeJobType('${i}')" ${inUse?'disabled title="มีงานใช้ประเภทนี้อยู่ ไม่สามารถลบได้"':''}>ลบ</button>
     </div>`;
   }).join('')||'<div style="font-size:12px;color:var(--ink3);padding:8px 0">ยังไม่มีประเภทงาน</div>';
 }
@@ -4731,7 +4826,7 @@ function renderClientMaster(){
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
         <span style="font-weight:600;color:var(--ink)">${cl.name}</span>
         <button style="background:none;border:1px solid var(--bd2);color:var(--blue);cursor:pointer;font-size:10px;border-radius:5px;padding:2px 8px;font-family:var(--f)"
-          onclick="toggleClientEdit(${cl.id})">✏️ แก้ไข</button>
+          onclick="toggleClientEdit('${cl.id}')">✏️ แก้ไข</button>
       </div>
       <div id="clm-view-${cl.id}" style="display:flex;gap:12px;font-size:11px;color:var(--ink3)">
         <span>📞 ${cl.phone||'—'}</span>
@@ -4747,8 +4842,8 @@ function renderClientMaster(){
             <input class="fi" id="clm-no-${cl.id}" value="${cl.bankNo||''}" style="font-size:11px;height:30px;padding:4px 8px"></div>
         </div>
         <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn btn-r btn-sm" onclick="saveClientEdit(${cl.id})">บันทึก</button>
-          <button class="btn btn-o btn-sm" onclick="toggleClientEdit(${cl.id})">ยกเลิก</button>
+          <button class="btn btn-r btn-sm" onclick="saveClientEdit('${cl.id}')">บันทึก</button>
+          <button class="btn btn-o btn-sm" onclick="toggleClientEdit('${cl.id}')">ยกเลิก</button>
         </div>
       </div>
     </div>`).join('')
@@ -4776,7 +4871,15 @@ function openAddClient(){if(!requireAdmin('เพิ่มลูกค้า'))r
 function saveClient(){
   if(!requireAdmin('บันทึกลูกค้า'))return;
   const n=document.getElementById('cl-name').value.trim();if(!n){toast('กรุณากรอกชื่อ');return;}
-  S.clients.push({id:Date.now(),name:n,phone:document.getElementById('cl-phone').value.trim(),bankName:document.getElementById('cl-bank-name').value.trim(),bankNo:document.getElementById('cl-bank-no').value.trim()});
+  const newClient={id:Date.now(),name:n,phone:document.getElementById('cl-phone').value.trim(),bankName:document.getElementById('cl-bank-name').value.trim(),bankNo:document.getElementById('cl-bank-no').value.trim()};
+  S.clients.push(newClient);
+  if(CLOUD_ENABLED()){
+    fetch(`${SUPABASE_URL}/rest/v1/clients`,{method:'POST',headers:sbHeaders(),
+      body:JSON.stringify({band_id:_sbBandId,name:newClient.name,phone:newClient.phone||null,bank_name:newClient.bankName||null,bank_no:newClient.bankNo||null})
+    }).then(r=>r.json()).then(d=>{
+      if(d&&d[0]){const i=S.clients.findIndex(x=>x.id===newClient.id);if(i>=0)S.clients[i].id=d[0].id;console.log('✅ client insert:',d[0].id);}
+    }).catch(console.error);
+  }
   cx('mclient');renderClientMaster();toast('เพิ่มลูกค้าแล้ว');
 }
 function openMem(){
@@ -6459,12 +6562,11 @@ function drawPieChart(canvasId,legendId,dataMap,unit,isCurrency=false){
 let _selectedGigId=null;
 
 function toggleGigRow(id, e){
-  /* คลิก row = toggle checkbox */
-  if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;
-  const cb=document.querySelector(`.gig-cb[data-id="${id}"]`);
+  if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON'||e.target.closest('a'))return;
+  const sid=String(id);
+  const cb=document.querySelector(`.gig-cb[data-id="${sid}"]`);
   if(!cb)return;
-  /* single select: uncheck others first */
-  document.querySelectorAll('.gig-cb').forEach(c=>{if(c!==cb){c.checked=false;}});
+  document.querySelectorAll('.gig-cb').forEach(c=>{if(c!==cb)c.checked=false;});
   cb.checked=!cb.checked;
   onGigCbChange();
 }
@@ -6483,7 +6585,7 @@ function onGigCbChange(){
 
   /* highlight selected rows */
   document.querySelectorAll('.gig-cb').forEach(cb=>{
-    const row=document.getElementById('gig-row-'+cb.dataset.id);
+    const row=document.getElementById('gig-row-'+String(cb.dataset.id));
     if(row) row.style.background=cb.checked?'var(--rl)':'';
   });
 
@@ -6499,8 +6601,8 @@ function onGigCbChange(){
 
   /* single select mode: show edit/cancel for that gig */
   if(checked.length===1){
-    _selectedGigId=parseInt(checked[0].dataset.id);
-    const g=S.gigs.find(x=>x.id===_selectedGigId);
+    _selectedGigId=checked[0].dataset.id; /* keep as string — UUID */
+    const g=S.gigs.find(x=>String(x.id)===String(_selectedGigId));
     editBtn.style.display='inline-flex';
     cancelBtn.style.display=g&&g.status!=='cancelled'?'inline-flex':'none';
   } else {
@@ -6528,7 +6630,7 @@ function gigActionEdit(){
 function gigActionPDF(){
   const checked=[...document.querySelectorAll('.gig-cb:checked')];
   if(checked.length!==1){toast('เลือก 1 รายการเพื่อออกสัญญา');return;}
-  exportContractPDF(parseInt(checked[0].dataset.id));
+  exportContractPDF(checked[0].dataset.id);
 }
 
 function gigActionCancel(){
@@ -6826,8 +6928,144 @@ function exportContractPDF(gigId){
 }
 
 /* ══════════════════════════════════════
-   LINE NOTIFY INTEGRATION
+   AI FILL — วิเคราะห์ข้อความแล้วกรอก form งาน
 ══════════════════════════════════════ */
+function openAIFill(){
+  document.getElementById('ai-fill-input').value='';
+  document.getElementById('ai-fill-result').style.display='none';
+  document.getElementById('modal-ai-fill').classList.add('open');
+}
+
+async function doAIFill(){
+  const text=(document.getElementById('ai-fill-input')?.value||'').trim();
+  if(!text){toast('กรุณาวางข้อความก่อน');return;}
+
+  const btn=document.querySelector('[onclick="doAIFill()"]');
+  if(btn){btn.textContent='⏳ กำลังวิเคราะห์...';btn.disabled=true;}
+  const resultEl=document.getElementById('ai-fill-result');
+  resultEl.style.display='block';
+  resultEl.textContent='กำลังวิเคราะห์ข้อมูล...';
+
+  const today=new Date().toISOString().split('T')[0];
+  const sourceList=(S.sources||[]).join(', ');
+  const jobTypeList=(S.jobTypes||[]).map(t=>typeof t==='object'?t.name:t).join(', ');
+  const clientList=(S.clients||[]).map(c=>c.name).join(', ');
+
+  const prompt=`วิเคราะห์ข้อความด้านล่างแล้วแยกข้อมูลงานดนตรี ตอบเป็น JSON เท่านั้น ไม่มีคำอธิบาย:
+
+ข้อความ:
+${text}
+
+ให้แยกข้อมูลเป็น JSON ดังนี้:
+{
+  "name": "ชื่องาน (ถ้าไม่มีให้สรุปสั้นๆ)",
+  "date": "YYYY-MM-DD (วันที่จัดงาน, ถ้าไม่มีให้เป็น ${today})",
+  "timeStart": "HH:MM (เวลาเริ่ม 24h format, ถ้าไม่มีให้เป็น null)",
+  "timeEnd": "HH:MM (เวลาจบ, ถ้าไม่มีให้เป็น null)",
+  "venue": "ชื่อสถานที่",
+  "province": "จังหวัด",
+  "fee": 0,
+  "source": "แหล่งที่มา (เลือกจาก: ${sourceList} หรือว่างไว้)",
+  "type": "ประเภทงาน (เลือกจาก: ${jobTypeList} หรือว่างไว้)",
+  "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง",
+  "note": "หมายเหตุอื่นๆ"
+}`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d=await resp.json();
+    const raw=d.content?.[0]?.text||'';
+    /* extract JSON */
+    const jsonMatch=raw.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('ไม่พบ JSON ใน response');
+    const parsed=JSON.parse(jsonMatch[0]);
+
+    /* Fill form fields */
+    if(parsed.name) document.getElementById('gn').value=parsed.name;
+    if(parsed.date) document.getElementById('gd').value=parsed.date;
+    if(parsed.timeStart){
+      const ts=document.getElementById('gtstart');
+      if(ts){const opt=Array.from(ts.options).find(o=>o.value===parsed.timeStart);if(opt)ts.value=parsed.timeStart;}
+    }
+    if(parsed.timeEnd){
+      const te=document.getElementById('gtend');
+      if(te){const opt=Array.from(te.options).find(o=>o.value===parsed.timeEnd);if(opt)te.value=parsed.timeEnd;}
+    }
+    if(parsed.venue) document.getElementById('gv').value=parsed.venue;
+    if(parsed.province) document.getElementById('gprov').value=parsed.province;
+    if(parsed.fee>0){
+      document.getElementById('gf-band').value=parsed.fee;
+      calcTotalIncome();
+    }
+    if(parsed.source){
+      const gs=document.getElementById('gsource');
+      if(gs){const opt=Array.from(gs.options).find(o=>o.value===parsed.source);if(opt)gs.value=parsed.source;}
+    }
+    if(parsed.type){
+      const gt=document.getElementById('gtype');
+      if(gt){const opt=Array.from(gt.options).find(o=>o.value===parsed.type);if(opt)gt.value=parsed.type;}
+    }
+    if(parsed.note) document.getElementById('gnote').value=parsed.note;
+    /* Client — หา match จาก clients */
+    if(parsed.clientName){
+      const match=S.clients.find(c=>c.name.includes(parsed.clientName)||parsed.clientName.includes(c.name));
+      if(match){
+        setCtype('old');gigState.selectedClientId=match.id;
+        document.getElementById('gclient-search').value=match.name;
+        document.getElementById('gcphone').value=match.phone||'';
+      } else {
+        setCtype('new');
+        document.getElementById('gcname-new').value=parsed.clientName;
+      }
+    }
+
+    resultEl.textContent='✅ กรอกข้อมูลแล้ว กรุณาตรวจสอบและกดบันทึก';
+    resultEl.style.color='var(--green)';
+    setTimeout(()=>{
+      cx('modal-ai-fill');
+      /* เปิด modal เพิ่มงาน แล้วให้คนกดบันทึกเอง */
+      if(!document.getElementById('mgig').classList.contains('open')){
+        openGig();
+        /* re-fill หลัง openGig clear fields */
+        setTimeout(()=>_reApplyAIFill(parsed),80);
+      } else {
+        _reApplyAIFill(parsed);
+      }
+    },600);
+  }catch(e){
+    console.error('AI fill error:',e);
+    resultEl.textContent='❌ ไม่สามารถวิเคราะห์ได้: '+e.message;
+    resultEl.style.color='var(--red)';
+  }
+  if(btn){btn.textContent='✨ วิเคราะห์และกรอก';btn.disabled=false;}
+}
+
+/* helper: re-apply AI parsed data into gig form */
+function _reApplyAIFill(p){
+  if(p.name) document.getElementById('gn').value=p.name;
+  if(p.date) document.getElementById('gd').value=p.date;
+  if(p.timeStart){const ts=document.getElementById('gtstart');if(ts&&Array.from(ts.options).find(o=>o.value===p.timeStart))ts.value=p.timeStart;}
+  if(p.timeEnd){const te=document.getElementById('gtend');if(te&&Array.from(te.options).find(o=>o.value===p.timeEnd))te.value=p.timeEnd;}
+  if(p.venue) document.getElementById('gv').value=p.venue;
+  if(p.province) document.getElementById('gprov').value=p.province;
+  if(p.fee>0){document.getElementById('gf-band').value=p.fee;calcTotalIncome();}
+  if(p.source){const gs=document.getElementById('gsource');if(gs&&Array.from(gs.options).find(o=>o.value===p.source))gs.value=p.source;}
+  if(p.type){const gt=document.getElementById('gtype');if(gt&&Array.from(gt.options).find(o=>o.value===p.type))gt.value=p.type;}
+  if(p.note) document.getElementById('gnote').value=p.note;
+  if(p.clientName){
+    const match=S.clients.find(c=>c.name.includes(p.clientName)||p.clientName.includes(c.name));
+    if(match){setCtype('old');gigState.selectedClientId=match.id;document.getElementById('gclient-search').value=match.name;document.getElementById('gcphone').value=match.phone||'';}
+    else{setCtype('new');document.getElementById('gcname-new').value=p.clientName;}
+  }
+}
 </script>
 </body>
 </html>
