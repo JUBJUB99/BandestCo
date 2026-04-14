@@ -3681,7 +3681,8 @@ function openCalPopup(gigId){
   document.getElementById('cpop-phone').textContent=clPhone;
   document.getElementById('cpop-band').textContent=g.bandSize?(g.bandSize+' ชิ้น'):'—';
   document.getElementById('cpop-src').textContent=g.source||'—';
-  document.getElementById('cpop-fee').textContent='฿'+f(gigNet(g));
+  const feeEl=document.getElementById('cpop-fee');
+  if(feeEl) feeEl.textContent='฿'+f(gigNet(g));
   // musicians
   const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length}));
   const memNames=mus.map(mu=>{const mem=S.members.find(x=>x.id===mu.memberId);return mem?`${mem.name} (${mem.nick})`:''}).filter(Boolean);
