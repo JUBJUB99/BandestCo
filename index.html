@@ -345,6 +345,70 @@ tbody tr:hover{background:var(--rl)}
   box-shadow:0 4px 16px rgba(0,0,0,.25);
 }
 
+/* ── VIEW-ONLY MODE (member role) ── */
+/* ล็อกทุก input/textarea/select/button ที่ไม่ใช่ view action */
+body.view-only input:not([type=checkbox]):not(#recv-search):not(#pay-search):not(#income-filter-month):not(#income-filter-year):not(#income-filter-source):not(#income-filter-type):not(.gig-cb):not(#recv-show-history):not(#pay-show-history){
+  pointer-events:none!important;
+  background:var(--bg)!important;
+  color:var(--ink3)!important;
+  cursor:default!important;
+}
+body.view-only textarea{
+  pointer-events:none!important;
+  background:var(--bg)!important;
+  color:var(--ink3)!important;
+  resize:none!important;
+  cursor:default!important;
+}
+body.view-only select:not(#income-filter-month):not(#income-filter-year):not(#income-filter-source):not(#income-filter-type):not(#kpi-filter-month):not(#kpi-filter-year):not(#fcy):not(#gig-sort){
+  pointer-events:none!important;
+  background:var(--bg)!important;
+  color:var(--ink3)!important;
+  cursor:default!important;
+}
+/* ซ่อน btn-r (action buttons) ทั้งหมด ยกเว้น view actions */
+body.view-only .btn-r:not(.view-allowed),
+body.view-only .btn-o:not(.view-allowed),
+body.view-only [onclick*="openGig"],
+body.view-only [onclick*="editGig"],
+body.view-only [onclick*="cancelGig"],
+body.view-only [onclick*="openMem"],
+body.view-only [onclick*="editMem"],
+body.view-only [onclick*="saveRecv"],
+body.view-only [onclick*="savePay"],
+body.view-only [onclick*="openAddClient"],
+body.view-only [onclick*="saveClient"],
+body.view-only [onclick*="addSource"],
+body.view-only [onclick*="addJobType"],
+body.view-only [onclick*="saveUserAccount"],
+body.view-only [onclick*="saveExpense"],
+body.view-only [onclick*="openAIFill"],
+body.view-only #btn-add-gig,
+body.view-only .gig-action-bar,
+body.view-only [id="gig-select-all"]{
+  display:none!important;
+}
+/* ซ่อนปุ่มอัปโหลดไฟล์ */
+body.view-only [onclick*="triggerPaySlip"],
+body.view-only [onclick*="triggerSlip"],
+body.view-only [type=file]{
+  display:none!important;
+}
+/* ซ่อน slip upload areas */
+body.view-only .slip-preview-empty,
+body.view-only .pay-slip-empty{
+  display:none!important;
+}
+/* ยังให้ดู note ได้ แต่แก้ไขไม่ได้ */
+body.view-only .pay-mem-body .fi[id^=pay-note]{
+  pointer-events:none!important;
+}
+/* ซ่อน checkbox ใน pay modal */
+body.view-only .pay-check{
+  pointer-events:none!important;
+  opacity:.5!important;
+}
+
 /* ── SMOOTH ANIMATIONS ── */
 @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .page.active,.tpane.active{animation:fu .2s cubic-bezier(.34,1.2,.64,1)}
@@ -528,7 +592,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
   .mob-sidebar-overlay.open{display:block}
   .main{padding-bottom:64px;height:auto;min-height:100vh}
   /* แสดงปุ่มซ่อน sidebar บน mobile */
-  #sb-close-btn{display:flex!important}
+  #sb-close-btn{display:none!important}
 
   /* ═══ TOPBAR ═══ */
   .topbar{padding:0 12px 0 56px;height:50px;gap:8px}  /* 56px = space for FAB */
@@ -860,7 +924,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         <div class="sb-uname" id="sb-uname">กำลังโหลด...</div>
         <div class="sb-urole" id="sb-urole"></div>
       </div>
-      <button onclick="doLogout()" title="ออกจากระบบ" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--bd2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink3);transition:all .12s" onmouseover="this.style.background='var(--rl)';this.style.color='var(--red)'" onmouseout="this.style.background='transparent';this.style.color='var(--ink3)'">
+      <button class="view-allowed" onclick="doLogout()" title="ออกจากระบบ" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--bd2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink3);transition:all .12s" onmouseover="this.style.background='var(--rl)';this.style.color='var(--red)'" onmouseout="this.style.background='transparent';this.style.color='var(--ink3)'">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H3a1 1 0 00-1 1v8a1 1 0 001 1h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M9 10l3-3-3-3M12 7H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
@@ -1071,13 +1135,17 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
   <!-- RECEIVE PAGE (full screen) -->
   <div class="page" id="page-recv" style="flex-direction:column;height:100vh;overflow:hidden">
     <div class="topbar" style="flex-shrink:0">
-      <button onclick="backToGigs()" class="tb-btn" style="width:auto;padding:0 12px;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)">
+      <button onclick="backToGigs()" class="tb-btn view-allowed" style="width:auto;padding:0 12px;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         กลับ
       </button>
       <div class="tb-title" style="margin-left:8px">รับเงินจากลูกค้า</div>
       <div class="tb-right">
-        <input id="recv-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:200px;height:32px;padding:4px 12px;font-size:12px" oninput="renderRecvPageList()">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--ink2);white-space:nowrap;user-select:none">
+          <input type="checkbox" id="recv-show-history" onchange="renderRecvPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
+          ดูประวัติย้อนหลัง
+        </label>
+        <input id="recv-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:160px;height:32px;padding:4px 12px;font-size:12px" oninput="renderRecvPageList()">
         <span id="recv-page-count" style="font-size:11px;color:var(--ink3);white-space:nowrap"></span>
       </div>
     </div>
@@ -1094,13 +1162,17 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
   <!-- PAY PAGE (full screen) -->
   <div class="page" id="page-pay" style="flex-direction:column;height:100vh;overflow:hidden">
     <div class="topbar" style="flex-shrink:0">
-      <button onclick="backToGigs()" class="tb-btn" style="width:auto;padding:0 12px;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)">
+      <button onclick="backToGigs()" class="tb-btn view-allowed" style="width:auto;padding:0 12px;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         กลับ
       </button>
       <div class="tb-title" style="margin-left:8px">จ่ายค่าตัวนักดนตรี</div>
       <div class="tb-right">
-        <input id="pay-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:200px;height:32px;padding:4px 12px;font-size:12px" oninput="renderPayPageList()">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--ink2);white-space:nowrap;user-select:none">
+          <input type="checkbox" id="pay-show-history" onchange="renderPayPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
+          ดูประวัติย้อนหลัง
+        </label>
+        <input id="pay-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:160px;height:32px;padding:4px 12px;font-size:12px" oninput="renderPayPageList()">
         <span id="pay-page-count" style="font-size:11px;color:var(--ink3);white-space:nowrap"></span>
       </div>
     </div>
@@ -1119,6 +1191,11 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
     <div class="topbar">
       <button class="mob-hamburger" onclick="toggleMobSidebar()"><span></span><span></span><span></span></button>
       <div class="tb-title">รายได้สมาชิก</div>
+      <div class="tb-right" style="margin-left:auto">
+        <button onclick="openExportModal()" style="display:flex;align-items:center;gap:6px;padding:5px 14px;background:#10B981;color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--f);height:32px">
+          📊 Export Excel
+        </button>
+      </div>
       <div class="tb-right">
         <select id="income-filter-month" class="chart-sel" style="height:30px;padding:4px 10px;font-size:12px" onchange="ri()">
           <option value="">ทุกเดือน</option>
@@ -1145,14 +1222,14 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div id="income-kpi" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px"></div>
       <!-- Member income table -->
       <div class="tc" style="margin-bottom:16px">
-        <div class="tw"><table>
+        <div id="itable-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="itable-table" style="width:100%;border-collapse:collapse">
           <thead><tr>
             <th>สมาชิก</th>
             <th>ตำแหน่ง</th>
-            <th style="background:#FEF2F2;color:#B91C1C">รายได้รับจริง (Paid)</th>
-            <th style="background:#FEF2F2;color:#B91C1C">จำนวนงาน (Paid)</th>
-            <th style="background:#EFF6FF;color:#1D4ED8">รายได้คาดการณ์ (Unpaid)</th>
-            <th style="background:#EFF6FF;color:#1D4ED8">จำนวนงาน (Unpaid)</th>
+            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap">รายได้จริง (Paid)</th>
+            <th style="background:#FEF2F2;color:#B91C1C;text-align:center">งาน</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap">คาดการณ์ (Unpaid)</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;text-align:center">งาน</th>
           </tr></thead>
           <tbody id="itable"></tbody>
         </table></div>
@@ -1161,8 +1238,8 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="sec-t" id="idetail-label">รายละเอียดต่องาน</div>
       </div>
-      <div class="tc"><div class="tw"><table>
-        <thead><tr><th>Order ID</th><th>งาน</th><th>วันที่</th><th>ค่าตัวสุทธิ</th><th>ส่วนแบ่ง</th><th>จ่ายแล้ว</th><th>สถานะงาน</th></tr></thead>
+      <div class="tc"><div id="idetail-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;min-width:500px">
+        <thead><tr><th style="white-space:nowrap">Order ID</th><th>งาน</th><th style="white-space:nowrap">วันที่</th><th style="white-space:nowrap">ค่าตัวสุทธิ</th><th style="white-space:nowrap">ส่วนแบ่ง</th><th style="white-space:nowrap">จ่ายแล้ว</th><th style="white-space:nowrap">สถานะ</th></tr></thead>
         <tbody id="idetail"></tbody>
       </table></div></div>
     </div>
@@ -1287,10 +1364,10 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       </div>
       <div class="tc" style="padding:20px">
         <div class="sec-t" style="margin-bottom:14px">ข้อมูลวง</div>
-        <div class="fg"><label class="fl">ชื่อวง</label><input class="fi" value="BandestCo"></div>
+        <div class="fg"><label class="fl">ชื่อวง</label><input class="fi" id="setup-band-name" placeholder="ชื่อวงดนตรี"></div>
         <div class="fg"><label class="fl">หัวหน้าวง</label><input class="fi" id="setup-leader" value=""></div>
-        <div class="fg"><label class="fl">อัตราภาษีหัก ณ ที่จ่าย (%)</label><input class="fi" type="number" value="3"></div>
-        <button class="btn btn-r" style="margin-top:4px" onclick="toast('บันทึกแล้ว')">บันทึก</button>
+        <div class="fg"><label class="fl">อัตราภาษีหัก ณ ที่จ่าย (%)</label><input class="fi" id="setup-wht-rate" type="number" value="3" min="0" max="100" step="0.5" style="font-size:13px"></div>
+        <button class="btn btn-r" style="margin-top:4px" onclick="saveBandSettings()">บันทึก</button>
       </div>
       <div class="tc" style="padding:20px">
         <div class="sec-t" style="margin-bottom:14px">แหล่งที่มาของลูกค้า (Master)</div>
@@ -1887,6 +1964,18 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <span id="gf-total-display" style="font-size:18px;font-weight:700;color:var(--red)">฿0</span>
         </div>
         <div id="income-breakdown" style="font-size:10px;color:var(--ink3);margin-top:4px;display:flex;flex-direction:column;gap:1px"></div>
+        <!-- WHT Toggle -->
+        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:var(--r);padding:8px 12px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:500;color:var(--ink2);user-select:none">
+            <input type="checkbox" id="gig-wht" onchange="calcWHT()" style="accent-color:var(--red);width:15px;height:15px;cursor:pointer">
+            มีภาษีหัก ณ ที่จ่าย <span id="gig-wht-rate-label" style="color:var(--ink3)"></span>
+          </label>
+          <span id="gig-wht-display" style="margin-left:auto;font-size:12px;font-weight:600;color:#6C5CE7;display:none"></span>
+        </div>
+        <div id="gig-wht-net-wrap" style="display:none;margin-top:4px;background:var(--wh);border:1.5px solid #6C5CE7;border-radius:var(--r);padding:7px 12px;display:none;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--ink3)">รายได้หลังหักภาษี</span>
+          <span id="gig-wht-net-display" style="font-size:16px;font-weight:700;color:#6C5CE7">฿0</span>
+        </div>
       </div>
 
       <!-- ค่าใช้จ่าย + สถานะ + หมายเหตุ -->
@@ -2079,7 +2168,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       </div>
     </div>
     <div class="fg"><label class="fl">หมายเหตุ (ถ้ามี)</label><input class="fi" id="recv-note" placeholder="เช่น มัดจำงวดแรก 50%"></div>
-    <div class="ma"><button class="btn btn-o" onclick="cx('modal-recv')">ยกเลิก</button><button class="btn btn-r" onclick="saveRecv()">บันทึกการรับเงิน</button></div>
+    <div class="ma"><button class="btn btn-o" onclick="cx('modal-recv')">ปิด</button><button class="btn btn-r" id="modal-recv-save-btn" onclick="saveRecv()">บันทึกการรับเงิน</button></div>
   </div>
 </div>
 
@@ -2095,13 +2184,19 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <span style="color:var(--ink2);font-weight:500">ยอดที่จะจ่ายรวม</span>
       <span id="pay-total-display" style="font-size:18px;font-weight:700;color:var(--red)">฿0</span>
     </div>
-    <div class="ma"><button class="btn btn-o" onclick="cx('modal-pay')">ยกเลิก</button><button class="btn btn-r" onclick="savePay()">บันทึกการจ่ายเงิน</button></div>
+    <div class="ma" id="modal-pay-actions"><button class="btn btn-o" onclick="cx('modal-pay')">ปิด</button><button class="btn btn-r" id="modal-pay-save-btn" onclick="savePay()">บันทึกการจ่ายเงิน</button></div>
   </div>
 </div>
 
 <!-- MODAL: SLIP FULLSCREEN -->
-<div class="overlay" id="modal-slip-view" onclick="cx('modal-slip-view')" style="background:rgba(0,0,0,0.85)">
-  <img id="slip-view-img" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain">
+<div class="overlay" id="modal-slip-view" style="background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px" onclick="cx('modal-slip-view')">
+  <img id="slip-view-img" style="max-width:90vw;max-height:82vh;border-radius:8px;object-fit:contain">
+  <div style="display:flex;gap:10px" onclick="event.stopPropagation()">
+    <a id="slip-download-btn" download="slip.jpg" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:#1E293B;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer">
+      ⬇ บันทึกรูปสลิป
+    </a>
+    <button onclick="cx('modal-slip-view')" style="padding:8px 18px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--f)">ปิด</button>
+  </div>
 </div>
 
 <script>
@@ -3089,6 +3184,16 @@ function ri(){
     const mu=mus.find(x=>String(x.memberId)===String(mem.id));
     return mu?Math.round(gigNet(g)*(mu.pct/100)):0;
   };
+  /* forecast cut: ถ้ายังไม่ assign → หารเท่ากัน */
+  const getMemForecastCut=(g,mem)=>{
+    if(g.musicians&&g.musicians.length){
+      const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
+      return mu?Math.round(gigNet(g)*(mu.pct/100)):0;
+    }
+    /* ยังไม่ assign → หารเท่ากันตามจำนวน active member */
+    const activeCount=S.members.filter(m=>m.status==='active').length||1;
+    return Math.round(gigNet(g)/activeCount);
+  };
   const isMemPaid=(g,mem)=>{
     const p=(g.memberPayments||{})[mem.id];
     return p&&(p===true||(typeof p==='object'&&p.paid));
@@ -3136,15 +3241,23 @@ function ri(){
       <div class="kpi-sub">Assign แล้ว ยังรอจ่าย</div>
     </div>`;
 
-  /* ── member table: per-member paid/forecast + gig counts (เฉพาะงานที่ assign แล้ว) ── */
-  const memData=S.members.map(mem=>{
+  /* ── member table: เฉพาะสมาชิกที่ถูก assign งานแล้วเท่านั้น ── */
+  const memData=S.members.filter(m=>m.status==='active').map(mem=>{
     let realIncome=0,forecastIncome=0,paidGigCount=0,unpaidGigCount=0;
     allGigs.forEach(g=>{
-      if(!isMemAssigned(g,mem))return; /* ข้ามถ้าไม่ได้ assign */
-      const cut=getMemCut(g,mem);
-      if(!cut)return;
-      if(isMemPaid(g,mem)){realIncome+=cut;paidGigCount++;}
-      else{forecastIncome+=cut;unpaidGigCount++;}
+      if(g.status==='cancelled')return;
+      if(isMemAssigned(g,mem)){
+        const cut=getMemCut(g,mem);
+        if(!cut)return;
+        if(isMemPaid(g,mem)){realIncome+=cut;paidGigCount++;}
+        else{forecastIncome+=cut;unpaidGigCount++;}
+      } else if(!g.musicians||!g.musicians.length){
+        /* ยังไม่ assign → forecast หารเท่ากัน */
+        if(g.status!=='paid'){
+          const cut=getMemForecastCut(g,mem);
+          if(cut){forecastIncome+=cut;unpaidGigCount++;}
+        }
+      }
     });
     return{...mem,realIncome,forecastIncome,paidGigCount,unpaidGigCount};
   }).sort((a,b)=>(b.realIncome+b.forecastIncome)-(a.realIncome+a.forecastIncome));
@@ -3193,7 +3306,9 @@ function renderIncomeDetail(m,y,gg){
   if(lbl) lbl.textContent=`รายละเอียดต่องาน — ${mem.name} (${mem.nick})`;
 
   document.getElementById('idetail').innerHTML=gg.map(g=>{
-    const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(x=>x.status==='active').map(x=>({memberId:x.id,pct:100/S.members.filter(a=>a.status==='active').length}));
+    /* ข้ามงานที่ยังไม่ assign นักดนตรี */
+    if(!g.musicians||!g.musicians.length) return '';
+    const mus=g.musicians;
     const mu=mus.find(x=>String(x.memberId)===String(mem.id));
     if(!mu)return'';
     const myIncome=Math.round(gigNet(g)*(mu.pct/100));
@@ -3266,7 +3381,7 @@ function rcal(){
     let dg=S.gigs.filter(g=>g.date===ds&&g.status!=='cancelled');
     if(filterMid) dg=dg.filter(g=>{
       if(!g.musicians||!g.musicians.length) return true;
-      return g.musicians.some(mu=>mu.memberId==filterMid);
+      return g.musicians.some(mu=>String(mu.memberId)===String(filterMid));
     });
     const iT=td.getDate()===d&&td.getMonth()===m&&td.getFullYear()===y;
     const events=dg.map(g=>{
@@ -3299,7 +3414,7 @@ function cnext(){S.cm++;if(S.cm>11){S.cm=0;S.cy++;}rcal();}
 
 function setCalMember(mid,el){S.calFilterMember=mid;rcal();}
 function setCalMemberDD(val){
-  S.calFilterMember=val?parseInt(val):null;
+  S.calFilterMember=val||null; /* keep as string UUID */
   rcal();
 }
 function renderCalFilterBar(){
@@ -3631,6 +3746,30 @@ function calcExpenses(){
   const bdEl=document.getElementById('expense-breakdown');
   if(bdEl) bdEl.innerHTML=lines.map(l=>`<span>${l}</span>`).join('');
 }
+function calcWHT(){
+  const checked=document.getElementById('gig-wht')?.checked||false;
+  const total=parseFloat(document.getElementById('gf')?.value)||0;
+  const rate=parseFloat(S.bandInfo?.whtRate||3);
+  const rateLabel=document.getElementById('gig-wht-rate-label');
+  if(rateLabel) rateLabel.textContent=`(${rate}%)`;
+  const whtDisplay=document.getElementById('gig-wht-display');
+  const netWrap=document.getElementById('gig-wht-net-wrap');
+  const netDisplay=document.getElementById('gig-wht-net-display');
+  if(checked&&total>0){
+    const whtAmt=Math.round(total*rate/100);
+    const netAmt=total-whtAmt;
+    if(whtDisplay){whtDisplay.style.display='block';whtDisplay.textContent=`หัก ${rate}% = ฿${whtAmt.toLocaleString('th-TH')}`;}
+    if(netWrap){netWrap.style.display='flex';}
+    if(netDisplay) netDisplay.textContent='฿'+netAmt.toLocaleString('th-TH');
+    /* store in gigState */
+    gigState.whtRate=rate;gigState.whtAmt=whtAmt;gigState.whtNet=netAmt;
+  } else {
+    if(whtDisplay){whtDisplay.style.display='none';}
+    if(netWrap){netWrap.style.display='none';}
+    gigState.whtRate=0;gigState.whtAmt=0;gigState.whtNet=0;
+  }
+}
+
 function calcTotalIncome(){
   let total=0;const lines=[];
   INCOME_FIELDS.forEach(f=>{
@@ -3643,6 +3782,10 @@ function calcTotalIncome(){
   document.getElementById('income-breakdown').innerHTML=lines.join('');
   if(gigState.count>0) updateSummary();
   calcExpenses();
+  /* update WHT label rate */
+  const rateLabel=document.getElementById('gig-wht-rate-label');
+  if(rateLabel) rateLabel.textContent=`(${S.bandInfo?.whtRate||3}%)`;
+  calcWHT();
 }
 function renderMemberRows(){
   const wrap=document.getElementById('gig-member-rows');
@@ -3903,6 +4046,8 @@ function editGig(id){
     document.getElementById('gcount').value='';
     document.getElementById('gig-members-wrap').style.display='none';
   }
+  /* restore WHT */
+  setTimeout(()=>{const cb=document.getElementById('gig-wht');if(cb){cb.checked=!!(g.whtEnabled);calcWHT();}},50);
   document.getElementById('mgig').classList.add('open');
 }
 function sg(){
@@ -3952,7 +4097,7 @@ function sg(){
   const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
   const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||''};
   const expenses={soundMemberId:document.getElementById('ge-sound-member')?.value||null,soundFee:gv('ge-sound-fee'),adsFee:0,adsChannel:'',otherFee:gv('ge-other-fee'),otherNote:document.getElementById('ge-other-note')?.value||''};
-  const data={name:n,date:d,expenses,recDate:document.getElementById('grec').value,timeStart:document.getElementById('gtstart').value,timeEnd:document.getElementById('gtend').value,fee:fe,income,venue:document.getElementById('gv').value.trim(),mapLink:document.getElementById('gmap')?.value.trim()||'',province:document.getElementById('gprov').value.trim(),type:document.getElementById('gtype').value,status:document.getElementById('gst').value,bandSize:document.getElementById('gbandsize').value,source:document.getElementById('gsource').value,note:document.getElementById('gnote').value.trim(),clientId,clientName,clientPhone,clientBankName:document.getElementById('gcbank-name-new')?.value.trim()||'',clientBankNo:document.getElementById('gcbank-no-new')?.value.trim()||'',musicians:gigState.count>0?getGigMembers():[],splitMode:gigState.splitMode};
+  const data={name:n,date:d,expenses,recDate:document.getElementById('grec').value,timeStart:document.getElementById('gtstart').value,timeEnd:document.getElementById('gtend').value,fee:fe,income,venue:document.getElementById('gv').value.trim(),mapLink:document.getElementById('gmap')?.value.trim()||'',province:document.getElementById('gprov').value.trim(),type:document.getElementById('gtype').value,status:document.getElementById('gst').value,bandSize:document.getElementById('gbandsize').value,source:document.getElementById('gsource').value,note:document.getElementById('gnote').value.trim(),clientId,clientName,clientPhone,clientBankName:document.getElementById('gcbank-name-new')?.value.trim()||'',clientBankNo:document.getElementById('gcbank-no-new')?.value.trim()||'',musicians:gigState.count>0?getGigMembers():[],splitMode:gigState.splitMode,whtEnabled:document.getElementById('gig-wht')?.checked||false,whtRate:gigState.whtRate||0,whtAmt:gigState.whtAmt||0,whtNet:gigState.whtNet||0};
   if(S.eid){
     const i=S.gigs.findIndex(g=>g.id===S.eid);
     if(i<0){toast('ไม่พบข้อมูลงาน');return;}
@@ -4031,6 +4176,7 @@ function goToRecvPage(){
   const pg=document.getElementById('page-recv');
   pg.classList.add('active');pg.style.display='flex';
   const el=document.getElementById('recv-search');if(el)el.value='';
+  const rh=document.getElementById('recv-show-history');if(rh)rh.checked=false;
   renderRecvPageList();
 }
 
@@ -4040,6 +4186,7 @@ function goToPayPage(){
   const pg=document.getElementById('page-pay');
   pg.classList.add('active');pg.style.display='flex';
   const el=document.getElementById('pay-search');if(el)el.value='';
+  const ph=document.getElementById('pay-show-history');if(ph)ph.checked=false;
   renderPayPageList();
 }
 
@@ -4055,13 +4202,25 @@ function backToGigs(){
 
 function renderRecvPageList(){
   const q=(document.getElementById('recv-search')?.value||'').trim().toLowerCase();
-  let list=S.gigs.filter(g=>g.status==='confirmed'||g.status==='deposit').sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const isAdmin=currentUser?.role==='admin';
+  const showHistory=document.getElementById('recv-show-history')?.checked||false;
+  const _showHistoryRecv=showHistory;
+  let list=S.gigs.filter(g=>{
+    if(g.status==='cancelled') return false;
+    if(showHistory){
+      /* ดูประวัติ: แสดงเฉพาะงานที่มีการรับเงินแล้ว */
+      return (g.payments||[]).length>0;
+    } else {
+      /* คงค้าง: งานที่ยังรับไม่ครบ */
+      return g.status==='confirmed'||g.status==='deposit';
+    }
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(q) list=list.filter(g=>(g.name+g.venue+(g.clientName||'')).toLowerCase().includes(q));
   const cnt=document.getElementById('recv-page-count');
   const empty=document.getElementById('recv-page-empty');
   const listEl=document.getElementById('recv-page-list');
-  const total=S.gigs.filter(g=>g.status==='confirmed'||g.status==='deposit').length;
-  if(cnt) cnt.textContent=q?`พบ ${list.length} จาก ${total} รายการ`:`${total} งานรอรับเงิน`;
+  const total=list.length;
+  if(cnt) cnt.textContent=q?`พบ ${list.length} จาก ${total} รายการ`:(showHistory?`${total} งาน (ประวัติ)`:`${total} งานรอรับเงิน`);
   if(!list.length){
     if(empty)empty.style.display='block';
     if(listEl){listEl.style.display='none';listEl.innerHTML='';}
@@ -4134,9 +4293,7 @@ function renderRecvPageList(){
             </div>
           </div>`).join('')}
         </div>`:''}
-        <button class="btn btn-r" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" onclick="openRecv('${g.id}')">
-          + บันทึกการรับเงิน
-        </button>
+        ${(()=>{const isHist=_showHistoryRecv||currentUser?.role!=='admin';if(isHist)return '';return `<button class="btn btn-r view-allowed" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" onclick="openRecv('${g.id}')">+ บันทึกการรับเงิน</button>`;})()} 
       </div>
     </div>`;
   }).join('');
@@ -4144,13 +4301,28 @@ function renderRecvPageList(){
 
 function renderPayPageList(){
   const q=(document.getElementById('pay-search')?.value||'').trim().toLowerCase();
-  let list=S.gigs.filter(g=>g.status!=='cancelled'&&(g.musicians||[]).length>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const isAdminPay=currentUser?.role==='admin';
+  const showPayHistory=document.getElementById('pay-show-history')?.checked||false;
+  let list=S.gigs.filter(g=>{
+    if(g.status==='cancelled') return false;
+    const mus=g.musicians||[];
+    if(!mus.length) return false;
+    const paid=g.memberPayments||{};
+    const paidCount=mus.filter(mu=>{const p=paid[mu.memberId];return p&&(p===true||(typeof p==='object'&&p.paid));}).length;
+    if(showPayHistory){
+      /* ดูประวัติ: แสดงงานที่จ่ายครบแล้ว */
+      return paidCount===mus.length;
+    } else {
+      /* คงค้าง: งานที่ยังจ่ายไม่ครบ */
+      return paidCount<mus.length;
+    }
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(q) list=list.filter(g=>g.name.toLowerCase().includes(q));
   const cnt=document.getElementById('pay-page-count');
   const empty=document.getElementById('pay-page-empty');
   const listEl=document.getElementById('pay-page-list');
-  const total=S.gigs.filter(g=>g.status!=='cancelled'&&(g.musicians||[]).length>0).length;
-  if(cnt) cnt.textContent=q?`พบ ${list.length} จาก ${total} รายการ`:`${total} งาน`;
+  const total=list.length;
+  if(cnt) cnt.textContent=q?`พบ ${list.length} จาก ${total} รายการ`:(showPayHistory?`${total} งาน (ประวัติ)`:`${total} งานค้างจ่าย`);
   if(!list.length){
     if(empty)empty.style.display='block';
     if(listEl){listEl.style.display='none';listEl.innerHTML='';}
@@ -4213,9 +4385,7 @@ function renderPayPageList(){
             </div>`;
           }).join('')}
         </div>
-        <button class="btn btn-r" style="width:100%;padding:10px 0;font-size:13px" onclick="openPay('${g.id}')">
-          💰 จัดการการจ่ายเงิน
-        </button>
+        ${(()=>{const isHistP=showPayHistory||currentUser?.role!=='admin';return `<button class="btn ${isHistP?'btn-o':'btn-r'} view-allowed" style="width:100%;padding:10px 0;font-size:13px" onclick="openPay('${g.id}')">${isHistP?'👁 ดูประวัติการจ่าย':'💰 จัดการการจ่ายเงิน'}</button>`;})()}
       </div>
     </div>`;
   }).join('');
@@ -4225,7 +4395,7 @@ function renderRecvList(){renderRecvPageList();}
 function renderPayList(){renderPayPageList();}
 let recvSlipData=null;
 function openRecv(gigId){
-  if(!requireAdmin('รับเงิน'))return;
+  /* member สามารถดูประวัติได้ แต่บันทึกไม่ได้ */
   const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
   recvSlipData=null;
   document.getElementById('recv-gig-id').value=gigId;
@@ -4246,9 +4416,15 @@ function openRecv(gigId){
   const th=document.getElementById('slip-thumb');th.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>อัปโหลด';th.style.cssText='';th.className='slip-preview-empty';th.onclick=()=>document.getElementById('slip-file').click();
   setRecvType(remain<=0?'full':'deposit');
   document.getElementById('modal-recv').classList.add('open');
+  /* แสดง/ซ่อนปุ่มบันทึกตาม role */
+  const recvSaveBtn=document.getElementById('modal-recv-save-btn');
+  const isAdminUser=currentUser?.role==='admin';
+  if(recvSaveBtn) recvSaveBtn.style.display=isAdminUser?'':'none';
+  /* member mode: disable input */
+  const recvAmount=document.getElementById('recv-amount');
+  if(recvAmount) recvAmount.disabled=!isAdminUser;
 }
 function setRecvType(t){
-  gigState._recvType=t;
   document.getElementById('recv-type-deposit-btn').style.background=t==='deposit'?'var(--red)':'var(--wh)';
   document.getElementById('recv-type-deposit-btn').style.color=t==='deposit'?'#fff':'var(--ink3)';
   document.getElementById('recv-type-full-btn').style.background=t==='full'?'var(--red)':'var(--wh)';
@@ -4389,10 +4565,10 @@ function slipImg(src, size=32, style=''){
       const data=await SlipStore.load(src);
       if(data){el.src=data;el.style.display='';}
     },50);
-    return `<img id="${id}" src="" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd);display:none${style?';'+style:''}" onclick="viewSlip('${src}')">`;
+    return `<img id="${id}" src="" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd);display:none${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
   }
   /* legacy base64/URL */
-  return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd)${style?';'+style:''}" onclick="viewSlip('${src}')">`;
+  return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd)${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
 }
 async function viewSlipByKey(key, fallbackSrc) {
   const src = key ? (await SlipStore.load(key) || fallbackSrc) : fallbackSrc;
@@ -4427,19 +4603,26 @@ function slipImg(src, size=32, style=''){
       const data=await SlipStore.load(src);
       if(data){el.src=data;el.style.display='';}
     },50);
-    return `<img id="${id}" src="" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd);display:none${style?';'+style:''}" onclick="viewSlip('${src}')">`;
+    return `<img id="${id}" src="" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd);display:none${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
   }
   /* legacy base64/URL */
-  return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd)${style?';'+style:''}" onclick="viewSlip('${src}')">`;
+  return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd)${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
 }
 async function viewSlip(src){
-  /* src can be a slip_key or a data URL */
   let imgSrc=src;
   if(src&&src.startsWith('slip_')){
     imgSrc=await SlipStore.load(src)||src;
   }
-  document.getElementById('slip-view-img').src=imgSrc;
-  document.getElementById('modal-slip-view').classList.add('open');
+  const img=document.getElementById('slip-view-img');
+  const dlBtn=document.getElementById('slip-download-btn');
+  const modal=document.getElementById('modal-slip-view');
+  if(img) img.src=imgSrc;
+  /* set download link */
+  if(dlBtn){
+    dlBtn.href=imgSrc;
+    dlBtn.download='slip_'+new Date().getTime()+'.jpg';
+  }
+  if(modal){modal.style.display='flex';modal.classList.add('open');}
 }
 function saveRecv(){
   if(!requireAdmin('บันทึกรับเงิน'))return;
@@ -4506,7 +4689,7 @@ function renderPayList(){
 let paySlips={};
 
 function openPay(gigId){
-  if(!requireAdmin('จ่ายเงิน'))return;
+  /* member ดูได้ แต่บันทึกไม่ได้ */
   const g=S.gigs.find(x=>x.id===gigId||String(x.id)===String(gigId));if(!g)return;
   console.log('openPay gig:', g.id, 'musicians:', g.musicians, 'members:', S.members.map(m=>m.id));
   paySlips={};
@@ -4516,7 +4699,10 @@ function openPay(gigId){
   document.getElementById('pay-gig-info').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px"><div><span style="color:var(--ink3)">ค่าตัวรวม: </span><strong style="color:var(--red)">฿${f(g.fee)}</strong>${expTotal>0?`<span style="color:var(--ink3);font-size:10px;margin-left:6px">− ค่าใช้จ่าย ฿${f(expTotal)} = สุทธิ <strong style="color:var(--green)">฿${f(netFee)}</strong></span>`:''}</div><span style="color:var(--ink3)">${fd(g.date)}</span></div>`;
   const paid=g.memberPayments||{};
   const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length}));
+  /* readOnly = history mode OR member role */
+  const _ro=readOnly;
   document.getElementById('pay-member-rows').innerHTML=mus.map((mu,i)=>{
+    const readOnly=_ro; /* pass to template scope */
     /* fix: compare as string to handle UUID vs number mismatch */
     const mem=S.members.find(x=>String(x.id)===String(mu.memberId));if(!mem)return'';
     const cut=getMemberCut(g,mem||{id:mu.memberId});
@@ -4525,8 +4711,8 @@ function openPay(gigId){
     const existSlip=typeof payData==='object'&&payData.slip?payData.slip:null;
     const mid=mu.memberId;
     return`<div class="pay-mem-card${isPaid?' paid-done':''}" id="pay-card-${mid}">
-      <div class="pay-mem-header" onclick="togglePayRow('${mid}',${cut})">
-        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" onclick="event.stopPropagation();togglePayRow('${mid}',${cut},this.checked)">
+      <div class="pay-mem-header" style="${readOnly?'cursor:default':''}" onclick="${readOnly?'':"togglePayRow('${mid}',${cut})"}">
+        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" ${readOnly?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="event.stopPropagation();${readOnly?'':"togglePayRow('${mid}',${cut},this.checked)"}">
         <div style="flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--ink)">${mem.name} <span style="color:var(--ink3);font-weight:400;font-size:12px">(${mem.nick}) — ${mem.role}</span></div>
           <div style="font-size:10px;color:var(--ink3);margin-top:2px">${Math.round(mu.pct)}% ของ ฿${f(gigNet(g))}</div>
@@ -4540,9 +4726,10 @@ function openPay(gigId){
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div>
             <div style="font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase">แนบสลิป</div>
-            <div id="pay-slip-thumb-${mid}" class="${existSlip?'pay-slip-thumb':'pay-slip-empty'}" onclick="triggerPaySlip('${mid}')" style="${existSlip?'':''}" >
+            <div id="pay-slip-thumb-${mid}" class="${existSlip?'pay-slip-thumb':'pay-slip-empty'}"
+              onclick="${existSlip?`viewSlip('${existSlip}')`:"triggerPaySlip('${mid}')"}" style="">
               ${existSlip
-                ?`<img id="es_${mid}" src="" data-slip-key="${existSlip}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`
+                ?`<img id="es_${mid}" src="" data-slip-key="${existSlip}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none">`
                 :'<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>อัปโหลด</span>'}
             </div>
             <input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip('${mid}',this)">
@@ -4552,11 +4739,29 @@ function openPay(gigId){
             <input class="fi" id="pay-note-${mid}" type="text" placeholder="เช่น โอนแล้ว 15 เม.ย." value="${typeof payData==='object'&&payData.note?payData.note:''}" style="font-size:12px;height:32px">
           </div>
         </div>
-        ${existSlip?`<div style="margin-top:8px;font-size:10px;color:var(--green)">✓ มีสลิปแนบแล้ว — <span style="cursor:pointer;text-decoration:underline" onclick="viewSlip('${existSlip}')">ดูสลิป</span></div>`:''}
+        ${existSlip?`<div style="margin-top:8px;font-size:10px;color:var(--green)">✓ มีสลิปแนบแล้ว — <span style="cursor:pointer;text-decoration:underline" class="view-allowed" onclick="viewSlip('${existSlip}')">ดูสลิป</span></div>`:''}
       </div>
     </div>`;
   }).join('');
   updatePayTotal();
+  /* แสดง/ซ่อนปุ่มบันทึกตาม role */
+  const saveBtn=document.getElementById('modal-pay-save-btn');
+  const isAdmin=currentUser?.role==='admin';
+  const isHistoryMode=document.getElementById('pay-show-history')?.checked||false;
+  const readOnly=!isAdmin||isHistoryMode;
+  if(saveBtn) saveBtn.style.display=readOnly?'none':'';
+  /* member/history mode: disable checkboxes และ note */
+  setTimeout(()=>{
+    document.querySelectorAll('.pay-check').forEach(cb=>{
+      cb.disabled=readOnly;
+      cb.style.cursor=readOnly?'not-allowed':'pointer';
+      cb.style.opacity=readOnly?'0.5':'1';
+    });
+    document.querySelectorAll('[id^="pay-note-"]').forEach(inp=>{
+      inp.disabled=readOnly;
+      inp.style.background=readOnly?'var(--bg)':'';
+    });
+  },50);
   document.getElementById('modal-pay').classList.add('open');
   /* โหลดรูปสลิปจาก IndexedDB แบบ async หลัง render */
   setTimeout(()=>{
@@ -4955,7 +5160,7 @@ function updateInitials(v){
   const prev=document.getElementById('mmem-preview');
   if(prev.style.display==='none')document.getElementById('mmem-initials').textContent=v||'?';
 }
-function cx(id){document.getElementById(id).classList.remove('open');}
+function cx(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('open');if(el.style.display==='flex')el.style.display='none';}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function renderAll(){rd();}
 
@@ -5121,7 +5326,37 @@ function simulatePaymentSuccess(){
 }
 
 /* Add to Settings page — plan info section */
+async function saveBandSettings(){
+  if(!requireAdmin('แก้ไขข้อมูลวง'))return;
+  const name=(document.getElementById('setup-band-name')?.value||'').trim();
+  const leader=(document.getElementById('setup-leader')?.value||'').trim();
+  if(!name){toast('กรุณากรอกชื่อวง');return;}
+  const whtRate=parseFloat(document.getElementById('setup-wht-rate')?.value)||3;
+  S.bandInfo=S.bandInfo||{};
+  S.bandInfo.name=name;
+  S.bandInfo.leader=leader;
+  S.bandInfo.whtRate=whtRate;
+  /* update sidebar */
+  document.querySelectorAll('.sb-logo-name').forEach(el=>el.textContent=name);
+  const bnEl=document.getElementById('sb-band-name');
+  if(bnEl){bnEl.textContent=`🎸 ${name}`;bnEl.style.display='block';}
+  /* sync to Supabase */
+  if(CLOUD_ENABLED()){
+    await fetch(`${SUPABASE_URL}/rest/v1/bands?id=eq.${_sbBandId}`,{
+      method:'PATCH', headers:sbHeaders(),
+      body:JSON.stringify({name, leader_name:leader})
+    }).catch(console.error);
+  }
+  toast('บันทึกข้อมูลวงแล้ว ✓');
+}
+
 function renderPlanSettings(){
+  const bn=document.getElementById('setup-band-name');
+  const sl=document.getElementById('setup-leader');
+  if(bn) bn.value=S.bandInfo?.name||'';
+  if(sl) sl.value=S.bandInfo?.leader||'';
+  const wr=document.getElementById('setup-wht-rate');
+  if(wr) wr.value=S.bandInfo?.whtRate||3;
   const el=document.getElementById('plan-settings-wrap');if(!el)return;
   const st=getPlanStatus();
   const cls={trial:'badge-trial',pro:'badge-pro',expired:'badge-expired'}[st.type]||'badge-expired';
@@ -5166,6 +5401,8 @@ function toggleMobSidebar(){
   sb.classList.toggle('mob-open',!isOpen);
   ov.classList.toggle('open',!isOpen);
   document.body.style.overflow=isOpen?'':'hidden';
+  /* ซ่อน FAB เมื่อ sidebar เปิด — ไม่ต้องการปุ่มซ้อน */
+  if(fab) fab.style.display=isOpen?'flex':'none';
   /* FAB spans — สีดำเสมอ เปลี่ยนแค่ shape ☰ ↔ ✕ */
   if(fab){
     const spans=fab.querySelectorAll('span');
@@ -5204,6 +5441,8 @@ function closeMobSidebar(){
   sb.classList.remove('mob-open');
   ov.classList.remove('open');
   document.body.style.overflow='';
+  /* แสดง FAB กลับมา */
+  if(fab) fab.style.display='flex';
   /* Reset FAB → ☰ สีดำ */
   if(fab){
     fab.querySelectorAll('span').forEach(s=>{
@@ -5332,6 +5571,13 @@ async function afterCloudLogin(user){
   /* โหลดข้อมูลจาก Supabase */
   if(CLOUD_ENABLED()){
     await loadFromCloud();
+  }
+  /* update displayName จาก S ที่โหลดมาแล้ว */
+  if(currentUser.memberId && currentUser.memberId!=='__leader__'){
+    const mem=S.members.find(m=>String(m.id)===String(currentUser.memberId));
+    if(mem) currentUser.displayName=mem.name+(mem.lastname?' '+mem.lastname:'');
+  } else if(S.bandInfo?.leader){
+    currentUser.displayName=S.bandInfo.leader;
   }
   applyAuthUI();
   applyPlanUI();
@@ -6228,7 +6474,7 @@ function renderExpensePage(){
         <td class="tamt">฿${f(e.amount)}</td>
         <td style="font-size:11px;color:var(--ink3)">${e.note||'—'}</td>
         <td style="white-space:nowrap">
-          ${e.slip?`<button class="btn btn-o btn-sm" onclick="viewSlip(S.expenses.find(x=>x.id==='${e.id}').slip)" style="margin-right:4px" title="ดูสลิป">🖼</button>`:''}
+          ${e.slip?`<button class="btn btn-o btn-sm" class="view-allowed" onclick="viewSlip(S.expenses.find(x=>x.id==='${e.id}').slip)" style="margin-right:4px" title="ดูสลิป">🖼</button>`:''}
           <button class="btn btn-o btn-sm" onclick="openExpenseModal('${e.id}')">แก้ไข</button>
           <button class="btn btn-sm" style="background:var(--rp);color:var(--red);border:none;cursor:pointer;border-radius:var(--r);padding:4px 8px;font-family:var(--f);margin-left:4px" onclick="deleteExpense('${e.id}')">ลบ</button>
         </td>
@@ -7048,7 +7294,7 @@ ${text}
   if(btn){btn.textContent='✨ วิเคราะห์และกรอก';btn.disabled=false;}
 }
 
-/* helper: re-apply AI parsed data into gig form */
+/* ── helper: re-apply AI parsed data into gig form ── */
 function _reApplyAIFill(p){
   if(p.name) document.getElementById('gn').value=p.name;
   if(p.date) document.getElementById('gd').value=p.date;
@@ -7066,6 +7312,154 @@ function _reApplyAIFill(p){
     else{setCtype('new');document.getElementById('gcname-new').value=p.clientName;}
   }
 }
+
+/* ══════════════════════════════════════
+   EXPORT EXCEL
+══════════════════════════════════════ */
+function openExportModal(){
+  const sel=document.getElementById('export-member');
+  if(sel) sel.innerHTML='<option value="all">ทุกคน</option>'+
+    S.members.filter(m=>m.status==='active').map(m=>`<option value="${m.id}">${m.name} (${m.nick})</option>`).join('');
+  const now=new Date();
+  const fm=document.getElementById('export-from-month');
+  const tm=document.getElementById('export-to-month');
+  const ey=document.getElementById('export-year');
+  if(fm)fm.value=now.getMonth();
+  if(tm)tm.value=now.getMonth();
+  if(ey)ey.value=now.getFullYear();
+  document.getElementById('modal-export').classList.add('open');
+}
+
+async function doExportExcel(){
+  if(!window.XLSX){
+    toast('⏳ กำลังโหลด SheetJS...');
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+  const memId=document.getElementById('export-member').value;
+  const fromM=parseInt(document.getElementById('export-from-month').value);
+  const toM=parseInt(document.getElementById('export-to-month').value);
+  const y=parseInt(document.getElementById('export-year').value);
+  const TM2=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const TM2b=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const members=memId==='all'?S.members.filter(m=>m.status==='active'):[S.members.find(m=>String(m.id)===String(memId))].filter(Boolean);
+  const wb=XLSX.utils.book_new();
+  const activeCount=S.members.filter(m=>m.status==='active').length||1;
+
+  members.forEach(mem=>{
+    const gigs=S.gigs.filter(g=>{
+      if(g.status==='cancelled')return false;
+      const d=new Date(g.date);
+      if(d.getFullYear()!==y)return false;
+      const mo=d.getMonth();
+      return fromM<=toM?mo>=fromM&&mo<=toM:mo>=fromM||mo<=toM;
+    });
+
+    let totalPaid=0,totalForecast=0,paidCnt=0,unpaidCnt=0;
+    const dataRows=[];
+    gigs.forEach(g=>{
+      let cut=0,isForecast=false;
+      if(g.musicians&&g.musicians.length){
+        const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
+        if(!mu)return;
+        cut=Math.round(gigNet(g)*(mu.pct/100));
+      } else {
+        cut=Math.round(gigNet(g)/activeCount);
+        isForecast=true;
+      }
+      const paid=(g.memberPayments||{})[mem.id]||(g.memberPayments||{})[String(mem.id)];
+      const isPaid=paid&&(paid===true||(typeof paid==='object'&&paid.paid));
+      if(isPaid){totalPaid+=cut;paidCnt++;}else{totalForecast+=cut;unpaidCnt++;}
+      const pct=g.musicians&&g.musicians.length?(g.musicians.find(x=>String(x.memberId)===String(mem.id))?.pct||0):Math.round(100/activeCount);
+      dataRows.push(['JOB-'+String(g.jobNo||0).padStart(6,'0'),g.name,g.date,g.venue||'',gigNet(g),pct+'%',cut,g.status==='paid'?'จ่ายเต็ม':g.status==='deposit'?'มัดจำ':'ยืนยัน',isPaid?'✓ จ่ายแล้ว':(isForecast?'คาดการณ์':'รอจ่าย'),typeof paid==='object'?paid.note||'':'']);
+    });
+
+    const period=`${TM2[fromM]}${fromM!==toM?' – '+TM2[toM]:''} ${y}`;
+    const wsData=[
+      ['สมาชิก',mem.name+(mem.lastname?' '+mem.lastname:''),'Nick:',mem.nick,'ตำแหน่ง:',mem.role],
+      ['ช่วงเวลา',period,'วง:',S.bandInfo?.name||''],
+      [],
+      ['สรุป',''],
+      ['รายได้รับจริง (PAID)','฿'+f(totalPaid),'จำนวนงาน',paidCnt],
+      ['รายได้คาดการณ์ (UNPAID)','฿'+f(totalForecast),'จำนวนงาน',unpaidCnt],
+      ['รวมรายได้','฿'+f(totalPaid+totalForecast)],
+      [],
+      ['ORDER ID','ชื่องาน','วันที่','สถานที่','ค่าตัวสุทธิ (฿)','ส่วนแบ่ง (%)','ส่วนแบ่ง (฿)','สถานะงาน','สถานะจ่ายเงิน','หมายเหตุ'],
+      ...dataRows
+    ];
+
+    const ws=XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols']=[{wch:14},{wch:30},{wch:12},{wch:20},{wch:16},{wch:12},{wch:14},{wch:14},{wch:14},{wch:20}];
+    /* bold header rows */
+    ['A1','B1','A4','A9','B9','C9','D9','E9','F9','G9','H9','I9','J9'].forEach(ref=>{
+      if(ws[ref]) ws[ref].s={font:{bold:true}};
+    });
+    XLSX.utils.book_append_sheet(wb,ws,(mem.nick||mem.name).substring(0,28));
+  });
+
+  const bandName=(S.bandInfo?.name||'BandestCo').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+  const filename=`${bandName}_รายได้_${TM2b[fromM]}${fromM!==toM?'-'+TM2b[toM]:''}_${y}.xlsx`;
+  XLSX.writeFile(wb,filename);
+  cx('modal-export');
+  toast('📥 Export สำเร็จ: '+filename);
+}
+
 </script>
+
+<!-- EXPORT EXCEL MODAL -->
+<div class="overlay" id="modal-export" style="align-items:center;justify-content:center">
+  <div style="background:var(--wh);border-radius:16px;width:420px;max-width:95vw;padding:24px;box-shadow:var(--sh-lg)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:15px;font-weight:700;color:var(--ink)">📊 Export ข้อมูลรายได้</div>
+      <button onclick="cx('modal-export')" style="width:28px;height:28px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:12px;color:var(--ink3)">✕</button>
+    </div>
+    <div class="fg">
+      <label class="fl">สมาชิก</label>
+      <select class="fi" id="export-member" style="font-size:12px">
+        <option value="all">ทุกคน</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg">
+        <label class="fl">จากเดือน</label>
+        <select class="fi" id="export-from-month" style="font-size:12px">
+          <option value="0">มกราคม</option><option value="1">กุมภาพันธ์</option>
+          <option value="2">มีนาคม</option><option value="3">เมษายน</option>
+          <option value="4">พฤษภาคม</option><option value="5">มิถุนายน</option>
+          <option value="6">กรกฎาคม</option><option value="7">สิงหาคม</option>
+          <option value="8">กันยายน</option><option value="9">ตุลาคม</option>
+          <option value="10">พฤศจิกายน</option><option value="11">ธันวาคม</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">ถึงเดือน</label>
+        <select class="fi" id="export-to-month" style="font-size:12px">
+          <option value="0">มกราคม</option><option value="1">กุมภาพันธ์</option>
+          <option value="2">มีนาคม</option><option value="3">เมษายน</option>
+          <option value="4">พฤษภาคม</option><option value="5">มิถุนายน</option>
+          <option value="6">กรกฎาคม</option><option value="7">สิงหาคม</option>
+          <option value="8">กันยายน</option><option value="9">ตุลาคม</option>
+          <option value="10">พฤศจิกายน</option><option value="11">ธันวาคม</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">ปี</label>
+      <select class="fi" id="export-year" style="font-size:12px">
+        <option value="2025">2025</option>
+        <option value="2026" selected>2026</option>
+        <option value="2027">2027</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-r" style="flex:1" onclick="doExportExcel()">📥 Download Excel</button>
+      <button class="btn btn-o" onclick="cx('modal-export')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
