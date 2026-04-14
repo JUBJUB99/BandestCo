@@ -7261,10 +7261,13 @@ async function doAIFill(){
   const jobTypeList=(S.jobTypes||[]).map(t=>typeof t==='object'?t.name:t).join(', ');
   const clientList=(S.clients||[]).map(c=>c.name).join(', ');
 
+  const memberList=(S.members||[]).filter(m=>m.status==='active').map(m=>`${m.name} (${m.nick})`).join(', ');
   const prompt=`วิเคราะห์ข้อความด้านล่างแล้วแยกข้อมูลงานดนตรี ตอบเป็น JSON เท่านั้น ไม่มีคำอธิบาย:
 
 ข้อความ:
 ${text}
+
+รายชื่อสมาชิกวง (ใช้สำหรับ match musicians): ${memberList}
 
 ให้แยกข้อมูลเป็น JSON ดังนี้:
 {
@@ -7278,8 +7281,12 @@ ${text}
   "source": "แหล่งที่มา (เลือกจาก: ${sourceList} หรือว่างไว้)",
   "type": "ประเภทงาน (เลือกจาก: ${jobTypeList} หรือว่างไว้)",
   "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง",
-  "note": "หมายเหตุอื่นๆ"
-}`;
+  "note": "หมายเหตุอื่นๆ",
+  "musicians": [
+    {"nick": "ชื่อเล่น/ชื่อสมาชิก (match จากรายชื่อที่ให้)", "fee": 0}
+  ]
+}
+หมายเหตุ musicians: ถ้าไม่มีข้อมูลนักดนตรีให้เป็น [] และ fee ของแต่ละคนคือค่าตัวเฉพาะคนนั้น (ไม่ใช่ %)`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -7335,6 +7342,24 @@ ${text}
         setCtype('new');
         document.getElementById('gcname-new').value=parsed.clientName;
       }
+    }
+    /* Musicians — match ชื่อเล่นกับสมาชิกจริง */
+    if(parsed.musicians&&parsed.musicians.length>0){
+      const activeMembers=S.members.filter(m=>m.status==='active');
+      const totalFee=parsed.musicians.reduce((s,m)=>s+(m.fee||0),0);
+      gigState.musicians=[];
+      parsed.musicians.forEach(mu=>{
+        const match=activeMembers.find(m=>
+          m.nick&&(m.nick.toLowerCase()===mu.nick.toLowerCase()||
+          m.name.toLowerCase().includes(mu.nick.toLowerCase())||
+          mu.nick.toLowerCase().includes(m.nick.toLowerCase()))
+        );
+        if(match){
+          const pct=totalFee>0?Math.round((mu.fee/totalFee)*100):Math.round(100/parsed.musicians.length);
+          gigState.musicians.push({memberId:match.id,pct});
+        }
+      });
+      renderMusicianAssign();
     }
 
     resultEl.textContent='✅ กรอกข้อมูลแล้ว กรุณาตรวจสอบและกดบันทึก';
