@@ -7262,31 +7262,44 @@ async function doAIFill(){
   const clientList=(S.clients||[]).map(c=>c.name).join(', ');
 
   const memberList=(S.members||[]).filter(m=>m.status==='active').map(m=>`${m.name} (${m.nick})`).join(', ');
-  const prompt=`วิเคราะห์ข้อความด้านล่างแล้วแยกข้อมูลงานดนตรี ตอบเป็น JSON เท่านั้น ไม่มีคำอธิบาย:
+  const prompt=`วิเคราะห์ข้อความด้านล่างแล้วแยกข้อมูลงานดนตรี ตอบเป็น JSON เท่านั้น ไม่มีคำอธิบาย ไม่มี markdown:
 
 ข้อความ:
 ${text}
 
-รายชื่อสมาชิกวง (ใช้สำหรับ match musicians): ${memberList}
+รายชื่อสมาชิกวง: ${memberList}
+วันนี้: ${today}
 
 ให้แยกข้อมูลเป็น JSON ดังนี้:
 {
-  "name": "ชื่องาน (ถ้าไม่มีให้สรุปสั้นๆ)",
+  "name": "ชื่องาน (ถ้าไม่มีให้สรุปสั้นๆ จากข้อมูล)",
   "date": "YYYY-MM-DD (วันที่จัดงาน, ถ้าไม่มีให้เป็น ${today})",
-  "timeStart": "HH:MM (เวลาเริ่ม 24h format, ถ้าไม่มีให้เป็น null)",
-  "timeEnd": "HH:MM (เวลาจบ, ถ้าไม่มีให้เป็น null)",
+  "timeStart": "HH:MM (เวลาเริ่ม 24h format, null ถ้าไม่มี)",
+  "timeEnd": "HH:MM (เวลาจบ 24h format, null ถ้าไม่มี)",
   "venue": "ชื่อสถานที่",
   "province": "จังหวัด",
+  "bandsize": "จำนวนชิ้น เช่น 2,3,4,5,6 (ถ้าไม่มีให้เป็น null)",
   "fee": 0,
-  "source": "แหล่งที่มา (เลือกจาก: ${sourceList} หรือว่างไว้)",
-  "type": "ประเภทงาน (เลือกจาก: ${jobTypeList} หรือว่างไว้)",
+  "travelOil": 0,
+  "travelCar": 0,
+  "afterParty": 0,
+  "soundFee": 0,
+  "soundTravel": 0,
+  "otherIncome": 0,
+  "otherIncomeNote": "",
+  "expenseSoundFee": 0,
+  "expenseOtherFee": 0,
+  "expenseOtherNote": "",
+  "source": "แหล่งที่มา (เลือกจาก: ${sourceList} หรือ \"\" ถ้าไม่มี)",
+  "type": "ประเภทงาน (เลือกจาก: ${jobTypeList} หรือ \"\" ถ้าไม่มี)",
   "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง",
+  "clientPhone": "เบอร์โทรลูกค้า",
   "note": "หมายเหตุอื่นๆ",
   "musicians": [
     {"nick": "ชื่อเล่น/ชื่อสมาชิก (match จากรายชื่อที่ให้)", "fee": 0}
   ]
 }
-หมายเหตุ musicians: ถ้าไม่มีข้อมูลนักดนตรีให้เป็น [] และ fee ของแต่ละคนคือค่าตัวเฉพาะคนนั้น (ไม่ใช่ %)`;
+หมายเหตุ: musicians.fee คือค่าตัวของสมาชิกแต่ละคน, ถ้าไม่มีข้อมูลนักดนตรีให้เป็น []`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -7347,7 +7360,7 @@ ${text}
     if(parsed.musicians&&parsed.musicians.length>0){
       const activeMembers=S.members.filter(m=>m.status==='active');
       const totalFee=parsed.musicians.reduce((s,m)=>s+(m.fee||0),0);
-      gigState.musicians=[];
+      const matchedMusicians=[];
       parsed.musicians.forEach(mu=>{
         const match=activeMembers.find(m=>
           m.nick&&(m.nick.toLowerCase()===mu.nick.toLowerCase()||
@@ -7356,10 +7369,26 @@ ${text}
         );
         if(match){
           const pct=totalFee>0?Math.round((mu.fee/totalFee)*100):Math.round(100/parsed.musicians.length);
-          gigState.musicians.push({memberId:match.id,pct});
+          matchedMusicians.push({memberId:match.id,pct});
         }
       });
-      renderMusicianAssign();
+      if(matchedMusicians.length>0){
+        gigState.count=matchedMusicians.length;
+        gigState.splitMode='pct';
+        const gcountEl=document.getElementById('gcount');
+        if(gcountEl) gcountEl.value=gigState.count;
+        const wrap=document.getElementById('gig-members-wrap');
+        if(wrap) wrap.style.display='block';
+        if(typeof renderMemberRows==='function') renderMemberRows();
+        /* fill dropdown + pct หลัง render */
+        matchedMusicians.forEach((mu,i)=>{
+          const sel=document.getElementById('gmem-'+i);
+          if(sel) sel.value=String(mu.memberId);
+          const pctEl=document.getElementById('gpct-'+i);
+          if(pctEl&&pctEl.tagName==='INPUT') pctEl.value=mu.pct;
+        });
+        if(typeof updateSummary==='function') updateSummary();
+      }
     }
 
     resultEl.textContent='✅ กรอกข้อมูลแล้ว กรุณาตรวจสอบและกดบันทึก';
@@ -7385,20 +7414,82 @@ ${text}
 
 /* ── helper: re-apply AI parsed data into gig form ── */
 function _reApplyAIFill(p){
+  /* ── ข้อมูลพื้นฐาน ── */
   if(p.name) document.getElementById('gn').value=p.name;
-  if(p.date) document.getElementById('gd').value=p.date;
+  if(p.date){document.getElementById('gd').value=p.date;if(typeof formatDateDisplay==='function')formatDateDisplay(document.getElementById('gd'),'gd-display');}
   if(p.timeStart){const ts=document.getElementById('gtstart');if(ts&&Array.from(ts.options).find(o=>o.value===p.timeStart))ts.value=p.timeStart;}
   if(p.timeEnd){const te=document.getElementById('gtend');if(te&&Array.from(te.options).find(o=>o.value===p.timeEnd))te.value=p.timeEnd;}
+  /* ── สถานที่ ── */
   if(p.venue) document.getElementById('gv').value=p.venue;
   if(p.province) document.getElementById('gprov').value=p.province;
-  if(p.fee>0){document.getElementById('gf-band').value=p.fee;calcTotalIncome();}
+  /* ── ขนาดวง / ประเภท / แหล่งที่มา ── */
+  if(p.bandsize){const gb=document.getElementById('gbandsize');if(gb&&Array.from(gb.options).find(o=>o.value===String(p.bandsize)))gb.value=String(p.bandsize);}
   if(p.source){const gs=document.getElementById('gsource');if(gs&&Array.from(gs.options).find(o=>o.value===p.source))gs.value=p.source;}
   if(p.type){const gt=document.getElementById('gtype');if(gt&&Array.from(gt.options).find(o=>o.value===p.type))gt.value=p.type;}
-  if(p.note) document.getElementById('gnote').value=p.note;
+  /* ── รายได้ ── */
+  if(p.fee>0) document.getElementById('gf-band').value=p.fee;
+  if(p.travelOil>0) document.getElementById('gf-travel-oil').value=p.travelOil;
+  if(p.travelCar>0) document.getElementById('gf-travel-car').value=p.travelCar;
+  if(p.afterParty>0) document.getElementById('gf-after').value=p.afterParty;
+  if(p.soundFee>0) document.getElementById('gf-sound').value=p.soundFee;
+  if(p.soundTravel>0) document.getElementById('gf-sound-oil').value=p.soundTravel;
+  if(p.otherIncome>0) document.getElementById('gf-other').value=p.otherIncome;
+  if(p.otherIncomeNote) document.getElementById('gf-other-note').value=p.otherIncomeNote;
+  if(typeof calcTotalIncome==='function') calcTotalIncome();
+  /* ── ค่าใช้จ่าย ── */
+  if(p.expenseSoundFee>0) document.getElementById('ge-sound-fee').value=p.expenseSoundFee;
+  if(p.expenseOtherFee>0) document.getElementById('ge-other-fee').value=p.expenseOtherFee;
+  if(p.expenseOtherNote) document.getElementById('ge-other-note').value=p.expenseOtherNote;
+  if(typeof calcExpenses==='function') calcExpenses();
+  /* ── ลูกค้า ── */
   if(p.clientName){
     const match=S.clients.find(c=>c.name.includes(p.clientName)||p.clientName.includes(c.name));
-    if(match){setCtype('old');gigState.selectedClientId=match.id;document.getElementById('gclient-search').value=match.name;document.getElementById('gcphone').value=match.phone||'';}
-    else{setCtype('new');document.getElementById('gcname-new').value=p.clientName;}
+    if(match){
+      setCtype('old');gigState.selectedClientId=match.id;
+      document.getElementById('gclient-search').value=match.name;
+      document.getElementById('gcphone').value=match.phone||'';
+    } else {
+      setCtype('new');
+      document.getElementById('gcname-new').value=p.clientName;
+      if(p.clientPhone) document.getElementById('gcphone-new').value=p.clientPhone;
+    }
+  }
+  /* ── หมายเหตุ ── */
+  if(p.note) document.getElementById('gnote').value=p.note;
+  /* ── นักดนตรี ── */
+  if(p.musicians&&p.musicians.length>0){
+    const activeMembers=S.members.filter(m=>m.status==='active');
+    const totalFee=p.musicians.reduce((s,m)=>s+(m.fee||0),0);
+    const matchedMusicians=[];
+    p.musicians.forEach(mu=>{
+      const match=activeMembers.find(m=>
+        m.nick&&(m.nick.toLowerCase()===mu.nick.toLowerCase()||
+        m.name.toLowerCase().includes(mu.nick.toLowerCase())||
+        mu.nick.toLowerCase().includes(m.nick.toLowerCase()))
+      );
+      if(match){
+        const pct=totalFee>0?Math.round((mu.fee/totalFee)*100):Math.round(100/p.musicians.length);
+        matchedMusicians.push({memberId:match.id,pct});
+      }
+    });
+    if(matchedMusicians.length>0){
+      gigState.count=matchedMusicians.length;
+      gigState.splitMode='pct';
+      const gcountEl=document.getElementById('gcount');
+      if(gcountEl) gcountEl.value=gigState.count;
+      const wrap=document.getElementById('gig-members-wrap');
+      if(wrap) wrap.style.display='block';
+      if(typeof setSplit==='function') setSplit('pct');
+      setTimeout(()=>{
+        matchedMusicians.forEach((mu,i)=>{
+          const sel=document.getElementById('gmem-'+i);
+          if(sel) sel.value=String(mu.memberId);
+          const pctEl=document.getElementById('gpct-'+i);
+          if(pctEl&&pctEl.tagName==='INPUT') pctEl.value=mu.pct;
+        });
+        if(typeof updateSummary==='function') updateSummary();
+      },50);
+    }
   }
 }
 
