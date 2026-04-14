@@ -800,7 +800,17 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
     <div class="lpane active" id="lt-leader">
       <div class="login-err" id="login-err-leader"></div>
       <div class="fg"><label class="fl">Email / Username</label><input class="fi" id="login-user-leader" style="font-size:16px" placeholder="อีเมลหรือ username" autocomplete="username" onkeydown="if(event.key==='Enter')doLoginLeader()"></div>
-      <div class="fg"><label class="fl">รหัสผ่าน</label><input class="fi" id="login-pass-leader" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLoginLeader()"></div>
+      <div class="fg">
+        <label class="fl">รหัสผ่าน</label>
+        <div style="position:relative;display:flex">
+          <input class="fi" id="login-pass-leader" type="password" placeholder="รหัสผ่าน" style="flex:1;border-radius:var(--r) 0 0 var(--r);border-right:none" onkeydown="if(event.key==='Enter')doLoginLeader()">
+          <button type="button" onclick="togglePassVis('login-pass-leader',this)" style="padding:0 12px;border:1.5px solid var(--bd2);border-left:none;border-radius:0 var(--r) var(--r) 0;background:var(--bg);cursor:pointer;color:var(--ink3);font-size:14px;flex-shrink:0">👁</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <input type="checkbox" id="remember-leader" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
+        <label for="remember-leader" style="font-size:12px;color:var(--ink3);cursor:pointer">จำการเข้าสู่ระบบ</label>
+      </div>
       <button class="btn btn-r" style="width:100%;padding:11px 0;font-size:13px;margin-top:4px" onclick="doLoginLeader()">เข้าสู่ระบบ — หัวหน้าวง</button>
     </div>
 
@@ -809,7 +819,17 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div class="login-err" id="login-err-member"></div>
       <div style="background:var(--rl);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--ink3);margin-bottom:14px">Login ได้เมื่อหัวหน้าวงสร้าง Username/Password ให้ใน <strong>ตั้งค่า/Setup</strong></div>
       <div class="fg"><label class="fl">Username</label><input class="fi" id="login-user-member" style="font-size:16px" placeholder="username" onkeydown="if(event.key==='Enter')doLoginMember()"></div>
-      <div class="fg"><label class="fl">รหัสผ่าน</label><input class="fi" id="login-pass-member" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLoginMember()"></div>
+      <div class="fg">
+        <label class="fl">รหัสผ่าน</label>
+        <div style="position:relative;display:flex">
+          <input class="fi" id="login-pass-member" type="password" placeholder="รหัสผ่าน" style="flex:1;border-radius:var(--r) 0 0 var(--r);border-right:none" onkeydown="if(event.key==='Enter')doLoginMember()">
+          <button type="button" onclick="togglePassVis('login-pass-member',this)" style="padding:0 12px;border:1.5px solid var(--bd2);border-left:none;border-radius:0 var(--r) var(--r) 0;background:var(--bg);cursor:pointer;color:var(--ink3);font-size:14px;flex-shrink:0">👁</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <input type="checkbox" id="remember-member" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
+        <label for="remember-member" style="font-size:12px;color:var(--ink3);cursor:pointer">จำการเข้าสู่ระบบ</label>
+      </div>
       <button class="btn btn-r" style="width:100%;padding:11px 0;font-size:13px;margin-top:4px" onclick="doLoginMember()">เข้าสู่ระบบ — สมาชิกวง</button>
     </div>
 
@@ -1080,6 +1100,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div class="gig-tab active" id="gig-tab-overview" onclick="switchGigTab('gt-overview',this)">Overview</div>
       <div class="gig-tab" id="gig-tab-recv" onclick="goToRecvPage()">รับเงิน <span class="gig-tab-count" id="recv-count">0</span></div>
       <div class="gig-tab" id="gig-tab-pay" onclick="goToPayPage()">จ่ายเงิน <span class="gig-tab-count" id="pay-count">0</span></div>
+      <div class="gig-tab" id="gig-tab-tip" onclick="switchGigTab('gt-tip',this);renderTipTab()">🎁 จ่ายทิป</div>
     </div>
     <!-- Content area -->
     <div class="content">
@@ -1092,6 +1113,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <span id="gig-selected-label" style="font-size:12px;font-weight:600;color:#1D4ED8;min-width:80px"></span>
           <div style="height:16px;width:1px;background:#BFDBFE"></div>
           <button class="btn btn-o btn-sm" id="gig-action-edit" onclick="gigActionEdit()" style="display:none">✏️ แก้ไข</button>
+          <button class="btn btn-o btn-sm" id="gig-action-dup" onclick="gigActionDuplicate()" style="display:none">📋 คัดลอกงาน</button>
           <button class="btn btn-o btn-sm" id="gig-action-pdf" onclick="gigActionPDF()">📄 ออกสัญญา</button>
           <button class="btn btn-sm" id="gig-action-cancel" onclick="gigActionCancel()" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;display:none">✕ ยกเลิกงาน</button>
           <button class="btn btn-o btn-sm" onclick="clearGigSelection()" style="margin-left:auto">✕ ยกเลิกการเลือก</button>
@@ -1116,6 +1138,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
                 <th style="width:90px">นักดนตรี</th>
                 <th style="width:110px">สถานะรับเงิน</th>
                 <th style="width:115px">สถานะจ่ายค่าตัว</th>
+                <th style="width:100px">🎁 ทิป</th>
                 <th style="width:80px">ประเภทงาน</th>
               </tr>
             </thead>
@@ -1136,6 +1159,22 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <!-- ── Tab 3: จ่ายเงิน (hidden - replaced by full page) ── -->
       <div class="gig-tabpane" id="gt-pay" style="display:none">
         <div id="pay-list"></div>
+      </div>
+
+      <!-- ── Tab 4: จ่ายทิป ── -->
+      <div class="gig-tabpane" id="gt-tip" style="display:none;flex-direction:column">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px;position:relative">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:4px;font-weight:600">ค้นหา / เลือกงาน</div>
+            <input class="fi" id="tip-gig-search" placeholder="พิมพ์ชื่องาน..." style="font-size:13px" autocomplete="off"
+              oninput="filterTipGigs()" onfocus="filterTipGigs()" onblur="setTimeout(()=>closeTipDropdown(),200)">
+            <input type="hidden" id="tip-gig-id">
+            <div id="tip-gig-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--wh);border:1.5px solid var(--bd2);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:280px;overflow-y:auto;margin-top:4px"></div>
+          </div>
+        </div>
+        <div id="tip-content" style="flex:1;overflow:auto;padding:20px">
+          <div style="text-align:center;color:var(--ink3);padding:40px">เลือกงานเพื่อบันทึกทิป</div>
+        </div>
       </div>
 
     </div>
@@ -1235,9 +1274,11 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <thead><tr>
             <th>สมาชิก</th>
             <th>ตำแหน่ง</th>
-            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap">รายได้จริง (Paid)</th>
+            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap">รายได้</th>
+            <th style="background:#FEF9F0;color:#92400E;white-space:nowrap">ทิป</th>
+            <th style="background:#F0FDF4;color:#166534;white-space:nowrap">รวมรายได้</th>
             <th style="background:#FEF2F2;color:#B91C1C;text-align:center">งาน</th>
-            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap">คาดการณ์ (Unpaid)</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap">คาดการณ์</th>
             <th style="background:#EFF6FF;color:#1D4ED8;text-align:center">งาน</th>
           </tr></thead>
           <tbody id="itable"></tbody>
@@ -1247,8 +1288,17 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="sec-t" id="idetail-label">รายละเอียดต่องาน</div>
       </div>
-      <div class="tc"><div id="idetail-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;min-width:500px">
-        <thead><tr><th style="white-space:nowrap">Order ID</th><th>งาน</th><th style="white-space:nowrap">วันที่</th><th style="white-space:nowrap">ค่าตัวสุทธิ</th><th style="white-space:nowrap">ส่วนแบ่ง</th><th style="white-space:nowrap">จ่ายแล้ว</th><th style="white-space:nowrap">สถานะ</th></tr></thead>
+      <div class="tc"><div id="idetail-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;min-width:600px">
+        <thead><tr>
+          <th style="white-space:nowrap">Order ID</th>
+          <th>งาน</th>
+          <th style="white-space:nowrap">วันที่</th>
+          <th style="background:#FEF9F9;color:#B91C1C;white-space:nowrap">รายได้ย่อย</th>
+          <th style="background:#FFF7ED;color:#92400E;white-space:nowrap">ทิป</th>
+          <th style="background:#F0FDF4;color:#166534;white-space:nowrap">รวม</th>
+          <th style="white-space:nowrap">จ่ายแล้ว</th>
+          <th style="white-space:nowrap">สถานะ</th>
+        </tr></thead>
         <tbody id="idetail"></tbody>
       </table></div></div>
     </div>
@@ -1309,7 +1359,6 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <div class="cal-popup-lbl">เบอร์</div><div class="cal-popup-val" id="cpop-phone"></div>
           <div class="cal-popup-lbl">ประเภทวง</div><div class="cal-popup-val" id="cpop-band"></div>
           <div class="cal-popup-lbl">แหล่งที่มา</div><div class="cal-popup-val" id="cpop-src"></div>
-          <div class="cal-popup-lbl">ค่าตัวสุทธิ</div><div class="cal-popup-val" id="cpop-fee" style="font-size:15px;font-weight:700;color:var(--red)"></div>
           <div class="cal-popup-lbl">นักดนตรี</div><div class="cal-popup-val" id="cpop-members"></div>
           <div class="cal-popup-lbl" id="cpop-note-lbl" style="display:none">หมายเหตุ</div>
           <div class="cal-popup-val" id="cpop-note" style="color:var(--amber);display:none;font-size:11px"></div>
@@ -1366,8 +1415,15 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
   <div class="page" id="page-settings">
     <div class="topbar"><button class="mob-hamburger" onclick="toggleMobSidebar()"><span></span><span></span><span></span></button><div class="tb-title">ตั้งค่า / Setup</div></div>
     <div class="content" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
-      <!-- Plan & Subscription -->
+      <!-- Export Slip ZIP -->
       <div class="tc" style="padding:20px;grid-column:1/-1">
+        <div class="sec-t" style="margin-bottom:6px">Export สลิป</div>
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:14px">ดาวน์โหลดสลิปรับเงิน / จ่ายเงิน รวมเป็นไฟล์ ZIP แยก folder ตามประเภท</div>
+        <button class="btn btn-r" style="display:flex;align-items:center;gap:6px" onclick="openSlipExportModal()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Export ZIP สลิป
+        </button>
+      </div>
         <div class="sec-t" style="margin-bottom:14px">แพ็กเกจและการชำระเงิน</div>
         <div id="plan-settings-wrap"></div>
       </div>
@@ -1413,13 +1469,18 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           </div>
           <div class="fr" style="margin-top:0">
             <div class="fg"><label class="fl">บทบาท</label>
-              <select class="fi" id="ua-role" style="font-size:12px">
+              <select class="fi" id="ua-role" style="font-size:12px" onchange="toggleUaMemberSelect()">
                 <option value="admin">Admin (แก้ไขได้ทุกอย่าง)</option>
                 <option value="member">Member (ดูอย่างเดียว)</option>
               </select>
             </div>
+            <div class="fg" id="ua-member-wrap" style="display:none">
+              <label class="fl">ผูกกับสมาชิก</label>
+              <select class="fi" id="ua-member" style="font-size:12px">
+                <option value="__leader__">— ไม่ผูกกับสมาชิก —</option>
+              </select>
+            </div>
           </div>
-          <input type="hidden" id="ua-member" value="__leader__">
           <input type="hidden" id="ua-edit-id">
           <div style="display:flex;gap:8px">
             <button class="btn btn-r" onclick="saveUserAccount()">บันทึกบัญชี</button>
@@ -1882,8 +1943,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">วันที่จัดงาน *</label>
-          <input type="date" class="fi" id="gd" style="font-size:12px" onchange="formatDateDisplay(this,'gd-display')">
-          <div id="gd-display" style="font-size:10px;color:var(--ink3);margin-top:3px;display:none"></div>
+          <input type="date" class="fi" id="gd" style="font-size:12px">
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">เวลาเริ่ม</label>
@@ -1907,9 +1967,9 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">📍 สถานที่</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
           <div class="fg" style="margin-bottom:0"><label class="fl">ชื่อสถานที่</label><input class="fi" id="gv" placeholder="โรงแรม / สถานที่" style="font-size:12px"></div>
-          <div class="fg cmb-wrap" id="cmb-province" style="margin-bottom:0">
+          <div class="fg cmb-wrap" id="cmb-province" style="margin-bottom:0" onclick="event.stopPropagation()">
             <label class="fl">จังหวัด</label>
-            <input class="fi" id="gprov" placeholder="ค้นหา..." autocomplete="off" style="font-size:12px" oninput="filterProvince(this.value)" onfocus="openCmb('cmb-province')">
+            <input class="fi" id="gprov" placeholder="ค้นหา..." autocomplete="off" style="font-size:12px" oninput="filterProvince(this.value)" onclick="event.stopPropagation();openCmb('cmb-province')">
             <div class="cmb-list" id="prov-list"></div>
           </div>
         </div>
@@ -1940,15 +2000,15 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           </div>
         </div>
         <div id="client-old-block">
-          <div class="fg cmb-wrap" id="cmb-client" style="margin-bottom:6px">
+          <div class="fg cmb-wrap" id="cmb-client" style="margin-bottom:6px" onclick="event.stopPropagation()">
             <div style="display:flex;gap:0;position:relative">
               <input class="fi" id="gclient-search" placeholder="พิมพ์หรือเลือกลูกค้า..." autocomplete="off"
                 style="font-size:12px;border-radius:var(--r) 0 0 var(--r);border-right:none;flex:1"
                 oninput="filterClient(this.value)"
-                onfocus="showAllClients()">
+                onclick="event.stopPropagation();showAllClients();openCmb('cmb-client')">
               <button type="button"
                 style="height:36px;padding:0 10px;border:1.5px solid var(--bd2);border-left:none;border-radius:0 var(--r) var(--r) 0;background:var(--bg);cursor:pointer;color:var(--ink3);font-size:11px"
-                onclick="toggleClientDropdown()" title="แสดงรายชื่อลูกค้า">▾</button>
+                onclick="event.stopPropagation();toggleClientDropdown()" title="แสดงรายชื่อลูกค้า">▾</button>
             </div>
             <div class="cmb-list" id="client-list"></div>
           </div>
@@ -1981,10 +2041,10 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <div class="fg" style="margin-bottom:0"><label class="fl">After Party (฿)</label><input class="fi income-f" id="gf-after" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">ค่าเสียง (฿)</label><input class="fi income-f" id="gf-sound" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">เสียง-เดินทาง (฿)</label><input class="fi income-f" id="gf-sound-oil" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
-          <div class="fg" style="margin-bottom:0"><label class="fl">ทิป / อื่น ๆ (฿)</label><input class="fi income-f" id="gf-other" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
-          <div class="fg" style="margin-bottom:0"><label class="fl">หมายเหตุรายได้</label><input class="fi" id="gf-other-note" placeholder="ทิปจากเจ้าภาพ" style="font-size:12px"></div>
         </div>
         <input type="hidden" id="gf-sound-car">
+        <input type="hidden" id="gf-other" value="0">
+        <input type="hidden" id="gf-other-note">
         <input type="hidden" id="gf">
         <div style="margin-top:8px;background:var(--wh);border:1.5px solid var(--red);border-radius:var(--r);padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:11px;color:var(--ink2);font-weight:500">รวมรายได้</span>
@@ -2351,7 +2411,7 @@ async function sbUploadSlip(bucket, key, base64DataUrl) {
       }
     );
     if(!r.ok) { console.error('sbUploadSlip', await r.text()); return null; }
-    return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+    return key; /* คืน key เดิม ไม่ใช่ URL */
   } catch(e) { console.error('sbUploadSlip', e); return null; }
 }
 
@@ -2473,7 +2533,9 @@ async function loadFromCloud() {
 
     /* Map to S object shape */
     S.members  = (members  ||[]).map(mapMember);
-    S.clients  = (clients  ||[]).map(m=>({id:m.id,name:m.name,phone:m.phone||'',bankName:m.bank_name||'',bankNo:m.bank_no||''}));
+    S.clients  = (clients  ||[]).map(m=>({id:m.id,name:m.name,phone:m.phone||'',bankName:m.bank_name||'',bankNo:m.bank_no||''}))
+      /* dedup: เก็บแค่ชื่อแรกที่เจอ */
+      .filter((c,i,arr)=>arr.findIndex(x=>x.name===c.name&&x.phone===c.phone)===i);
     S.sources  = (sources  ||[]).map(m=>m.name);
     S.jobTypes = (jobTypes ||[]).map(m=>({name:m.name,color:m.color}));
     S.users    = (users    ||[]).map(m=>({id:m.id,memberId:m.member_id||'__leader__',username:m.username,passwordHash:m.password_hash,password:'',role:m.role,displayName:m.display_name}));
@@ -2488,7 +2550,12 @@ async function loadFromCloud() {
 
     /* Assemble gigs with nested arrays */
     S.gigs = (gigs||[]).map(g => {
-      const mus = (gigMusicians||[]).filter(x=>x.gig_id===g.id).map(x=>({memberId:x.member_id,pct:parseFloat(x.pct)}));
+      const mus = (gigMusicians||[]).filter(x=>x.gig_id===g.id).map(x=>{
+        const bd=(x.bd_fee||x.bd_travel||x.bd_oil||x.bd_overtime||x.bd_tip||x.bd_other)
+          ?{fee:parseFloat(x.bd_fee||0),travel:parseFloat(x.bd_travel||0),oil:parseFloat(x.bd_oil||0),overtime:parseFloat(x.bd_overtime||0),tip:parseFloat(x.bd_tip||0),other:parseFloat(x.bd_other||0),otherNote:x.bd_other_note||''}
+          :null;
+        return{memberId:x.member_id,pct:parseFloat(x.pct),splitMode:x.split_mode||'equal',fixedAmt:parseFloat(x.fixed_amt||0),breakdown:bd};
+      });
       const payments = (gigPayments||[]).filter(x=>x.gig_id===g.id).map(x=>({date:x.date,amount:parseFloat(x.amount),type:x.type,note:x.note||'',slip:x.slip_key||null}));
       const memberPayRaw = (gigMemberPays||[]).filter(x=>x.gig_id===g.id);
       const memberPayments = {};
@@ -2593,7 +2660,18 @@ async function syncGig(gig) {
     await fetch(`${SUPABASE_URL}/rest/v1/gig_musicians?gig_id=eq.${dbId}`,{method:'DELETE',headers:sbHeaders({'Prefer':''})});
     const validMus=(gig.musicians||[]).filter(m=>isUUID(String(m.memberId)));
     if(validMus.length)
-      await sbInsert('gig_musicians', validMus.map(m=>({gig_id:dbId,member_id:m.memberId,pct:m.pct})));
+      await sbInsert('gig_musicians', validMus.map(m=>({
+        gig_id:dbId, member_id:m.memberId, pct:m.pct,
+        split_mode:m.splitMode||'equal',
+        fixed_amt:m.fixedAmt||0,
+        bd_fee:m.breakdown?.fee||0,
+        bd_travel:m.breakdown?.travel||0,
+        bd_oil:m.breakdown?.oil||0,
+        bd_overtime:m.breakdown?.overtime||0,
+        bd_tip:m.breakdown?.tip||0,
+        bd_other:m.breakdown?.other||0,
+        bd_other_note:m.breakdown?.otherNote||''
+      })));
 
     /* Income items */
     await fetch(`${SUPABASE_URL}/rest/v1/gig_income_items?gig_id=eq.${dbId}`,{method:'DELETE',headers:sbHeaders({'Prefer':''})});
@@ -2734,7 +2812,17 @@ let S={
   cy:new Date().getFullYear(),cm:new Date().getMonth(),im:new Date().getMonth(),eid:null
 };
 const f=n=>n.toLocaleString('th-TH');
+const toBE=y=>y+543;  /* แปลง ค.ศ. → พ.ศ. */
 const fd=d=>{const x=new Date(d);return`${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}/${x.getFullYear()}`};
+function syncGigDate(){
+  /* native date input — ไม่ต้อง sync อะไร ค่าอยู่ใน gd.value แล้ว */
+}
+function setGigDateDropdowns(dateStr){
+  /* set native date input */
+  const gdEl=document.getElementById('gd');
+  if(gdEl) gdEl.value=dateStr||'';
+}
+function formatDateDisplay(){} /* stub */
 /* แสดง JOB-###### จาก jobNo ที่บันทึกไว้ในแต่ละ gig */
 const oid=g=>{
   if(typeof g==='object'&&g!==null){
@@ -2749,12 +2837,25 @@ const mi=(mem,m,y)=>{const activeM=S.members.filter(x=>x.status==='active').leng
 const BD={confirmed:['b-confirmed','ยังไม่จ่าย'],deposit:['b-deposit','จ่ายมัดจำ'],paid:['b-paid','จ่ายเต็ม'],cancelled:['b-cancelled','ยกเลิก'],pending:['bs','ยังไม่จ่าย'],active:['bg','Active'],inactive:['bs','Inactive']};
 const gigNet=g=>{const exp=g.expenses||{};const totalExp=(exp.soundFee||0)+(exp.adsFee||0)+(exp.otherFee||0);return g.fee-totalExp;};
 const gigPayBadge=g=>{const ps=getGigPayStatus(g);const map={'ยังไม่จ่าย':'b-pay-none','จ่ายบางส่วน':'b-pay-part','จ่ายครบทั้งวง':'b-pay-full'};return`<span class="badge ${map[ps.label]||'bs'}" style="font-size:10px"><span class="bd2"></span>${ps.label}</span>`;};
+const gigTipBadge=g=>{
+  const mus=g.musicians||[];
+  if(!mus.length) return '<span style="font-size:10px;color:var(--ink3)">—</span>';
+  const hasTip=mus.some(mu=>mu.breakdown?.tip>0);
+  const allTip=mus.length>0&&mus.every(mu=>mu.breakdown?.tip>0);
+  if(allTip) return '<span class="badge b-pay-full" style="font-size:10px"><span class="bd2"></span>จ่ายแล้ว</span>';
+  if(hasTip) return '<span class="badge b-pay-part" style="font-size:10px"><span class="bd2"></span>จ่ายบางส่วน</span>';
+  return '<span class="badge b-pay-none" style="font-size:10px"><span class="bd2"></span>ยังไม่จ่าย</span>';
+};;
 const bx=s=>{const[c,t]=BD[s]||['bs',s];return`<span class="badge ${c}"><span class="bd2"></span>${t}</span>`};
 const tl={event:'Event',private:'Private',corporate:'Corporate'};
 const avx=(n,sz=28)=>`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:${Math.round(sz*.34)}px;font-weight:600;flex-shrink:0">${n}</div>`;
 
 function nav(id,el){
-  /* reset all pages — clear both class and any inline display style */
+  /* session guard — ถ้าไม่มี session ให้ redirect ไป login */
+  if(!currentUser||!_sbToken){
+    doLogout();return;
+  }
+  /* reset all pages */
   document.querySelectorAll('.page').forEach(p=>{
     p.classList.remove('active');
     p.style.display=''; /* reset inline style set by goToRecvPage/goToPayPage */
@@ -2782,7 +2883,22 @@ function gigRevenuePaid(g){
 }
 function gigExpTotal(g){const e=g.expenses||{};return(e.soundFee||0)+(e.adsFee||0)+(e.otherFee||0);}
 function gigMemberPayTotal(g){
-  /* Total paid to members from tab จ่ายเงิน */
+  /* ถ้างาน paid แล้ว = คำนวณค่าตัวรวมทุกคน (ไม่ต้องรอกด "จ่ายแล้ว") */
+  if(g.status==='paid'){
+    const mus=g.musicians&&g.musicians.length
+      ?g.musicians
+      :S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length,splitMode:'equal',fixedAmt:0}));
+    return mus.reduce((s,mu)=>{
+      if((mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0) return s+Math.round(mu.fixedAmt);
+      /* ถ้ามี breakdown ใช้ sum breakdown */
+      if(mu.breakdown){
+        const bd=mu.breakdown;
+        return s+(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
+      }
+      return s+Math.round(gigNet(g)*(mu.pct/100));
+    },0);
+  }
+  /* งานยังไม่ paid → นับเฉพาะที่กดจ่ายแล้วจริงๆ */
   const paid=g.memberPayments||{};
   const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length}));
   return mus.filter(mu=>{const p=paid[mu.memberId];return p&&(p===true||(typeof p==='object'&&p.paid));}).reduce((s,mu)=>s+Math.round(gigNet(g)*(mu.pct/100)),0);
@@ -2798,11 +2914,11 @@ function rd(){
   /* กรองงานตาม filter */
   const gg=filterMonth!==null
     ? S.gigs.filter(g=>{const d=new Date(g.date);return d.getFullYear()===y&&d.getMonth()===filterMonth&&g.status!=='cancelled';})
-    : mg(m,y).filter(g=>g.status!=='cancelled');
+    : S.gigs.filter(g=>{const d=new Date(g.date);return d.getFullYear()===y&&g.status!=='cancelled';});
 
   /* period label */
   const TM2=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-  const periodLabel=filterMonth!==null?`${TM2[filterMonth]} ${y}`:`เดือนนี้ (${TM2[m]} ${y})`;
+  const periodLabel=filterMonth!==null?`${TM2[filterMonth]} ${y}`:`ทุกเดือน ปี ${y}`;
 
   /* 1. Revenue = sum of payments actually received from paid gigs this month */
   const paidGigs=gg.filter(g=>g.status==='paid');
@@ -2862,7 +2978,7 @@ function rd(){
       <div class="kpi-sub">Gross Margin − Other Expense</div>
     </div>
     <div class="kpi">
-      <div class="kpi-lbl">งาน${filterMonth!==null?'ช่วงนี้':'เดือนนี้'}</div>
+      <div class="kpi-lbl">งาน${filterMonth!==null?`${TM2[filterMonth]}`:'ปีนี้'}</div>
       <div class="kpi-val">${gg.length}</div>
       <div class="kpi-sub">งานทั้งหมด</div>
     </div>
@@ -3101,10 +3217,14 @@ function rg(){
   if(dd) dd.style.display=S._gigDraft?'block':'none';
 
   let list=[...S.gigs];
-  /* sort: newest first by default (matches unshift behavior) */
+  /* member role: แสดงเฉพาะงานที่ตัวเองถูก assign */
+  if(currentUser?.role==='member'&&currentUser?.memberId&&currentUser.memberId!=='__leader__'){
+    list=list.filter(g=>g.musicians&&g.musicians.some(mu=>String(mu.memberId)===String(currentUser.memberId)));
+  }
+  /* sort: jobNo มากไปน้อย (Z-A) by default */
   list.sort((a,b)=> sortDir==='old'
-    ? new Date(a.date)-new Date(b.date)
-    : new Date(b.date)-new Date(a.date)
+    ? (a.jobNo||0)-(b.jobNo||0)
+    : (b.jobNo||0)-(a.jobNo||0)
   );
   if(search) list=list.filter(g=>(g.name+g.venue+g.province+(g.source||'')).toLowerCase().includes(search));
   if(filterSt) list=list.filter(g=>g.status===filterSt);
@@ -3146,6 +3266,7 @@ function rg(){
       <td>${(()=>{const hasM=g.musicians&&g.musicians.length>0;return hasM?'<span class="badge bg" style="font-size:10px;background:#D1FAE5;color:#065F46"><span class="bd2" style="background:#065F46"></span>Assigned</span>':'<span class="badge bs" style="font-size:10px;background:#FEF3C7;color:#92400E"><span class="bd2" style="background:#92400E"></span>No Assign</span>';})()} </td>
       <td>${bx(g.status)}</td>
       <td>${g.status!=='cancelled'?gigPayBadge(g):'—'}</td>
+      <td>${g.status!=='cancelled'?gigTipBadge(g):'—'}</td>
       <td><span class="badge bs" style="font-size:10px">${g.type||'—'}</span></td>
     </tr>`;
   }).join('');
@@ -3208,15 +3329,19 @@ function ri(){
   /* ได้ส่วนแบ่งเฉพาะงานที่ assign สมาชิกคนนั้นจริงๆ (มี musicians array) */
   const getMemCut=(g,mem)=>{
     const mus=g.musicians&&g.musicians.length?g.musicians:null;
-    if(!mus) return 0; /* ยังไม่ assign นักดนตรี → ไม่นับ */
+    if(!mus) return 0;
     const mu=mus.find(x=>String(x.memberId)===String(mem.id));
-    return mu?Math.round(gigNet(g)*(mu.pct/100)):0;
+    if(!mu) return 0;
+    if((mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0) return Math.round(mu.fixedAmt);
+    return Math.round(gigNet(g)*(mu.pct/100));
   };
   /* forecast cut: ถ้ายังไม่ assign → หารเท่ากัน */
   const getMemForecastCut=(g,mem)=>{
     if(g.musicians&&g.musicians.length){
       const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
-      return mu?Math.round(gigNet(g)*(mu.pct/100)):0;
+      if(!mu) return 0;
+      if((mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0) return Math.round(mu.fixedAmt);
+      return Math.round(gigNet(g)*(mu.pct/100));
     }
     /* ยังไม่ assign → หารเท่ากันตามจำนวน active member */
     const activeCount=S.members.filter(m=>m.status==='active').length||1;
@@ -3231,27 +3356,35 @@ function ri(){
     return g.musicians&&g.musicians.length>0&&g.musicians.some(x=>String(x.memberId)===String(mem.id));
   };
 
-  /* ── 4 KPI ── */
-  /* Paid = กดจ่ายแล้ว (มีใน memberPayments.paid) */
-  /* Unpaid = assigned แล้ว (มีใน musicians) แต่ยังไม่กดจ่าย */
+  /* ── KPI ── */
+  /* รายได้รวม = sum payments จากลูกค้า เฉพาะงาน paid */
   let totalRealIncome=0,paidGigSet=new Set();
   let totalForecastIncome=0,unpaidGigSet=new Set();
+  allGigs.forEach(g=>{
+    if(g.status==='paid'){
+      totalRealIncome+=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+      paidGigSet.add(g.id);
+    } else if(g.status!=='cancelled'){
+      /* forecast = งานที่ assign แต่ยังไม่ paid */
+      if(g.musicians&&g.musicians.length) unpaidGigSet.add(g.id);
+    }
+  });
+  /* forecast income รวม */
   S.members.forEach(mem=>{
     allGigs.forEach(g=>{
-      if(!isMemAssigned(g,mem))return; /* ข้ามงานที่ยังไม่ assign */
+      if(g.status==='cancelled'||g.status==='paid') return;
+      if(!isMemAssigned(g,mem)) return;
       const cut=getMemCut(g,mem);
-      if(!cut)return;
-      if(isMemPaid(g,mem)){totalRealIncome+=cut;paidGigSet.add(g.id);}
-      else{totalForecastIncome+=cut;unpaidGigSet.add(g.id);}
+      if(cut) totalForecastIncome+=cut;
     });
   });
 
   const kpiEl=document.getElementById('income-kpi');
   if(kpiEl) kpiEl.innerHTML=`
     <div class="kpi cr">
-      <div class="kpi-lbl">รายได้รับจริง (Paid)</div>
+      <div class="kpi-lbl">รายได้รวม (Paid)</div>
       <div class="kpi-val r">฿${f(totalRealIncome)}</div>
-      <div class="kpi-sub">กดจ่ายเงินให้สมาชิกแล้ว · ${periodLabel}</div>
+      <div class="kpi-sub">รับเงินครบจากลูกค้าแล้ว · ${periodLabel}</div>
     </div>
     <div class="kpi cb">
       <div class="kpi-lbl">รายได้คาดการณ์ (Unpaid)</div>
@@ -3261,7 +3394,7 @@ function ri(){
     <div class="kpi cg">
       <div class="kpi-lbl">จำนวนงาน (Paid)</div>
       <div class="kpi-val g">${paidGigSet.size}</div>
-      <div class="kpi-sub">งานที่กดจ่ายเงินแล้ว</div>
+      <div class="kpi-sub">งานที่รับเงินครบแล้ว</div>
     </div>
     <div class="kpi ca">
       <div class="kpi-lbl">จำนวนงาน (Unpaid)</div>
@@ -3269,26 +3402,45 @@ function ri(){
       <div class="kpi-sub">Assign แล้ว ยังรอจ่าย</div>
     </div>`;
 
-  /* ── member table: เฉพาะสมาชิกที่ถูก assign งานแล้วเท่านั้น ── */
-  const memData=S.members.filter(m=>m.status==='active').map(mem=>{
-    let realIncome=0,forecastIncome=0,paidGigCount=0,unpaidGigCount=0;
+  /* ── member table — member role เห็นแค่ตัวเอง ── */
+  const isMemberRole=currentUser?.role==='member';
+  const myMemberId=currentUser?.memberId;
+  const activeMembers=S.members.filter(m=>m.status==='active');
+  const filteredMembers=isMemberRole&&myMemberId&&myMemberId!=='__leader__'
+    ?activeMembers.filter(m=>String(m.id)===String(myMemberId))
+    :activeMembers;
+  const memData=filteredMembers.map(mem=>{
+    let bdIncome=0,tipIncome=0,forecastIncome=0,paidGigCount=0,unpaidGigCount=0;
     allGigs.forEach(g=>{
-      if(g.status==='cancelled')return;
+      if(g.status==='cancelled') return;
       if(isMemAssigned(g,mem)){
-        const cut=getMemCut(g,mem);
-        if(!cut)return;
-        if(isMemPaid(g,mem)){realIncome+=cut;paidGigCount++;}
-        else{forecastIncome+=cut;unpaidGigCount++;}
+        const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
+        if(g.status==='paid'){
+          /* รายได้ = sum breakdown (ยกเว้น tip) */
+          if(mu?.breakdown){
+            const bd=mu.breakdown;
+            bdIncome+=(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
+          } else {
+            bdIncome+=getMemCut(g,mem);
+          }
+          /* ทิป = breakdown.tip */
+          tipIncome+=mu?.breakdown?.tip||0;
+          paidGigCount++;
+        } else {
+          /* forecast = ส่วนแบ่งรวม breakdown ทั้งหมด */
+          forecastIncome+=getMemCut(g,mem);
+          unpaidGigCount++;
+        }
       } else if(!g.musicians||!g.musicians.length){
-        /* ยังไม่ assign → forecast หารเท่ากัน */
         if(g.status!=='paid'){
           const cut=getMemForecastCut(g,mem);
           if(cut){forecastIncome+=cut;unpaidGigCount++;}
         }
       }
     });
-    return{...mem,realIncome,forecastIncome,paidGigCount,unpaidGigCount};
-  }).sort((a,b)=>(b.realIncome+b.forecastIncome)-(a.realIncome+a.forecastIncome));
+    const totalIncome=bdIncome+tipIncome;
+    return{...mem,bdIncome,tipIncome,totalIncome,forecastIncome,paidGigCount,unpaidGigCount};
+  }).sort((a,b)=>(b.totalIncome+b.forecastIncome)-(a.totalIncome+a.forecastIncome));
 
   if(!incomeSelectedMid) incomeSelectedMid=(memData.find(m=>m.realIncome>0||m.forecastIncome>0)||memData[0])?.id||null;
 
@@ -3331,7 +3483,13 @@ function ri(){
       </div></td>
       <td style="color:var(--ink3)">${mem.role}</td>
       <td style="background:#FEF9F9">
-        <div style="font-weight:700;color:#DC2626;font-size:13px">฿${f(mem.realIncome)}</div>
+        <div style="font-weight:700;color:#DC2626;font-size:13px">฿${f(mem.bdIncome)}</div>
+      </td>
+      <td style="background:#FFF7ED">
+        <div style="font-weight:700;color:#92400E;font-size:13px">฿${f(mem.tipIncome)}</div>
+      </td>
+      <td style="background:#F0FDF4">
+        <div style="font-weight:700;color:#166534;font-size:13px">฿${f(mem.totalIncome)}</div>
       </td>
       <td style="background:#FEF9F9;text-align:center">
         <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:22px;background:${mem.paidGigCount>0?'#DC2626':'#E5E7EB'};color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:0 8px">${mem.paidGigCount}</span>
@@ -3360,26 +3518,41 @@ function renderIncomeDetail(m,y,gg){
   const lbl=document.getElementById('idetail-label');
   if(lbl) lbl.textContent=`รายละเอียดต่องาน — ${mem.name} (${mem.nick})`;
 
-  document.getElementById('idetail').innerHTML=gg.map(g=>{
-    /* ข้ามงานที่ยังไม่ assign นักดนตรี */
+  document.getElementById('idetail').innerHTML=gg.filter(g=>g.status==='paid').map(g=>{
     if(!g.musicians||!g.musicians.length) return '';
-    const mus=g.musicians;
-    const mu=mus.find(x=>String(x.memberId)===String(mem.id));
-    if(!mu)return'';
+    const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
+    if(!mu) return '';
     const myIncome=Math.round(gigNet(g)*(mu.pct/100));
     const isPaid=!!(g.memberPayments||{})[mem.id];
     const payData=(g.memberPayments||{})[mem.id];
     const hasSlip=payData&&typeof payData==='object'&&payData.slip;
+    /* breakdown column */
+    const bd=mu.breakdown;
+    const bdItems=bd?[
+      {label:'ค่าตัว',val:bd.fee},
+      {label:'นั่งรถ',val:bd.travel},
+      {label:'น้ำมัน',val:bd.oil},
+      {label:'ต่อเวลา',val:bd.overtime},
+      {label:bd.otherNote||'อื่นๆ',val:bd.other}
+    ].filter(x=>x.val>0):[];
+    const tipAmt=bd?.tip||0;
+    const bdHtml=bdItems.length
+      ?bdItems.map(x=>`<div style="display:flex;justify-content:space-between;gap:12px;font-size:10px;padding:1px 0"><span style="color:var(--ink3)">${x.label}</span><span style="font-weight:600;color:var(--ink2)">฿${f(x.val)}</span></div>`).join('')
+      :`<span style="font-size:10px;color:var(--ink3)">—</span>`;
+    const tipHtml=tipAmt>0?`<span style="font-size:11px;font-weight:700;color:#92400E">฿${f(tipAmt)}</span>`:'<span style="font-size:10px;color:var(--ink3)">—</span>';
+    const bdTotal=bdItems.reduce((s,x)=>s+x.val,0);
+    const totalHtml=`<span style="font-size:11px;font-weight:700;color:#166534">฿${f(bdTotal+tipAmt)}</span>`;
     return`<tr>
       <td class="tid">${oid(g)}</td>
       <td style="font-weight:500">${g.name}</td>
       <td>${fd(g.date)}</td>
-      <td class="tamt">฿${f(gigNet(g))}</td>
-      <td style="font-weight:600;color:var(--red)">${Math.round(mu.pct)}% = ฿${f(myIncome)}</td>
+      <td style="background:#FEF9F9;min-width:140px">${bdHtml}</td>
+      <td style="background:#FFF7ED;text-align:center">${tipHtml}</td>
+      <td style="background:#F0FDF4;text-align:center">${totalHtml}</td>
       <td style="font-weight:600;color:${isPaid?'var(--green)':'var(--ink3)'}">${isPaid?`<span style="display:flex;align-items:center;gap:4px">✓ จ่ายแล้ว${hasSlip?`${slipImg(payData.slip,20)}`:''}</span>`:'รอจ่าย'}</td>
       <td>${bx(g.status)}</td>
     </tr>`;
-  }).filter(Boolean).join('')||`<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--ink3)">ไม่มีงานในเดือนนี้</td></tr>`;
+  }).filter(Boolean).join('')||`<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--ink3)">ไม่มีงานที่รับเงินครบในช่วงนี้</td></tr>`;
 }
 
 function sim(m,el){S.im=m;incomeSelectedMid=null;document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');ri();}
@@ -3427,7 +3600,9 @@ function rcal(){
   const{cy:y,cm:m}=S;
   document.getElementById('cal-tt').textContent=`${TM[m]} ${y}`;
   const f1=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),td=new Date();
-  const filterMid=S.calFilterMember;
+  const filterMid=currentUser?.role==='member'&&currentUser?.memberId!=='__leader__'
+    ?currentUser.memberId
+    :S.calFilterMember;
   let h='';
   // empty cells before month start
   for(let i=0;i<f1;i++) h+='<div class="cal-cell empty"></div>';
@@ -3853,7 +4028,6 @@ function renderMemberRows(){
   let html='';
   for(let i=0;i<n;i++){
     const selVal=existing[i]||'';
-    /* exclude members already selected in OTHER slots */
     const otherSelected=existing.filter((_,idx)=>idx!==i&&_);
     const availableOpts=activeMembers.map(m=>{
       const isOtherSelected=otherSelected.includes(String(m.id));
@@ -3863,19 +4037,52 @@ function renderMemberRows(){
     if(gigState.splitMode==='pct'){
       pctField=`<input class="fi" id="gpct-${i}" type="number" min="0" max="100" placeholder="%" style="width:70px;flex-shrink:0" oninput="updateSummary()">`;
     } else if(gigState.splitMode==='amt'){
-      pctField=`<input class="fi" id="gpct-${i}" type="number" min="0" placeholder="฿" style="width:90px;flex-shrink:0" oninput="updateSummary()">`;
+      pctField=`<div id="gpct-${i}" style="width:90px;flex-shrink:0;text-align:right;font-size:12px;font-weight:700;color:var(--red);line-height:36px">฿0</div>`;
     } else {
       pctField=`<div style="width:70px;flex-shrink:0;text-align:center;font-size:12px;font-weight:600;color:var(--red);line-height:36px" id="gpct-${i}">${Math.round(100/n)}%</div>`;
     }
-    html+=`<div style="display:flex;align-items:center;gap:8px">
-      <div style="width:22px;height:22px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
-      <select class="fi" id="gmem-${i}" style="flex:1" onchange="onMemberRowChange(${i})">
-        <option value="">— เลือกสมาชิก —</option>${availableOpts}
-      </select>
-      ${pctField}
+    html+=`<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
+        <select class="fi" id="gmem-${i}" style="flex:1" onchange="onMemberRowChange(${i})">
+          <option value="">— เลือกสมาชิก —</option>${availableOpts}
+        </select>
+        ${pctField}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ค่าตัว (฿)</div><input class="fi" id="gbd-fee-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">นั่งรถ (฿)</div><input class="fi" id="gbd-car-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">น้ำมัน (฿)</div><input class="fi" id="gbd-oil-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ต่อเวลา (฿)</div><input class="fi" id="gbd-ot-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">อื่นๆ (฿)</div><input class="fi" id="gbd-other-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+      </div>
+      <input class="fi" id="gbd-note-${i}" type="text" placeholder="หมายเหตุ อื่นๆ" style="font-size:11px;height:28px;width:100%;margin-top:4px">
+      <div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600">
+        <span style="color:var(--ink3)">รวมได้รับ</span>
+        <span id="gbd-total-${i}" style="color:var(--red)">฿0</span>
+      </div>
     </div>`;
   }
   wrap.innerHTML=html;
+  updateSummary();
+}
+
+function calcBreakdown(i){
+  const fee=parseFloat(document.getElementById(`gbd-fee-${i}`)?.value)||0;
+  const car=parseFloat(document.getElementById(`gbd-car-${i}`)?.value)||0;
+  const oil=parseFloat(document.getElementById(`gbd-oil-${i}`)?.value)||0;
+  const ot=parseFloat(document.getElementById(`gbd-ot-${i}`)?.value)||0;
+  const tip=0; /* ทิปจัดการแยกใน Tab จ่ายทิป */
+  const other=parseFloat(document.getElementById(`gbd-other-${i}`)?.value)||0;
+  const total=fee+car+oil+ot+tip+other;
+  /* แสดงยอดรวม */
+  const totalEl=document.getElementById(`gbd-total-${i}`);
+  if(totalEl){totalEl.textContent='฿'+f(total);totalEl.dataset.val=total;}
+  /* sync ยอดรวมเข้า pct/amt field */
+  if(gigState.splitMode==='amt'){
+    const pctEl=document.getElementById(`gpct-${i}`);
+    if(pctEl){pctEl.textContent='฿'+f(total);pctEl.dataset.amt=total;}
+  }
   updateSummary();
 }
 
@@ -3912,27 +4119,51 @@ function updateSummary(){
     if(gigState.splitMode==='equal'){
       pct=Math.round(100/n);
       amount=Math.round(netBase*(pct/100));
+      /* auto-fill ค่าตัว */
+      const feeEl=document.getElementById(`gbd-fee-${i}`);
+      if(feeEl&&(!feeEl.value||parseFloat(feeEl.value)===0||feeEl.dataset.autoFilled==='1')){
+        feeEl.value=amount;feeEl.dataset.autoFilled='1';
+      }
     } else if(gigState.splitMode==='amt'){
-      amount=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;
+      const bdEl=document.getElementById(`gbd-total-${i}`);
+      amount=parseFloat(bdEl?.dataset?.val)||0;
       pct=netBase>0?Math.round(amount/netBase*100):0;
     } else {
       pct=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;
       amount=Math.round(netBase*(pct/100));
+      /* auto-fill ค่าตัว */
+      const feeEl=document.getElementById(`gbd-fee-${i}`);
+      if(feeEl&&(!feeEl.value||parseFloat(feeEl.value)===0||feeEl.dataset.autoFilled==='1')){
+        feeEl.value=amount;feeEl.dataset.autoFilled='1';
+      }
     }
     rows.push({name:mem?`${mem.name} (${mem.nick})`:`นักดนตรี ${i+1}`,pct,amount});
   }
   const totalPct=rows.reduce((s,r)=>s+r.pct,0);
   const totalAmt=rows.reduce((s,r)=>s+r.amount,0);
-  const totalAmtCheck=gigState.splitMode==='amt'?rows.reduce((s,r)=>s+r.amount,0):null;
-  const pctOk=gigState.splitMode==='equal'||(gigState.splitMode==='pct'&&totalPct===100)||(gigState.splitMode==='amt'&&totalAmtCheck<=netBase);
+  const profit=netBase-totalAmt; /* ส่วนต่าง = กำไร */
+  const pctOk=gigState.splitMode==='equal'
+    ||(gigState.splitMode==='pct'&&totalPct<=100)
+    ||(gigState.splitMode==='amt'&&totalAmt<=netBase);
   const el=document.getElementById('gig-split-summary');
   if(!el)return;
+  /* label แสดงสถานะ */
+  let statusLabel='';
+  if(gigState.splitMode==='equal'){
+    statusLabel=`<span style="color:var(--green);font-weight:600">100% ✓</span>`;
+  } else if(gigState.splitMode==='pct'){
+    const over=totalPct>100;
+    statusLabel=`<span style="color:${over?'var(--red)':'var(--green)'};font-weight:600">${Math.round(totalPct)}% ${over?'⚠ เกิน':'✓'}</span>`;
+  } else {
+    const over=totalAmt>netBase;
+    statusLabel=`<span style="color:${over?'var(--red)':'var(--green)'};font-weight:600">฿${f(totalAmt)} / ฿${f(netBase)} ${over?'⚠ เกิน':'✓'}</span>`;
+  }
   el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
     <div>
       <span style="font-size:12px;font-weight:600;color:var(--ink)">สรุปการแบ่งรายได้</span>
       <span style="font-size:10px;color:var(--ink3);margin-left:6px">(จากรายได้สุทธิ ฿${f(netBase)})</span>
     </div>
-    <span style="color:${pctOk?'var(--green)':'var(--red)'};font-weight:600">${gigState.splitMode==='amt'?('฿'+f(totalAmt)+' / ฿'+f(netBase)):(totalPct+'% '+(pctOk?'✓':'≠ 100%'))}</span>
+    ${statusLabel}
   </div>`+
     rows.map(r=>`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;color:var(--ink2)">
       <span>${r.name}</span>
@@ -3941,7 +4172,12 @@ function updateSummary(){
     `<div style="border-top:1px solid var(--rb);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:11px;font-weight:600">
       <span style="color:var(--ink3)">รวมค่าตัวนักดนตรี</span>
       <span style="color:var(--red)">฿${f(totalAmt)}</span>
-    </div>`;
+    </div>`+
+    (profit>0&&gigState.splitMode!=='equal'?
+    `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;font-weight:600;margin-top:2px">
+      <span style="color:var(--green)">🏦 Net Profit (ส่วนต่าง)</span>
+      <span style="color:var(--green)">+฿${f(profit)}</span>
+    </div>`:'');
 }
 function getGigMembers(){
   const n=gigState.count;const res=[];
@@ -3949,47 +4185,70 @@ function getGigMembers(){
   const expO=parseFloat(document.getElementById('ge-other-fee')?.value)||0;
   const grossFee=parseFloat(document.getElementById('gf')?.value)||0;
   const netB2=grossFee-(expS+expO);
+  /* หา gig ที่กำลัง edit เพื่อ preserve tip เดิม */
+  const existingGig=S.eid?S.gigs.find(g=>String(g.id)===String(S.eid)):null;
   for(let i=0;i<n;i++){
     const memId=document.getElementById(`gmem-${i}`)?.value;
+    /* อ่าน breakdown ก่อนเสมอ */
+    const bdFee=parseFloat(document.getElementById(`gbd-fee-${i}`)?.value)||0;
+    const bdCar=parseFloat(document.getElementById(`gbd-car-${i}`)?.value)||0;
+    const bdOil=parseFloat(document.getElementById(`gbd-oil-${i}`)?.value)||0;
+    const bdOt=parseFloat(document.getElementById(`gbd-ot-${i}`)?.value)||0;
+    /* tip: preserve จาก tab จ่ายทิป ไม่ reset เมื่อ save จาก form */
+    const existingMu=existingGig?.musicians?.[i];
+    const bdTip=existingMu?.breakdown?.tip||0;
+    const bdOther=parseFloat(document.getElementById(`gbd-other-${i}`)?.value)||0;
+    const bdNote=document.getElementById(`gbd-note-${i}`)?.value.trim()||'';
+    const bdTotal=bdFee+bdCar+bdOil+bdOt+bdTip+bdOther;
+    const breakdown={fee:bdFee,travel:bdCar,oil:bdOil,overtime:bdOt,tip:bdTip,other:bdOther,otherNote:bdNote};
     let pct,fixedAmt=null;
-    if(gigState.splitMode==='equal'){pct=Math.round(100/n);}
-    else if(gigState.splitMode==='amt'){
-      fixedAmt=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;
+    if(gigState.splitMode==='equal'){
+      pct=Math.round(100/n);
+    } else if(gigState.splitMode==='amt'){
+      const bdEl=document.getElementById(`gbd-total-${i}`);
+      fixedAmt=parseFloat(bdEl?.dataset?.val)||bdTotal;
       pct=netB2>0?Math.round(fixedAmt/netB2*100):0;
-    } else {pct=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;}
-    res.push({memberId:memId||null,pct,fixedAmt,splitMode:gigState.splitMode});
+    } else {
+      pct=parseFloat(document.getElementById(`gpct-${i}`)?.value)||0;
+    }
+    res.push({memberId:memId||null,pct,fixedAmt,splitMode:gigState.splitMode,breakdown:bdTotal>0?breakdown:null});
   }
   return res;
 }
 function openGig(){
   if(!requireAdmin('เพิ่มงาน'))return;
   _gigLoadedVersion=null;
-  S.eid=null;gigState={splitMode:'equal',count:0};
+  S.eid=null;gigState={splitMode:'amt',count:0};
+  /* unlock fields ที่อาจถูก lock จาก editGig paid */
+  const mgigEl=document.getElementById('mgig');
+  mgigEl.classList.remove('gig-locked');
+  mgigEl.querySelectorAll('input,select,textarea,button').forEach(el=>{
+    el.disabled=false;el.style.pointerEvents='';el.style.opacity='';
+  });
+  const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
+  if(saveBtn)saveBtn.style.display='';
   document.getElementById('mgig-t').textContent='เพิ่มงานใหม่';
-  S.eid=null;gigState={splitMode:'equal',count:0};
-  document.getElementById('mgig-t').textContent='เพิ่มงานใหม่';
-  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','ge-sound-fee','ge-other-fee','ge-other-note'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';}); 
+  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','ge-sound-fee','ge-other-fee','ge-other-note','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=false;
   const today=new Date().toISOString().split('T')[0];
   const gdEl=document.getElementById('gd');if(gdEl)gdEl.value=today;
-  const gdH=document.getElementById('gd');if(gdH)gdH.value=today;
   const grecEl=document.getElementById('grec');if(grecEl)grecEl.value=today;
-  const grecH=document.getElementById('grec');if(grecH)grecH.value=today;
   document.getElementById('gf-total-display').textContent='฿0';
   document.getElementById('income-breakdown').innerHTML='';
   const etd=document.getElementById('ge-total-display');if(etd)etd.textContent='฿0';
   const end=document.getElementById('ge-net-display');if(end){end.textContent='฿0';end.style.color='var(--green)';}
   const ebd=document.getElementById('expense-breakdown');if(ebd)ebd.innerHTML='';
   const geSM=document.getElementById('ge-sound-member');if(geSM)geSM.value='';
-  document.getElementById('gst').value='confirmed';document.getElementById('gtype').value='event';updateGstDisplay('confirmed');
+  document.getElementById('gst').value='confirmed';document.getElementById('gtype').value='';updateGstDisplay('confirmed');
   document.getElementById('gbandsize').value='';
-  populateSourceDropdown();populateJobTypeDropdown();populateExpenseMemberDropdown();setCtype('old');setSplit('equal');
+  populateSourceDropdown();populateJobTypeDropdown();populateExpenseMemberDropdown();setCtype('old');setSplit('amt');
   document.getElementById('gig-members-wrap').style.display='none';
 
   /* ── Restore draft if exists ── */
   if(S._gigDraft){
     const d=S._gigDraft;
     if(d.name) document.getElementById('gn').value=d.name;
-    if(d.date){const gdDraft=document.getElementById('gd');if(gdDraft)gdDraft.value=d.date;}
+    if(d.date) setGigDateDropdowns(d.date);
     if(d.venue) document.getElementById('gv').value=d.venue;
     if(d.mapLink){const m=document.getElementById('gmap');if(m)m.value=d.mapLink;}
     if(d.province) document.getElementById('gprov').value=d.province;
@@ -4004,6 +4263,20 @@ function openGig(){
       ['band','travel-oil','travel-car','after','sound','sound-oil','sound-car','other'].forEach(k=>{const el=document.getElementById('gf-'+k);if(el&&inc[k])el.value=inc[k];});
       if(inc.otherNote){const el=document.getElementById('gf-other-note');if(el)el.value=inc.otherNote;}
       calcTotalIncome();
+    }
+    /* restore client */
+    if(d.ctype){
+      setCtype(d.ctype);
+      if(d.ctype==='old'){
+        if(d.clientId) gigState.selectedClientId=d.clientId;
+        if(d.clientSearch){const cs=document.getElementById('gclient-search');if(cs)cs.value=d.clientSearch;}
+        if(d.clientPhone){const cp=document.getElementById('gcphone');if(cp)cp.value=d.clientPhone;}
+        if(d.clientBankName){const cb=document.getElementById('gcbank-name');if(cb)cb.value=d.clientBankName;}
+        if(d.clientBankNo){const cn=document.getElementById('gcbank-no');if(cn)cn.value=d.clientBankNo;}
+      } else {
+        if(d.clientNameNew){const cn=document.getElementById('gcname-new');if(cn)cn.value=d.clientNameNew;}
+        if(d.clientPhoneNew){const cp=document.getElementById('gcphone-new');if(cp)cp.value=d.clientPhoneNew;}
+      }
     }
     /* show toast hint */
     toast('📋 โหลด draft ล่าสุด — กรอกต่อหรือบันทึกได้เลย');
@@ -4034,10 +4307,18 @@ function clearGigDraft(){
 }
 function editGig(id){
   const g=S.gigs.find(x=>String(x.id)===String(id));if(!g)return;
+  /* reset lock state ก่อนเสมอ */
+  const mgigReset=document.getElementById('mgig');
+  mgigReset.classList.remove('gig-locked');
+  mgigReset.querySelectorAll('input,select,textarea,button').forEach(el=>{
+    el.disabled=false;el.style.pointerEvents='';el.style.opacity='';
+  });
+  const saveBtnReset=mgigReset.querySelector('[onclick="sg()"]');
+  if(saveBtnReset)saveBtnReset.style.display='';
   S.eid=id;gigState={splitMode:g.splitMode||'equal',count:(g.musicians||[]).length};
   _gigLoadedVersion=g._v||0; /* capture version at open time */
   document.getElementById('mgig-t').textContent='แก้ไขงาน';
-  document.getElementById('gn').value=g.name;const gdEdit=document.getElementById('gd');if(gdEdit)gdEdit.value=g.date||'';
+  document.getElementById('gn').value=g.name;setGigDateDropdowns(g.date||'');
   const grecEdit=document.getElementById('grec');if(grecEdit)grecEdit.value=g.recDate||'';
   document.getElementById('gtstart').value=g.timeStart||'';document.getElementById('gtend').value=g.timeEnd||'';
   document.getElementById('gv').value=g.venue||'';const gmEl=document.getElementById('gmap');if(gmEl)gmEl.value=g.mapLink||'';document.getElementById('gf').value=g.fee;
@@ -4081,25 +4362,37 @@ function editGig(id){
     document.getElementById('gcount').value=g.musicians.length;
     setSplit(gigState.splitMode);
     document.getElementById('gig-members-wrap').style.display='block';
-    /* เพิ่ม timeout ให้ DOM render dropdowns ทันก่อน set value */
+    /* ต้องรอให้ setSplit → renderMemberRows render DOM ก่อน แล้วค่อย set values */
     setTimeout(()=>{
       g.musicians.forEach((mu,i)=>{
         const sel=document.getElementById('gmem-'+i);
         if(!sel||!mu.memberId)return;
         const midStr=String(mu.memberId);
-        /* หา UUID จาก S.members ที่ตรงกับ memberId (UUID หรือ number ก็ได้) */
         const matchMem=S.members.find(m=>String(m.id)===midStr);
         const targetId=matchMem?String(matchMem.id):midStr;
-        /* set dropdown value */
         sel.value=targetId;
-        const pi=document.getElementById('gpct-'+i);
-        if(pi){
-          if(gigState.splitMode==='pct') pi.value=mu.pct||0;
-          else if(gigState.splitMode==='amt') pi.value=mu.fixedAmt||0;
+        /* restore breakdown ก่อน เพราะ calcBreakdown จะ sync ยอดรวม */
+        if(mu.breakdown){
+          const bd=mu.breakdown;
+          const keyMap={fee:'fee',travel:'car',oil:'oil',overtime:'ot',tip:'tip',other:'other'};
+          Object.keys(keyMap).forEach(k=>{
+            const el=document.getElementById(`gbd-${keyMap[k]}-${i}`);
+            if(el) el.value=bd[k]||0;
+          });
+          const noteEl=document.getElementById(`gbd-note-${i}`);
+          if(noteEl) noteEl.value=bd.otherNote||'';
+          calcBreakdown(i); /* sync sum → gpct display */
+        } else {
+          /* ไม่มี breakdown: set pct/amt โดยตรง */
+          const pi=document.getElementById('gpct-'+i);
+          if(pi){
+            if(gigState.splitMode==='pct') pi.value=mu.pct||0;
+            else if(gigState.splitMode==='equal') pi.textContent=Math.round(100/g.musicians.length)+'%';
+          }
         }
       });
       updateSummary();
-    },150);
+    },250);
   } else {
     document.getElementById('gcount').value='';
     document.getElementById('gig-members-wrap').style.display='none';
@@ -4107,16 +4400,58 @@ function editGig(id){
   /* restore WHT */
   setTimeout(()=>{const cb=document.getElementById('gig-wht');if(cb){cb.checked=!!(g.whtEnabled);calcWHT();}},50);
   document.getElementById('mgig').classList.add('open');
+
+  /* ── lock modal ถ้างาน paid ── */
+  const isPaidLock=g.status==='paid';
+  const mgigEl=document.getElementById('mgig');
+  if(isPaidLock){
+    mgigEl.classList.add('gig-locked');
+    document.getElementById('mgig-t').textContent='ดูข้อมูลงาน (จ่ายเต็มแล้ว)';
+    /* ซ่อนปุ่มบันทึก */
+    const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
+    if(saveBtn)saveBtn.style.display='none';
+    /* disable ทุก input/select/textarea/button ใน modal ยกเว้นปุ่มยกเลิก */
+    setTimeout(()=>{
+      mgigEl.querySelectorAll('input,select,textarea,button').forEach(el=>{
+        if(el.getAttribute('onclick')==='cx(\'mgig\')') return; /* ปุ่มยกเลิก */
+        el.disabled=true;
+        el.style.pointerEvents='none';
+        el.style.opacity='.55';
+      });
+    },300);
+  } else {
+    mgigEl.classList.remove('gig-locked');
+    document.getElementById('mgig-t').textContent='แก้ไขงาน';
+    const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
+    if(saveBtn)saveBtn.style.display='';
+    setTimeout(()=>{
+      mgigEl.querySelectorAll('input,select,textarea,button').forEach(el=>{
+        el.disabled=false;
+        el.style.pointerEvents='';
+        el.style.opacity='';
+      });
+    },300);
+  }
 }
 function sg(){
   if(!requireAdmin('บันทึกงาน'))return;
   const n=document.getElementById('gn').value.trim(),d=document.getElementById('gd').value,fe=parseFloat(document.getElementById('gf').value)||0;
   const src=document.getElementById('gsource').value;
   if(!n||!d){toast('กรุณากรอกชื่องานและวันที่');return;}
+  /* ── ตรวจวันที่ล่วงหน้าไม่เกิน 2 ปี ── */
+  const gigDate=new Date(d);
+  const maxDate=new Date();
+  maxDate.setFullYear(maxDate.getFullYear()+2);
+  if(gigDate>maxDate){
+    toast(`⚠ ไม่สามารถระบุงานล่วงหน้าเกิน 2 ปี (สูงสุด ${maxDate.getDate()}/${maxDate.getMonth()+1}/${maxDate.getFullYear()})`);
+    document.getElementById('gd').style.outline='2px solid var(--red)';
+    setTimeout(()=>{document.getElementById('gd').style.outline='';},2500);
+    return;
+  }
   if(!src){toast('กรุณาเลือกแหล่งที่มา');document.getElementById('gsource').style.outline='2px solid var(--red)';setTimeout(()=>{document.getElementById('gsource').style.outline='';},2000);return;}
   if(gigState.count>0&&gigState.splitMode==='pct'){
     const total=Array.from({length:gigState.count},(_,i)=>parseFloat(document.getElementById('gpct-'+i)?.value)||0).reduce((s,v)=>s+v,0);
-    if(Math.abs(total-100)>0.5){toast('% รวมได้ '+Math.round(total)+'% ต้องรวมได้ 100%');return;}
+    if(total>100+0.5){toast('% รวมได้ '+Math.round(total)+'% เกิน 100% — กรุณาตรวจสอบ');return;}
   }
   if(gigState.count>0&&gigState.splitMode==='amt'){
     const expS=parseFloat(document.getElementById('ge-sound-fee')?.value)||0;
@@ -4151,6 +4486,19 @@ function sg(){
     const cbNo=document.getElementById('gcbank-no-new')?.value.trim()||'';
     const nc={id:Date.now(),name:clientName,phone:clientPhone,bankName:cbName,bankNo:cbNo};
     S.clients.push(nc);clientId=nc.id;renderClientMaster();
+    /* sync ลูกค้าใหม่ขึ้น Supabase */
+    if(CLOUD_ENABLED()){
+      fetch(`${SUPABASE_URL}/rest/v1/clients`,{
+        method:'POST',
+        headers:{...sbHeaders(),'Prefer':'return=representation'},
+        body:JSON.stringify({band_id:_sbBandId,name:nc.name,phone:nc.phone||null,bank_name:nc.bankName||null,bank_no:nc.bankNo||null})
+      }).then(r=>r.json()).then(d=>{
+        if(d&&d[0]){
+          const i=S.clients.findIndex(x=>x.id===nc.id);
+          if(i>=0){S.clients[i].id=d[0].id;clientId=d[0].id;}
+        }
+      }).catch(console.error);
+    }
   }
   const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
   const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||''};
@@ -4188,22 +4536,174 @@ function cancelGig(id){
    GIG SUB-TABS
 ══════════════════════════════════════ */
 function switchGigTab(id,el){
-  document.querySelectorAll('.gig-tabpane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.gig-tabpane').forEach(p=>{
+    p.classList.remove('active');
+    p.style.display='none';
+  });
   document.querySelectorAll('.gig-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const pane=document.getElementById(id);
+  if(pane){pane.classList.add('active');pane.style.display='flex';}
   el.classList.add('active');
   if(id==='gt-receive') renderRecvList();
   if(id==='gt-pay') renderPayList();
 }
+/* ══════════════════════════════════════
+   TAB: จ่ายทิป
+══════════════════════════════════════ */
+let _tipSplitMode='equal';
+
+function renderTipTab(){
+  document.getElementById('tip-gig-search').value='';
+  document.getElementById('tip-gig-id').value='';
+  document.getElementById('tip-content').innerHTML='<div style="text-align:center;color:var(--ink3);padding:40px">ค้นหาหรือเลือกงานด้านบน</div>';
+  closeTipDropdown();
+}
+
+function filterTipGigs(){
+  const q=(document.getElementById('tip-gig-search')?.value||'').toLowerCase();
+  const dd=document.getElementById('tip-gig-dropdown');
+  const gigsWithMus=S.gigs.filter(g=>
+    g.status!=='cancelled'&&g.musicians&&g.musicians.length&&
+    (!q||g.name.toLowerCase().includes(q)||fd(g.date).includes(q))
+  ).slice(0,10);
+  if(!gigsWithMus.length){
+    dd.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--ink3)">ไม่พบงาน</div>';
+    dd.style.display='block';return;
+  }
+  dd.innerHTML=gigsWithMus.map(g=>`
+    <div class="cmb-opt" data-gid="${g.id}"
+      style="padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--bg2)"
+      onclick="selectTipGigById(this.dataset.gid)">
+      <div style="font-weight:600;font-size:13px;color:var(--ink)">${g.name}</div>
+      <div style="font-size:10px;color:var(--ink3);margin-top:2px">${fd(g.date)} · ฿${f(gigNet(g))} · ${g.musicians.length} คน</div>
+    </div>`).join('');
+  dd.style.display='block';
+}
+
+function selectTipGigById(gigId){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g) return;
+  document.getElementById('tip-gig-search').value=`${g.name}  (${fd(g.date)})`;
+  document.getElementById('tip-gig-id').value=gigId;
+  closeTipDropdown();
+  renderTipForm(g);
+}
+
+function closeTipDropdown(){
+  const dd=document.getElementById('tip-gig-dropdown');
+  if(dd) dd.style.display='none';
+}
+
+function loadTipGig(){
+  const gigId=document.getElementById('tip-gig-id').value;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(g) renderTipForm(g);
+}
+
+function renderTipForm(g){
+  const el=document.getElementById('tip-content');
+  const mus=g.musicians||[];
+  if(!mus.length){el.innerHTML='<div style="padding:20px;color:var(--ink3)">ไม่มีนักดนตรีใน assignment</div>';return;}
+  const netFee=gigNet(g);
+  el.innerHTML=`
+    <div style="background:var(--wh);border:1.5px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px">${g.name}</div>
+      <div style="font-size:11px;color:var(--ink3)">${fd(g.date)} · ค่าตัวสุทธิ ฿${f(netFee)}</div>
+    </div>
+    <!-- tip header -->
+    <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px">
+        <div style="font-size:10px;color:var(--ink3);margin-bottom:4px">ยอดทิปรวม (฿)</div>
+        <input class="fi" id="tip-total-amt" type="number" min="0" placeholder="0" style="font-size:16px;font-weight:700;color:var(--red)" oninput="calcTipSplit('${g.id}')">
+      </div>
+      <div style="display:flex;border:1px solid var(--bd2);border-radius:8px;overflow:hidden">
+        <button id="tip-eq-btn" onclick="setTipSplit('equal','${g.id}')" style="padding:8px 16px;font-size:12px;border:none;background:var(--red);color:#fff;cursor:pointer;font-family:var(--f)">หารเท่า</button>
+        <button id="tip-cu-btn" onclick="setTipSplit('custom','${g.id}')" style="padding:8px 16px;font-size:12px;border:none;background:var(--wh);color:var(--ink3);cursor:pointer;font-family:var(--f)">กำหนดเอง</button>
+      </div>
+    </div>
+    <!-- member rows -->
+    <div id="tip-member-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      ${mus.map((mu,i)=>{
+        const mem=S.members.find(x=>String(x.id)===String(mu.memberId));
+        const existTip=mu.breakdown?.tip||0;
+        return`<div style="display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:10px;padding:10px 14px">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${mem?mem.name:'?'} <span style="color:var(--ink3);font-weight:400;font-size:11px">(${mem?.nick||'?'})</span></div>
+            <div style="font-size:10px;color:var(--ink3)">${mem?.role||''}</div>
+            ${existTip>0?`<div style="font-size:10px;color:var(--green);margin-top:2px">ทิปเดิม: ฿${f(existTip)}</div>`:''}
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ทิป (฿)</div>
+            <input class="fi" id="tip-mem-${i}" type="number" min="0" placeholder="0" value="${existTip||0}" style="width:100px;font-weight:600;color:var(--red)" oninput="updateTipTotal()">
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--rl);border-radius:10px;margin-bottom:16px">
+      <span style="font-size:12px;font-weight:600;color:var(--ink)">รวมทิปที่แจก</span>
+      <span id="tip-sum-display" style="font-size:16px;font-weight:700;color:var(--red)">฿0</span>
+    </div>
+    <button class="btn btn-r" style="width:100%;padding:12px 0;font-size:14px" data-gid="${g.id}" onclick="saveTip(this.dataset.gid)">💰 บันทึกทิป</button>`;
+  calcTipSplit(g.id);
+}
+
+function setTipSplit(mode,gigId){
+  _tipSplitMode=mode;
+  document.getElementById('tip-eq-btn').style.background=mode==='equal'?'var(--red)':'var(--wh)';
+  document.getElementById('tip-eq-btn').style.color=mode==='equal'?'#fff':'var(--ink3)';
+  document.getElementById('tip-cu-btn').style.background=mode==='custom'?'var(--red)':'var(--wh)';
+  document.getElementById('tip-cu-btn').style.color=mode==='custom'?'#fff':'var(--ink3)';
+  calcTipSplit(gigId);
+}
+
+function calcTipSplit(gigId){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g) return;
+  const total=parseFloat(document.getElementById('tip-total-amt')?.value)||0;
+  const n=g.musicians.length;
+  if(_tipSplitMode==='equal'&&n>0){
+    const each=Math.floor(total/n);
+    g.musicians.forEach((_,i)=>{
+      const el=document.getElementById(`tip-mem-${i}`);
+      if(el) el.value=each;
+    });
+  }
+  updateTipTotal();
+}
+
+function updateTipTotal(){
+  const rows=document.querySelectorAll('[id^="tip-mem-"]');
+  let sum=0;
+  rows.forEach(el=>{sum+=parseFloat(el.value)||0;});
+  const d=document.getElementById('tip-sum-display');
+  if(d) d.textContent='฿'+f(sum);
+}
+
+function saveTip(gigId){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g) return;
+  g.musicians.forEach((mu,i)=>{
+    const tipAmt=parseFloat(document.getElementById(`tip-mem-${i}`)?.value)||0;
+    if(!mu.breakdown) mu.breakdown={fee:0,travel:0,oil:0,overtime:0,tip:0,other:0,otherNote:''};
+    mu.breakdown.tip=tipAmt;
+  });
+  if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
+  toast('✅ บันทึกทิปแล้ว');
+  renderTipForm(g);
+  /* refresh income page if open */
+  if(document.getElementById('page-income')?.classList.contains('active')) ri();
+}
+
 function updateGigTabCounts(){
   /* mobile dot */
   const dot=document.getElementById('mob-income-dot');
   if(dot)dot.style.display=S.gigs.some(g=>g.status!=='cancelled'&&g.status!=='paid')?'block':'none';
 
-  /* รับเงิน = งานที่ยังไม่ได้รับเงิน (confirmed หรือ deposit) ไม่รวมยกเลิก */
-  const recvPending=S.gigs.filter(g=>
-    g.status==='confirmed'||g.status==='deposit'
-  ).length;
+  /* รับเงิน = งานที่ยังรับเงินไม่ครบ (remain > 0) */
+  const recvPending=S.gigs.filter(g=>{
+    if(g.status==='cancelled'||g.status==='paid') return false;
+    if(g.status!=='confirmed'&&g.status!=='deposit') return false;
+    const paidTotal=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+    return (g.fee-paidTotal) > 0;
+  }).length;
 
   /* จ่ายเงิน = งานที่มีนักดนตรี และยังมีคนที่ยังไม่ได้รับเงิน */
   const payPending=S.gigs.filter(g=>{
@@ -4229,6 +4729,7 @@ function updateGigTabCounts(){
    รับเงิน
 ══════════════════════════════════════ */
 function goToRecvPage(){
+  if(!currentUser||!_sbToken){doLogout();return;}
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='';});
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-recv');
@@ -4239,6 +4740,7 @@ function goToRecvPage(){
 }
 
 function goToPayPage(){
+  if(!currentUser||!_sbToken){doLogout();return;}
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='';});
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-pay');
@@ -4266,7 +4768,8 @@ function renderRecvPageList(){
   let list=S.gigs.filter(g=>{
     if(g.status==='cancelled') return false;
     if(showHistory){
-      /* ดูประวัติ: แสดงเฉพาะงานที่รับเงินครบ 100% แล้ว */
+      /* ดูประวัติ: งานที่ status=paid หรือรับเงินครบ 100% */
+      if(g.status==='paid') return true;
       const pays=g.payments||[];
       const paidTotal=pays.reduce((s,p)=>s+p.amount,0);
       return pays.length>0 && g.fee>0 && paidTotal>=g.fee;
@@ -4355,7 +4858,7 @@ function renderRecvPageList(){
             </div>
           </div>`).join('')}
         </div>`:''}
-        ${(()=>{const isHist=_showHistoryRecv||currentUser?.role!=='admin';if(isHist)return '';return `<button class="btn btn-r view-allowed" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" onclick="openRecv('${g.id}')">+ บันทึกการรับเงิน</button>`;})()} 
+        ${(()=>{const isHist=_showHistoryRecv||currentUser?.role!=='admin';if(isHist)return '';return `<button class="btn btn-r view-allowed" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" data-gid="${g.id}" onclick="openRecv(this.dataset.gid)">+ บันทึกการรับเงิน</button>`;})()} 
       </div>
     </div>`;
   }).join('');
@@ -4454,11 +4957,11 @@ function renderPayPageList(){
 }
 
 function renderRecvList(){renderRecvPageList();}
-function renderPayList(){renderPayPageList();}
+function renderPayListPage(){renderPayPageList();}
 let recvSlipData=null;
 function openRecv(gigId){
   /* member สามารถดูประวัติได้ แต่บันทึกไม่ได้ */
-  const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
   recvSlipData=null;
   document.getElementById('recv-gig-id').value=gigId;
   document.getElementById('recv-modal-title').textContent='รับเงิน — '+g.name;
@@ -4614,24 +5117,6 @@ async function loadSlipThumb(key, thumbEl, fallbackSrc) {
 /* ── View slip full screen ── */
 
 /* Render slip img tag — handles both key and legacy base64 */
-function slipImg(src, size=32, style=''){
-  if(!src) return '';
-  const isKey=src.startsWith('slip_');
-  /* For display: use data-slip-key attr, load async on render */
-  const id='simg_'+Math.random().toString(36).slice(2,7);
-  if(isKey){
-    /* async load after render */
-    setTimeout(async()=>{
-      const el=document.getElementById(id);
-      if(!el)return;
-      const data=await SlipStore.load(src);
-      if(data){el.src=data;el.style.display='';}
-    },50);
-    return `<img id="${id}" src="" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd);display:none${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
-  }
-  /* legacy base64/URL */
-  return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd)${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
-}
 async function viewSlipByKey(key, fallbackSrc) {
   const src = key ? (await SlipStore.load(key) || fallbackSrc) : fallbackSrc;
   if (src) viewSlip(src);
@@ -4655,25 +5140,39 @@ async function previewSlip(inp){
 function slipImg(src, size=32, style=''){
   if(!src) return '';
   const isKey=src.startsWith('slip_');
-  /* For display: use data-slip-key attr, load async on render */
   const id='simg_'+Math.random().toString(36).slice(2,7);
   if(isKey){
-    /* async load after render */
     setTimeout(async()=>{
       const el=document.getElementById(id);
       if(!el)return;
-      const data=await SlipStore.load(src);
+      /* 1. ลอง IndexedDB ก่อน */
+      let data=await SlipStore.load(src).catch(()=>null);
+      /* 2. ลอง public URL (ถ้า bucket เป็น public) */
+      if(!data&&SUPABASE_URL&&_sbBandId){
+        const pubUrl=`${SUPABASE_URL}/storage/v1/object/public/slips/${_sbBandId}/${src}`;
+        try{
+          const probe=await fetch(pubUrl,{method:'HEAD'});
+          if(probe.ok) data=pubUrl;
+        }catch(e){}
+      }
+      /* 3. fallback → signed URL (private bucket) */
+      if(!data&&SUPABASE_URL&&_sbBandId){
+        data=await sbGetSignedUrl('slips',src).catch(()=>null);
+      }
       if(data){el.src=data;el.style.display='';}
     },50);
     return `<img id="${id}" src="" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd);display:none${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
   }
-  /* legacy base64/URL */
   return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--bd)${style?';'+style:''}" class="view-allowed" onclick="viewSlip('${src}')">`;
 }
 async function viewSlip(src){
   let imgSrc=src;
   if(src&&src.startsWith('slip_')){
-    imgSrc=await SlipStore.load(src)||src;
+    imgSrc=await SlipStore.load(src).catch(()=>null);
+    if(!imgSrc&&SUPABASE_URL&&_sbBandId){
+      imgSrc=await sbGetSignedUrl('slips',src).catch(()=>null);
+    }
+    if(!imgSrc){toast('ไม่พบรูปสลิป');return;}
   }
   const img=document.getElementById('slip-view-img');
   const dlBtn=document.getElementById('slip-download-btn');
@@ -4696,6 +5195,12 @@ function saveRecv(){
   const newPay={date:document.getElementById('recv-date').value||new Date().toISOString().split('T')[0],amount,type:gigState._recvType||'deposit',note:document.getElementById('recv-note').value,slip:recvSlipData||null};
   g.payments.push(newPay);
   g.status=gigState._recvNewStatus||g.status;
+  /* ── auto-update status เป็น paid ถ้ารับเงินครบแล้ว ── */
+  const totalPaid=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+  if(totalPaid>=g.fee && g.fee>0 && g.status!=='cancelled'){
+    g.status='paid';
+    if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
+  }
   cx('modal-recv');renderRecvList();rg();rd();updateGigTabCounts();toast('บันทึกการรับเงินแล้ว');
   if(CLOUD_ENABLED()) syncPayment(g.id, newPay).catch(console.error);
   /* LINE notify */
@@ -4707,7 +5212,9 @@ function saveRecv(){
 function getMemberCut(g,mem){
   const net=gigNet(g);
   if(!g.musicians||!g.musicians.length){const activeM=S.members.filter(x=>x.status==='active').length||1;return Math.round(net/activeM);}
-  const mu=g.musicians.find(m=>m.memberId===mem.id);if(!mu)return 0;
+  const mu=g.musicians.find(m=>String(m.memberId)===String(mem.id));if(!mu)return 0;
+  /* mode amt: ใช้ fixedAmt โดยตรง ไม่ต้องคำนวณจาก pct */
+  if((mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0) return Math.round(mu.fixedAmt);
   return Math.round(net*(mu.pct/100));
 }
 function getGigPayStatus(g){
@@ -4753,7 +5260,6 @@ let paySlips={};
 function openPay(gigId){
   /* member ดูได้ แต่บันทึกไม่ได้ */
   const g=S.gigs.find(x=>x.id===gigId||String(x.id)===String(gigId));if(!g)return;
-  console.log('openPay gig:', g.id, 'musicians:', g.musicians, 'members:', S.members.map(m=>m.id));
   paySlips={};
   document.getElementById('pay-gig-id').value=gigId;
   document.getElementById('pay-modal-title').textContent='จ่ายเงินสมาชิก — '+g.name;
@@ -4762,6 +5268,9 @@ function openPay(gigId){
   const paid=g.memberPayments||{};
   const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length}));
   /* readOnly = history mode OR member role */
+  const isAdmin=currentUser?.role==='admin';
+  const isHistoryMode=document.getElementById('pay-show-history')?.checked||false;
+  const readOnly=!isAdmin||isHistoryMode;
   const _ro=readOnly;
   document.getElementById('pay-member-rows').innerHTML=mus.map((mu,i)=>{
     const readOnly=_ro; /* pass to template scope */
@@ -4772,9 +5281,9 @@ function openPay(gigId){
     const isPaid=!!payData;
     const existSlip=typeof payData==='object'&&payData.slip?payData.slip:null;
     const mid=mu.memberId;
-    return`<div class="pay-mem-card${isPaid?' paid-done':''}" id="pay-card-${mid}">
-      <div class="pay-mem-header" style="${readOnly?'cursor:default':''}" onclick="${readOnly?'':"togglePayRow('${mid}',${cut})"}">
-        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" ${readOnly?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="event.stopPropagation();${readOnly?'':"togglePayRow('${mid}',${cut},this.checked)"}">
+    return`<div class="pay-mem-card${isPaid?' paid-done':''}" id="pay-card-${mid}" data-mid="${mid}" data-cut="${cut}" data-ro="${readOnly?'1':'0'}">
+      <div class="pay-mem-header" style="${readOnly?'cursor:default':'cursor:pointer'}" onclick="payRowClick(this)">
+        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" ${readOnly?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="event.stopPropagation();payCheckClick(this)">
         <div style="flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--ink)">${mem.name} <span style="color:var(--ink3);font-weight:400;font-size:12px">(${mem.nick}) — ${mem.role}</span></div>
           <div style="font-size:10px;color:var(--ink3);margin-top:2px">${Math.round(mu.pct)}% ของ ฿${f(gigNet(g))}</div>
@@ -4789,7 +5298,8 @@ function openPay(gigId){
           <div>
             <div style="font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase">แนบสลิป</div>
             <div id="pay-slip-thumb-${mid}" class="${existSlip?'pay-slip-thumb':'pay-slip-empty'}"
-              onclick="${existSlip?`viewSlip('${existSlip}')`:"triggerPaySlip('${mid}')"}" style="">
+              data-mid="${mid}" data-slip="${existSlip||''}"
+              onclick="paySlipClick(this)">
               ${existSlip
                 ?`<img id="es_${mid}" src="" data-slip-key="${existSlip}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none">`
                 :'<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>อัปโหลด</span>'}
@@ -4808,9 +5318,6 @@ function openPay(gigId){
   updatePayTotal();
   /* แสดง/ซ่อนปุ่มบันทึกตาม role */
   const saveBtn=document.getElementById('modal-pay-save-btn');
-  const isAdmin=currentUser?.role==='admin';
-  const isHistoryMode=document.getElementById('pay-show-history')?.checked||false;
-  const readOnly=!isAdmin||isHistoryMode;
   if(saveBtn) saveBtn.style.display=readOnly?'none':'';
   /* member/history mode: disable checkboxes และ note */
   setTimeout(()=>{
@@ -4837,6 +5344,20 @@ function openPay(gigId){
   },50);
 }
 
+function payRowClick(headerEl){
+  const card=headerEl.closest('.pay-mem-card');
+  if(!card||card.dataset.ro==='1') return;
+  const mid=card.dataset.mid;
+  const cut=parseFloat(card.dataset.cut)||0;
+  togglePayRow(mid,cut);
+}
+function payCheckClick(cb){
+  const card=cb.closest('.pay-mem-card');
+  if(!card||card.dataset.ro==='1') return;
+  const mid=card.dataset.mid;
+  const cut=parseFloat(card.dataset.cut)||0;
+  togglePayRow(mid,cut,cb.checked);
+}
 function togglePayRow(mid,cut,forceVal){
   mid=String(mid); /* ensure string */
   const cb=document.querySelector(`[data-mid="${mid}"].pay-check`);
@@ -4848,6 +5369,12 @@ function togglePayRow(mid,cut,forceVal){
   updatePayTotal();
 }
 
+function paySlipClick(el){
+  const mid=el.dataset.mid;
+  const slip=el.dataset.slip;
+  if(slip) viewSlip(slip);
+  else triggerPaySlip(mid);
+}
 function triggerPaySlip(mid){document.getElementById('pay-slip-file-'+mid).click();}
 
 async function previewPaySlip(mid,inp){
@@ -4911,7 +5438,7 @@ function savePay(){
 }
 
 /* ── PROVINCES ── */
-const PROVINCES=['กรุงเทพมหานคร','กระบี่','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พระนครศรีอยุธยา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','พะเยา','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
+const PROVINCES=['กรุงเทพมหานคร','กระบี่','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
 function filterProvince(q){
   const list=document.getElementById('prov-list');
   const items=PROVINCES.filter(p=>p.includes(q)).slice(0,8);
@@ -4920,7 +5447,11 @@ function filterProvince(q){
 }
 function selectProvince(v){document.getElementById('gprov').value=v;document.getElementById('cmb-province').classList.remove('open');}
 function openCmb(id){document.querySelectorAll('.cmb-wrap').forEach(w=>{if(w.id!==id)w.classList.remove('open');});document.getElementById(id).classList.add('open');}
-function closeDropdowns(e){document.querySelectorAll('.cmb-wrap').forEach(w=>w.classList.remove('open'));}
+function closeDropdowns(e){
+  /* ไม่ปิดถ้าคลิกอยู่ใน cmb-wrap */
+  if(e&&e.target&&e.target.closest&&e.target.closest('.cmb-wrap')) return;
+  document.querySelectorAll('.cmb-wrap').forEach(w=>w.classList.remove('open'));
+}
 
 /* ── CLIENT COMBOBOX ── */
 function renderClientList(items){
@@ -4953,6 +5484,7 @@ function toggleClientDropdown(){
     wrap.classList.remove('open');
   } else {
     showAllClients();
+    openCmb('cmb-client');
     document.getElementById('gclient-search')?.focus();
   }
 }
@@ -4961,7 +5493,7 @@ function selectClientById(el){
   if(id) selectClient(id);
 }
 function selectClient(id){
-  const cl=S.clients.find(x=>x.id===id);if(!cl)return;
+  const cl=S.clients.find(x=>String(x.id)===String(id));if(!cl)return;
   gigState.selectedClientId=id;
   document.getElementById('gclient-search').value=cl.name;
   document.getElementById('gcphone').value=cl.phone||'';
@@ -5228,7 +5760,12 @@ function updateInitials(v){
 }
 function cx(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('open');if(el.style.display==='flex')el.style.display='none';}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-function renderAll(){rd();}
+function renderAll(){
+  const activePage=document.querySelector('.page.active');
+  const id=activePage?.id?.replace('page-','');
+  const renders={dashboard:rd,gigs:()=>{rg();updateGigTabCounts();},income:ri,calendar:rcal,members:rmem,profile:()=>{window._clientsData=null;rp();},expense:renderExpensePage,adchannel:renderAdChannel,settings:()=>{renderSourceMaster();renderJobTypeMaster();renderClientMaster();populateUaMemberDropdown();renderUserList();renderPlanSettings();}};
+  if(id&&renders[id]) renders[id](); else rd();
+}
 
 /* ══════════════════════════════════════
    PLAN / SUBSCRIPTION SYSTEM
@@ -5657,6 +6194,41 @@ function showLoginErr(id,msg){const el=document.getElementById(id);if(el){el.tex
 function hideLoginErr(id){const el=document.getElementById(id);if(el)el.style.display='none';}
 
 /* Tab 1 — หัวหน้าวง login */
+/* ── Toggle password visibility ── */
+function togglePassVis(inputId,btn){
+  const el=document.getElementById(inputId);if(!el)return;
+  const show=el.type==='password';
+  el.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+}
+
+/* ── Remember Me helpers ── */
+function saveRememberMe(tab,uname,pass){
+  try{localStorage.setItem(`rm_${tab}`,JSON.stringify({u:uname,p:pass,t:Date.now()}));}catch(e){}
+}
+function loadRememberMe(tab){
+  try{const d=JSON.parse(localStorage.getItem(`rm_${tab}`)||'null');if(!d)return null;/* expire 30 days */if(Date.now()-d.t>30*24*3600*1000){localStorage.removeItem(`rm_${tab}`);return null;}return d;}catch(e){return null;}
+}
+function clearRememberMe(tab){
+  try{localStorage.removeItem(`rm_${tab}`);}catch(e){}
+}
+function initRememberMe(){
+  /* leader */
+  const ld=loadRememberMe('leader');
+  if(ld){
+    const u=document.getElementById('login-user-leader');const p=document.getElementById('login-pass-leader');
+    const cb=document.getElementById('remember-leader');
+    if(u)u.value=ld.u;if(p)p.value=ld.p;if(cb)cb.checked=true;
+  }
+  /* member */
+  const md=loadRememberMe('member');
+  if(md){
+    const u=document.getElementById('login-user-member');const p=document.getElementById('login-pass-member');
+    const cb=document.getElementById('remember-member');
+    if(u)u.value=md.u;if(p)p.value=md.p;if(cb)cb.checked=true;
+  }
+}
+
 async function doLoginLeader(){
   const uname=(document.getElementById('login-user-leader')?.value||'').trim().toLowerCase();
   const pass=document.getElementById('login-pass-leader')?.value||'';
@@ -5674,18 +6246,20 @@ async function doLoginLeader(){
     }
     /* set token ก่อน query — RLS ต้องการ JWT */
     _sbToken=auth.access_token;
-    /* query bands ด้วย service key bypass ไม่ได้ — ใช้วิธี query โดยตรง */
+    /* query bands ด้วย user token */
     const bands=await fetch(
       `${SUPABASE_URL}/rest/v1/bands?email=eq.${encodeURIComponent(uname)}&limit=1`,
-      {headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}}
+      {headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+auth.access_token}}
     ).then(r=>r.json()).catch(()=>null);
     if(!bands||!bands[0]){
-      /* fallback: band อาจไม่มีใน table แต่ Supabase Auth ผ่านแล้ว */
       showLoginErr('login-err-leader','ไม่พบข้อมูลวง กรุณา Register ก่อน');
       _sbToken=null;return;
     }
     _sbBandId=bands[0].id;
     await afterCloudLogin({username:uname,role:'admin',displayName:bands[0].leader_name||uname,memberId:'__leader__',isOwner:true});
+    /* remember me */
+    if(document.getElementById('remember-leader')?.checked) saveRememberMe('leader',uname,pass);
+    else clearRememberMe('leader');
     return;
   }
 
@@ -5729,6 +6303,9 @@ async function doLoginMember(){
     if(!users||!users[0]){showLoginErr('login-err-member','ไม่พบบัญชีนี้ในระบบ');return;}
     _sbBandId=users[0].band_id;
     await afterCloudLogin({username:uname,role:'member',displayName:users[0].display_name||uname,memberId:users[0].member_id||null});
+    /* remember me */
+    if(document.getElementById('remember-member')?.checked) saveRememberMe('member',uname,pass);
+    else clearRememberMe('member');
     return;
   }
 
@@ -5894,10 +6471,23 @@ function doLogin(){doLoginLeader();}
 
 function doLogout(){
   currentUser=null;
-  sbSignOut(); /* Supabase session cleanup */
+  sbSignOut();
   _sbToken=null; _sbBandId=null;
+  /* reset S data */
+  S.gigs=[];S.members=[];S.clients=[];S.users=[];S.sources=[];S.jobTypes=[];
+  S.expenses=[];S.bandInfo={};S.plan=null;S._gigDraft=null;S._jobSeq=0;
+  incomeSelectedMid=null;
+  /* restore all sidebar menu items */
+  document.querySelectorAll('.sb-item').forEach(el=>el.style.display='');
+  document.querySelectorAll('.sb-sec .sb-lbl').forEach(el=>el.style.display='');
+  /* restore gig tabs */
+  ['gig-tab-recv','gig-tab-pay','gig-tab-tip'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='';
+  });
   /* clear inputs */
-  ['login-user-leader','login-pass-leader','login-user-member','login-pass-member'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['login-user-leader','login-pass-leader','login-user-member','login-pass-member'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
   document.querySelectorAll('.login-err,.login-success').forEach(e=>e.style.display='none');
   /* switch back to leader tab */
   document.querySelectorAll('.lpane').forEach(p=>p.classList.remove('active'));
@@ -5909,7 +6499,6 @@ function doLogout(){
   ls.style.display='flex';
   requestAnimationFrame(()=>ls.classList.remove('hidden'));
   document.body.classList.remove('view-only');
-  /* remove readonly badge */
   const rb=document.getElementById('readonly-badge');if(rb)rb.remove();
 }
 
@@ -5929,7 +6518,7 @@ function applyAuthUI(){
     bandNameEl.textContent=bName?`🎸 ${bName}`:'';
     bandNameEl.style.display=bName?'block':'none';
   }
-  /* apply view-only if member */
+  /* apply view-only and hide menu items if member */
   if(currentUser.role==='member'){
     document.body.classList.add('view-only');
     if(!document.getElementById('readonly-badge')){
@@ -5938,9 +6527,38 @@ function applyAuthUI(){
       badge.innerHTML='<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 1a6 6 0 110 12A6 6 0 017 1zm0 6V4m0 4v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> โหมดดูอย่างเดียว';
       document.body.appendChild(badge);
     }
+    /* ซ่อน menu ที่ member ไม่ควรเห็น */
+    const hidePages=['dashboard','members','profile','expense','adchannel','settings'];
+    document.querySelectorAll('.sb-item').forEach(el=>{
+      const onclick=el.getAttribute('onclick')||'';
+      const hide=hidePages.some(p=>onclick.includes(`'${p}'`));
+      el.style.display=hide?'none':'';
+    });
+    document.querySelectorAll('.sb-sec').forEach(sec=>{
+      const items=sec.querySelectorAll('.sb-item:not([style*="display: none"]):not([style*="display:none"])');
+      const lbl=sec.querySelector('.sb-lbl');
+      if(lbl) lbl.style.display=items.length===0?'none':'';
+    });
+    /* ซ่อน Tab จ่ายทิป เท่านั้น (รับเงิน/จ่ายเงิน แสดงแต่ view only) */
+    ['gig-tab-tip'].forEach(id=>{
+      const el=document.getElementById(id);if(el) el.style.display='none';
+    });
+    /* ถ้าหน้าแรกเป็น dashboard → redirect ไป income */
+    setTimeout(()=>{
+      const active=document.querySelector('.page.active');
+      if(active?.id==='page-dashboard'){
+        nav('income',document.querySelector('[onclick*="income"]'));
+      }
+    },100);
   } else {
     document.body.classList.remove('view-only');
     const rb=document.getElementById('readonly-badge');if(rb)rb.remove();
+    /* restore all menu items */
+    document.querySelectorAll('.sb-item').forEach(el=>el.style.display='');
+    document.querySelectorAll('.sb-sec .sb-lbl').forEach(el=>el.style.display='');
+    ['gig-tab-tip'].forEach(id=>{
+      const el=document.getElementById(id);if(el) el.style.display='';
+    });
   }
 }
 
@@ -6022,19 +6640,31 @@ function renderUserList(){
   }
 }
 
-function populateUaMemberDropdown(){
-  const sel=document.getElementById('ua-member');if(!sel)return;
-  sel.innerHTML=`<option value="__leader__">หัวหน้าวง (Admin)</option>`+
-    S.members.map(m=>`<option value="${m.id}">${m.name} (${m.nick}) — ${m.role}</option>`).join('');
+function toggleUaMemberSelect(){
+  const role=document.getElementById('ua-role')?.value;
+  const wrap=document.getElementById('ua-member-wrap');
+  if(wrap) wrap.style.display=role==='member'?'block':'none';
+  if(role==='member'){
+    /* populate members ทุกครั้งที่เปิด */
+    const sel=document.getElementById('ua-member');
+    if(sel){
+      const cur=sel.value;
+      sel.innerHTML=`<option value="__leader__">— ไม่ผูกกับสมาชิก —</option>`+
+        S.members.filter(m=>m.status==='active').map(m=>`<option value="${m.id}">${m.name} (${m.nick}) — ${m.role}</option>`).join('');
+      if(cur) sel.value=cur;
+    }
+  } else {
+    const sel=document.getElementById('ua-member');
+    if(sel) sel.value='__leader__';
+  }
 }
 
-function onUaMemberChange(){
-  /* auto-suggest role based on selection */
-  const sel=document.getElementById('ua-member');
-  const roleEl=document.getElementById('ua-role');
-  if(!sel||!roleEl)return;
-  if(sel.value==='__leader__') roleEl.value='admin';
-  else roleEl.value='member';
+function populateUaMemberDropdown(){
+  const sel=document.getElementById('ua-member');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=`<option value="__leader__">— ไม่ผูกกับสมาชิก —</option>`+
+    S.members.filter(m=>m.status==='active').map(m=>`<option value="${m.id}">${m.name} (${m.nick}) — ${m.role}</option>`).join('');
+  if(cur) sel.value=cur;
 }
 
 async function saveUserAccount(){
@@ -6141,11 +6771,14 @@ async function saveUserAccount(){
 function editUserAccount(id){
   const u=S.users.find(x=>x.id===id);if(!u)return;
   populateUaMemberDropdown();
-  document.getElementById('ua-member').value=u.memberId;
   document.getElementById('ua-role').value=u.role;
+  document.getElementById('ua-member').value=u.memberId||'__leader__';
   document.getElementById('ua-username').value=u.username;
   document.getElementById('ua-password').value='';
   document.getElementById('ua-edit-id').value=u.id;
+  /* แสดง/ซ่อน member dropdown */
+  const wrap=document.getElementById('ua-member-wrap');
+  if(wrap) wrap.style.display=u.role==='member'?'block':'none';
 }
 
 async function deleteUserAccount(id){
@@ -6163,6 +6796,7 @@ function clearUaForm(){
   ['ua-username','ua-password','ua-edit-id'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   const sel=document.getElementById('ua-member');if(sel)sel.value='__leader__';
   const role=document.getElementById('ua-role');if(role)role.value='admin';
+  const wrap=document.getElementById('ua-member-wrap');if(wrap)wrap.style.display='none';
 }
 
 function renderForecast(){
@@ -6320,6 +6954,15 @@ function saveGigDraft(){
       soundCar:gv('gf-sound-car'),other:gv('gf-other'),
       otherNote:document.getElementById('gf-other-note')?.value||''
     },
+    /* client */
+    ctype:gigState.ctype||'old',
+    clientId:gigState.selectedClientId||null,
+    clientSearch:document.getElementById('gclient-search')?.value||'',
+    clientPhone:document.getElementById('gcphone')?.value||'',
+    clientBankName:document.getElementById('gcbank-name')?.value||'',
+    clientBankNo:document.getElementById('gcbank-no')?.value||'',
+    clientNameNew:document.getElementById('gcname-new')?.value||'',
+    clientPhoneNew:document.getElementById('gcphone-new')?.value||'',
     savedAt:new Date().toLocaleTimeString('th-TH')
   };
   toast(`💾 บันทึก draft แล้ว (${S._gigDraft.savedAt})`);
@@ -6919,6 +7562,7 @@ function onGigCbChange(){
   const bar=document.getElementById('gig-action-bar');
   const lbl=document.getElementById('gig-selected-label');
   const editBtn=document.getElementById('gig-action-edit');
+  const dupBtn=document.getElementById('gig-action-dup');
   const cancelBtn=document.getElementById('gig-action-cancel');
 
   /* highlight selected rows */
@@ -6942,10 +7586,12 @@ function onGigCbChange(){
     _selectedGigId=checked[0].dataset.id; /* keep as string — UUID */
     const g=S.gigs.find(x=>String(x.id)===String(_selectedGigId));
     editBtn.style.display='inline-flex';
+    if(dupBtn)dupBtn.style.display='inline-flex';
     cancelBtn.style.display=g&&g.status!=='cancelled'?'inline-flex':'none';
   } else {
     _selectedGigId=null;
     editBtn.style.display='none';
+    if(dupBtn)dupBtn.style.display='none';
     cancelBtn.style.display='none';
   }
 }
@@ -6960,6 +7606,92 @@ function clearGigSelection(){
   _selectedGigId=null;
 }
 
+function gigActionDuplicate(){
+  if(!requireAdmin('คัดลอกงาน'))return;
+  const g=S.gigs.find(x=>String(x.id)===String(_selectedGigId));
+  if(!g){toast('ไม่พบข้อมูลงาน');return;}
+  /* เปิดฟอร์มเพิ่มงานใหม่ */
+  openGig();
+  /* รอ form เปิดเสร็จแล้วกรอกข้อมูล */
+  setTimeout(()=>{
+    /* ข้อมูลพื้นฐาน */
+    document.getElementById('gn').value='คัดลอก — '+g.name;
+    document.getElementById('gv').value=g.venue||'';
+    const gm=document.getElementById('gmap');if(gm)gm.value=g.mapLink||'';
+    document.getElementById('gprov').value=g.province||'';
+    document.getElementById('gnote').value=g.note||'';
+    if(g.timeStart)document.getElementById('gtstart').value=g.timeStart;
+    if(g.timeEnd)document.getElementById('gtend').value=g.timeEnd;
+    document.getElementById('gbandsize').value=g.bandSize||'';
+    /* source/type */
+    populateSourceDropdown();populateJobTypeDropdown();
+    if(g.source)document.getElementById('gsource').value=g.source;
+    if(g.type)document.getElementById('gtype').value=g.type;
+    /* รายได้ */
+    const inc=g.income||{};
+    ['band','travel-oil','travel-car','after','sound','sound-oil','sound-car','other'].forEach(k=>{
+      const el=document.getElementById('gf-'+k);
+      if(el&&inc[k])el.value=inc[k];
+    });
+    const onEl=document.getElementById('gf-other-note');if(onEl)onEl.value=inc.otherNote||'';
+    calcTotalIncome();
+    /* ค่าใช้จ่าย */
+    const exp=g.expenses||{};
+    populateExpenseMemberDropdown();
+    const smEl=document.getElementById('ge-sound-member');if(smEl)smEl.value=exp.soundMemberId||'';
+    const sfEl=document.getElementById('ge-sound-fee');if(sfEl)sfEl.value=exp.soundFee||'';
+    const ofEl=document.getElementById('ge-other-fee');if(ofEl)ofEl.value=exp.otherFee||'';
+    const onEl2=document.getElementById('ge-other-note');if(onEl2)onEl2.value=exp.otherNote||'';
+    calcExpenses();
+    /* ลูกค้า */
+    if(g.clientId){
+      const cl=S.clients.find(x=>String(x.id)===String(g.clientId));
+      if(cl){
+        setCtype('old');gigState.selectedClientId=g.clientId;
+        document.getElementById('gclient-search').value=cl.name;
+        document.getElementById('gcphone').value=cl.phone||'';
+        document.getElementById('gcbank-name').value=cl.bankName||'';
+        document.getElementById('gcbank-no').value=cl.bankNo||'';
+      }
+    } else if(g.clientName){
+      setCtype('new');
+      document.getElementById('gcname-new').value=g.clientName;
+      if(g.clientPhone)document.getElementById('gcphone-new').value=g.clientPhone;
+    }
+    /* WHT */
+    const whtCb=document.getElementById('gig-wht');
+    if(whtCb){whtCb.checked=!!(g.whtEnabled);calcWHT();}
+    /* นักดนตรี */
+    if(g.musicians&&g.musicians.length){
+      gigState.count=g.musicians.length;
+      gigState.splitMode=g.splitMode||'amt';
+      document.getElementById('gcount').value=gigState.count;
+      document.getElementById('gig-members-wrap').style.display='block';
+      setSplit(gigState.splitMode);
+      setTimeout(()=>{
+        g.musicians.forEach((mu,i)=>{
+          const sel=document.getElementById('gmem-'+i);
+          if(sel&&mu.memberId)sel.value=String(mu.memberId);
+          if(mu.breakdown){
+            const bd=mu.breakdown;
+            const setV=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+            setV(`gbd-fee-${i}`,bd.fee);setV(`gbd-car-${i}`,bd.travel);
+            setV(`gbd-oil-${i}`,bd.oil);setV(`gbd-ot-${i}`,bd.overtime);
+            setV(`gbd-other-${i}`,bd.other);
+            const noteEl=document.getElementById(`gbd-note-${i}`);if(noteEl)noteEl.value=bd.otherNote||'';
+            calcBreakdown(i);
+          } else if(gigState.splitMode==='pct'){
+            const pctEl=document.getElementById('gpct-'+i);
+            if(pctEl&&pctEl.tagName==='INPUT')pctEl.value=mu.pct||0;
+          }
+        });
+        updateSummary();
+      },100);
+    }
+    toast('📋 คัดลอกข้อมูลงานแล้ว — ตรวจสอบและแก้ไขก่อนบันทึก');
+  },200);
+  clearGigSelection();
+}
 function gigActionEdit(){
   if(!_selectedGigId){toast('เลือก 1 รายการก่อนแก้ไข');return;}
   editGig(_selectedGigId);
@@ -7304,37 +8036,50 @@ ${text}
 
 รายชื่อสมาชิกวง: ${memberList}
 วันนี้: ${today}
+แหล่งที่มาที่มีในระบบ: ${sourceList}
+ประเภทงานที่มีในระบบ: ${jobTypeList}
 
 ให้แยกข้อมูลเป็น JSON ดังนี้:
 {
   "name": "ชื่องาน (ถ้าไม่มีให้สรุปสั้นๆ จากข้อมูล)",
-  "date": "YYYY-MM-DD (วันที่จัดงาน, ถ้าไม่มีให้เป็น ${today})",
+  "date": "YYYY-MM-DD (วันที่จัดงาน ใช้ ค.ศ. เสมอ ถ้าเป็น พ.ศ. ให้ลบ 543)",
   "timeStart": "HH:MM (เวลาเริ่ม 24h format, null ถ้าไม่มี)",
   "timeEnd": "HH:MM (เวลาจบ 24h format, null ถ้าไม่มี)",
-  "venue": "ชื่อสถานที่",
-  "province": "จังหวัด",
-  "bandsize": "จำนวนชิ้น เช่น 2,3,4,5,6 (ถ้าไม่มีให้เป็น null)",
-  "fee": 0,
-  "travelOil": 0,
-  "travelCar": 0,
-  "afterParty": 0,
-  "soundFee": 0,
-  "soundTravel": 0,
-  "otherIncome": 0,
-  "otherIncomeNote": "",
-  "expenseSoundFee": 0,
-  "expenseOtherFee": 0,
-  "expenseOtherNote": "",
-  "source": "แหล่งที่มา (เลือกจาก: ${sourceList} หรือ \"\" ถ้าไม่มี)",
-  "type": "ประเภทงาน (เลือกจาก: ${jobTypeList} หรือ \"\" ถ้าไม่มี)",
+  "venue": "ชื่อสถานที่/โรงแรม",
+  "province": "จังหวัด (เช่น กรุงเทพมหานคร, เชียงใหม่)",
+  "mapLink": "URL Google Maps ถ้ามี (https://maps.google.com/... หรือ https://maps.app.goo.gl/... หรือ null)",
+  "bandsize": จำนวนชิ้นดนตรี เช่น 2,3,4,5,6 หรือ null,
+  "source": "แหล่งที่มา เลือกจาก: ${sourceList} หรือ null ถ้าไม่มี",
+  "type": "ประเภทงาน เลือกจาก: ${jobTypeList} หรือ null ถ้าไม่มี",
+  "fee": ค่าวงหลัก (ตัวเลข),
+  "travelOil": ค่าเดินทาง-น้ำมัน,
+  "travelCar": ค่าเดินทาง-นั่งรถ,
+  "afterParty": ค่า After Party,
+  "soundFee": ค่าระบบเสียง,
+  "soundTravel": ค่าเดินทางเสียง,
+  "expenseSoundFee": ค่าจ้างทีมเสียง (ค่าใช้จ่าย),
+  "expenseOtherFee": ค่าใช้จ่ายอื่นๆ ในงาน,
+  "expenseOtherNote": "หมายเหตุค่าใช้จ่ายอื่นๆ",
   "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง",
   "clientPhone": "เบอร์โทรลูกค้า",
-  "note": "หมายเหตุอื่นๆ",
+  "note": "หมายเหตุอื่นๆ ที่ไม่ใช่ link map (ถ้า map อยู่ใน note ให้ย้ายไปใส่ mapLink แทน)",
   "musicians": [
-    {"nick": "ชื่อเล่น/ชื่อสมาชิก (match จากรายชื่อที่ให้)", "fee": 0}
+    {
+      "nick": "ชื่อเล่นหรือชื่อสมาชิก (match จากรายชื่อที่ให้)",
+      "fee": ค่าตัว (ตัวเลข),
+      "travel": ค่านั่งรถ,
+      "oil": ค่าน้ำมัน,
+      "overtime": ค่าต่อเวลา,
+      "other": ค่าอื่นๆ,
+      "otherNote": "หมายเหตุค่าอื่นๆ"
+    }
   ]
 }
-หมายเหตุ: musicians.fee คือค่าตัวของสมาชิกแต่ละคน, ถ้าไม่มีข้อมูลนักดนตรีให้เป็น []`;
+หมายเหตุสำคัญ:
+- ถ้ามี link Google Maps ในข้อความ ให้แยกใส่ mapLink (ไม่ใส่ใน note)
+- musicians.fee คือค่าตัวของนักดนตรีแต่ละคน (breakdown แยกจากค่าวงรวม)
+- ถ้าไม่มีข้อมูลนักดนตรีให้เป็น []
+- ตัวเลขทุกตัวเป็น number ไม่ใช่ string`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -7448,15 +8193,34 @@ ${text}
 }
 
 /* ── helper: re-apply AI parsed data into gig form ── */
+function _convertBEDateToCE(dateStr){
+  /* รับ format YYYY-MM-DD หรือ DD/MM/YYYY หรือ DD-MM-YYYY
+     ถ้าปีเป็น พ.ศ. (>= 2500) ให้ลบ 543 */
+  if(!dateStr) return dateStr;
+  let year, month, day;
+  /* try YYYY-MM-DD */
+  const iso=dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(iso){[,year,month,day]=iso;}
+  else {
+    /* try DD/MM/YYYY or DD-MM-YYYY */
+    const dmy=dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if(dmy){[,day,month,year]=dmy;}
+    else return dateStr;
+  }
+  year=parseInt(year);
+  if(year>=2500) year-=543; /* convert พ.ศ. → ค.ศ. */
+  return `${year}-${String(parseInt(month)).padStart(2,'0')}-${String(parseInt(day)).padStart(2,'0')}`;
+}
 function _reApplyAIFill(p){
   /* ── ข้อมูลพื้นฐาน ── */
   if(p.name) document.getElementById('gn').value=p.name;
-  if(p.date){document.getElementById('gd').value=p.date;if(typeof formatDateDisplay==='function')formatDateDisplay(document.getElementById('gd'),'gd-display');}
+  if(p.date) setGigDateDropdowns(_convertBEDateToCE(p.date));
   if(p.timeStart){const ts=document.getElementById('gtstart');if(ts&&Array.from(ts.options).find(o=>o.value===p.timeStart))ts.value=p.timeStart;}
   if(p.timeEnd){const te=document.getElementById('gtend');if(te&&Array.from(te.options).find(o=>o.value===p.timeEnd))te.value=p.timeEnd;}
   /* ── สถานที่ ── */
   if(p.venue) document.getElementById('gv').value=p.venue;
   if(p.province) document.getElementById('gprov').value=p.province;
+  if(p.mapLink){const gm=document.getElementById('gmap');if(gm)gm.value=p.mapLink;}
   /* ── ขนาดวง / ประเภท / แหล่งที่มา ── */
   if(p.bandsize){const gb=document.getElementById('gbandsize');if(gb&&Array.from(gb.options).find(o=>o.value===String(p.bandsize)))gb.value=String(p.bandsize);}
   if(p.source){const gs=document.getElementById('gsource');if(gs&&Array.from(gs.options).find(o=>o.value===p.source))gs.value=p.source;}
@@ -7494,7 +8258,6 @@ function _reApplyAIFill(p){
   /* ── นักดนตรี ── */
   if(p.musicians&&p.musicians.length>0){
     const activeMembers=S.members.filter(m=>m.status==='active');
-    const totalFee=p.musicians.reduce((s,m)=>s+(m.fee||0),0);
     const matchedMusicians=[];
     p.musicians.forEach(mu=>{
       const match=activeMembers.find(m=>
@@ -7503,27 +8266,50 @@ function _reApplyAIFill(p){
         mu.nick.toLowerCase().includes(m.nick.toLowerCase()))
       );
       if(match){
-        const pct=totalFee>0?Math.round((mu.fee/totalFee)*100):Math.round(100/p.musicians.length);
-        matchedMusicians.push({memberId:match.id,pct});
+        const totalAmt=(mu.fee||0)+(mu.travel||0)+(mu.oil||0)+(mu.overtime||0)+(mu.other||0);
+        matchedMusicians.push({
+          memberId:match.id,
+          fee:mu.fee||0, travel:mu.travel||0, oil:mu.oil||0,
+          overtime:mu.overtime||0, other:mu.other||0, otherNote:mu.otherNote||'',
+          totalAmt
+        });
       }
     });
     if(matchedMusicians.length>0){
+      /* ใช้ mode ฿ fix ถ้ามีค่าตัว, ไม่งั้น pct */
+      const hasAmt=matchedMusicians.some(mu=>mu.totalAmt>0);
       gigState.count=matchedMusicians.length;
-      gigState.splitMode='pct';
+      gigState.splitMode=hasAmt?'amt':'pct';
       const gcountEl=document.getElementById('gcount');
       if(gcountEl) gcountEl.value=gigState.count;
       const wrap=document.getElementById('gig-members-wrap');
       if(wrap) wrap.style.display='block';
-      if(typeof setSplit==='function') setSplit('pct');
+      if(typeof setSplit==='function') setSplit(gigState.splitMode);
       setTimeout(()=>{
         matchedMusicians.forEach((mu,i)=>{
           const sel=document.getElementById('gmem-'+i);
           if(sel) sel.value=String(mu.memberId);
-          const pctEl=document.getElementById('gpct-'+i);
-          if(pctEl&&pctEl.tagName==='INPUT') pctEl.value=mu.pct;
+          if(hasAmt){
+            /* กรอก breakdown */
+            const setV=(id,v)=>{const el=document.getElementById(id);if(el&&v>0)el.value=v;};
+            setV(`gbd-fee-${i}`,mu.fee);
+            setV(`gbd-car-${i}`,mu.travel);
+            setV(`gbd-oil-${i}`,mu.oil);
+            setV(`gbd-ot-${i}`,mu.overtime);
+            setV(`gbd-other-${i}`,mu.other);
+            const noteEl=document.getElementById(`gbd-note-${i}`);
+            if(noteEl&&mu.otherNote) noteEl.value=mu.otherNote;
+            if(typeof calcBreakdown==='function') calcBreakdown(i);
+          } else {
+            /* mode pct */
+            const totalFee=p.musicians.reduce((s,m)=>s+(m.fee||0),0);
+            const pct=totalFee>0?Math.round(((mu.fee||0)/totalFee)*100):Math.round(100/matchedMusicians.length);
+            const pctEl=document.getElementById('gpct-'+i);
+            if(pctEl&&pctEl.tagName==='INPUT') pctEl.value=pct;
+          }
         });
         if(typeof updateSummary==='function') updateSummary();
-      },50);
+      },80);
     }
   }
 }
@@ -7531,6 +8317,163 @@ function _reApplyAIFill(p){
 /* ══════════════════════════════════════
    EXPORT EXCEL
 ══════════════════════════════════════ */
+/* ══════════════════════════════════════
+   EXPORT ZIP สลิป
+══════════════════════════════════════ */
+function openSlipExportModal(){
+  const now=new Date();
+  document.getElementById('slip-export-from').value=now.getMonth();
+  document.getElementById('slip-export-to').value=now.getMonth();
+  document.getElementById('slip-export-year').value=now.getFullYear();
+  document.getElementById('slip-export-progress').style.display='none';
+  document.getElementById('slip-export-bar').style.width='0%';
+  const btn=document.getElementById('btn-slip-export');
+  if(btn){btn.disabled=false;btn.style.opacity='1';}
+  document.getElementById('modal-slip-export').classList.add('open');
+}
+
+async function doExportSlipZip(){
+  const fromM=parseInt(document.getElementById('slip-export-from').value);
+  const toM=parseInt(document.getElementById('slip-export-to').value);
+  const y=parseInt(document.getElementById('slip-export-year').value);
+  const wantRecv=document.getElementById('slip-exp-recv').checked;
+  const wantPay=document.getElementById('slip-exp-pay').checked;
+  if(!wantRecv&&!wantPay){toast('กรุณาเลือกประเภทสลิปอย่างน้อย 1 ประเภท');return;}
+  const TM2=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+  /* กรองงาน */
+  const gigs=S.gigs.filter(g=>{
+    if(g.status==='cancelled') return false;
+    const d=new Date(g.date);
+    if(d.getFullYear()!==y) return false;
+    const mo=d.getMonth();
+    return fromM<=toM?mo>=fromM&&mo<=toM:mo>=fromM||mo<=toM;
+  });
+  if(!gigs.length){toast('ไม่มีงานในช่วงเวลาที่เลือก');return;}
+
+  /* load JSZip */
+  if(!window.JSZip){
+    toast('⏳ กำลังโหลด JSZip...');
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const btn=document.getElementById('btn-slip-export');
+  const prog=document.getElementById('slip-export-progress');
+  const status=document.getElementById('slip-export-status');
+  const bar=document.getElementById('slip-export-bar');
+  btn.disabled=true;btn.style.opacity='.6';
+  prog.style.display='block';
+
+  const zip=new JSZip();
+  if(wantRecv) zip.folder('recv');
+  if(wantPay) zip.folder('pay');
+
+  /* รวม slip keys ทั้งหมด */
+  const tasks=[];
+  gigs.forEach(g=>{
+    const safeJob=`JOB-${String(g.jobNo||0).padStart(6,'0')}`;
+    const safeName=(g.name||'').replace(/[\/\\:*?"<>|]/g,'_').substring(0,30);
+    /* recv slips */
+    if(wantRecv){
+      (g.payments||[]).forEach((p,pi)=>{
+        if(!p.slip) return;
+        const slipIdx=tasks.filter(t=>t.type==='recv'&&t.gigId===g.id).length;
+        const suffix=slipIdx>0?`_${slipIdx+1}`:'';
+        tasks.push({type:'recv',key:p.slip,name:`${safeJob}_${safeName}_recv${suffix}.jpg`,gigId:g.id});
+      });
+    }
+    /* pay slips */
+    if(wantPay){
+      Object.entries(g.memberPayments||{}).forEach(([memId,pd])=>{
+        const slip=typeof pd==='object'?pd.slip:null;
+        if(!slip) return;
+        const mem=S.members.find(x=>String(x.id)===String(memId));
+        const nick=(mem?.nick||memId).replace(/[\/\\:*?"<>|]/g,'_');
+        tasks.push({type:'pay',key:slip,name:`${safeJob}_${safeName}_${nick}_pay.jpg`,gigId:g.id});
+      });
+    }
+  });
+
+  if(!tasks.length){
+    toast('ไม่พบสลิปในช่วงเวลาที่เลือก');
+    btn.disabled=false;btn.style.opacity='1';prog.style.display='none';return;
+  }
+
+  let done=0;
+  const found=[];
+  for(const task of tasks){
+    status.textContent=`กำลังดึงสลิป ${done+1}/${tasks.length}...`;
+    bar.style.width=Math.round(done/tasks.length*100)+'%';
+    /* 1. IndexedDB (ใช้เฉพาะ key ที่เป็น slip_xxx) */
+    let imgData=null;
+    const isSlipKey=task.key&&task.key.startsWith('slip_');
+    const isFullUrl=task.key&&(task.key.startsWith('http')||task.key.startsWith('data:'));
+    if(isSlipKey){
+      imgData=await SlipStore.load(task.key).catch(()=>null);
+      console.log(`[slip] key=${task.key} indexedDB=${!!imgData}`);
+    }
+    /* 2. ถ้าเป็น full URL ดึงตรงเลย */
+    if(!imgData&&isFullUrl){
+      try{
+        const r=await fetch(task.key);
+        console.log(`[slip] fullUrl status=${r.status} url=${task.key.substring(0,60)}`);
+        if(r.ok){const blob=await r.blob();imgData=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob);});}
+      }catch(e){console.warn('[slip] fullUrl err',e);}
+    }
+    /* 3. Supabase public URL */
+    if(!imgData&&isSlipKey&&SUPABASE_URL&&_sbBandId){
+      const pubUrl=`${SUPABASE_URL}/storage/v1/object/public/slips/${_sbBandId}/${task.key}`;
+      try{
+        const r=await fetch(pubUrl);
+        console.log(`[slip] pubUrl status=${r.status}`);
+        if(r.ok){const blob=await r.blob();imgData=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob);});}
+      }catch(e){console.warn('[slip] pubUrl err',e);}
+    }
+    /* 4. Supabase signed URL */
+    if(!imgData&&isSlipKey&&SUPABASE_URL&&_sbBandId){
+      const url=await sbGetSignedUrl('slips',task.key).catch(()=>null);
+      console.log(`[slip] signedUrl=${url}`);
+      if(url){
+        try{
+          const r=await fetch(url);
+          console.log(`[slip] signedUrl status=${r.status}`);
+          if(r.ok){const blob=await r.blob();imgData=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob);});}
+        }catch(e){console.warn('[slip] signedUrl err',e);}
+      }
+    }
+    if(imgData){
+      const b64=imgData.includes(',')?imgData.split(',')[1]:imgData;
+      const ext=imgData.includes('png')?'png':'jpg';
+      zip.folder(task.type).file(task.name.replace('.jpg','.'+ext),b64,{base64:true});
+      found.push(task.name);
+      console.log(`[slip] added: ${task.name}`);
+    } else {
+      console.warn(`[slip] NOT FOUND: key=${task.key}`);
+    }
+    done++;
+  }
+  bar.style.width='100%';
+  status.textContent='กำลังสร้างไฟล์ ZIP...';
+
+  const period=fromM===toM?TM2[fromM]:`${TM2[fromM]}-${TM2[toM]}`;
+  const blob=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`slips_${period}_${y}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  toast(`✅ Download ZIP สำเร็จ (${found.length}/${tasks.length} สลิป)`);
+  if(found.length===0) toast('⚠ ไม่พบรูปสลิป — เช็ค Console (F12) เพื่อดู error');
+  btn.disabled=false;btn.style.opacity='1';prog.style.display='none';
+  cx('modal-slip-export');
+}
+
 function openExportModal(){
   const sel=document.getElementById('export-member');
   if(sel) sel.innerHTML='<option value="all">ทุกคน</option>'+
@@ -7556,41 +8499,79 @@ async function doExportExcel(){
     });
   }
   const memId=document.getElementById('export-member').value;
-  const fromM=parseInt(document.getElementById('export-from-month').value);
-  const toM=parseInt(document.getElementById('export-to-month').value);
+  const fromMRaw=document.getElementById('export-from-month').value;
+  const toMRaw=document.getElementById('export-to-month').value;
+  const fromM=parseInt(fromMRaw);
+  const toM=parseInt(toMRaw);
   const y=parseInt(document.getElementById('export-year').value);
+
+  if(isNaN(fromM)||isNaN(toM)||isNaN(y)){
+    toast('⚠ กรุณาเลือกช่วงเดือนและปีให้ครบ');return;
+  }
+  const totalPaidGigs=S.gigs.filter(g=>g.status==='paid'&&g.date&&!isNaN(new Date(g.date).getTime())&&new Date(g.date).getFullYear()===y).length;
+  if(totalPaidGigs===0){toast(`⚠ ไม่มีงานที่รับเงินครบในปี ${y}`);cx('modal-export');return;}
   const TM2=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
   const TM2b=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const members=memId==='all'?S.members.filter(m=>m.status==='active'):[S.members.find(m=>String(m.id)===String(memId))].filter(Boolean);
   const wb=XLSX.utils.book_new();
-  const activeCount=S.members.filter(m=>m.status==='active').length||1;
 
   members.forEach(mem=>{
     const gigs=S.gigs.filter(g=>{
-      if(g.status==='cancelled')return false;
+      if(g.status!=='paid') return false;
+      if(!g.date) return false;
       const d=new Date(g.date);
-      if(d.getFullYear()!==y)return false;
+      if(isNaN(d.getTime())) return false;
+      if(d.getFullYear()!==y) return false;
       const mo=d.getMonth();
-      return fromM<=toM?mo>=fromM&&mo<=toM:mo>=fromM||mo<=toM;
+      return fromM<=toM ? mo>=fromM&&mo<=toM : mo>=fromM||mo<=toM;
     });
 
-    let totalPaid=0,totalForecast=0,paidCnt=0,unpaidCnt=0;
+    let totalBdIncome=0,totalTipIncome=0,totalForecast=0,paidCnt=0;
     const dataRows=[];
+
+    if(!gigs.length){
+      /* ไม่มีงาน paid ในช่วงนี้ — ยังสร้าง sheet ว่างได้ */
+    }
+
     gigs.forEach(g=>{
-      let cut=0,isForecast=false;
-      if(g.musicians&&g.musicians.length){
-        const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
-        if(!mu)return;
-        cut=Math.round(gigNet(g)*(mu.pct/100));
+      if(!g.musicians||!g.musicians.length) return;
+      const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
+      if(!mu) return;
+      const bd=mu.breakdown||{};
+      const bdSum=(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
+      const tip=bd.tip||0;
+      /* ถ้าไม่มี breakdown ใช้ fixedAmt หรือคำนวณจาก pct */
+      const fallback=(mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0
+        ?mu.fixedAmt
+        :Math.round(gigNet(g)*(mu.pct/100));
+      const effectiveBd=bdSum>0?bdSum:fallback;
+      const total=effectiveBd+tip;
+      const isPaid=!!(g.memberPayments||{})[mem.id];
+
+      if(g.status==='paid'){
+        totalBdIncome+=effectiveBd;
+        totalTipIncome+=tip;
+        paidCnt++;
       } else {
-        cut=Math.round(gigNet(g)/activeCount);
-        isForecast=true;
+        totalForecast+=fallback;
       }
-      const paid=(g.memberPayments||{})[mem.id]||(g.memberPayments||{})[String(mem.id)];
-      const isPaid=paid&&(paid===true||(typeof paid==='object'&&paid.paid));
-      if(isPaid){totalPaid+=cut;paidCnt++;}else{totalForecast+=cut;unpaidCnt++;}
-      const pct=g.musicians&&g.musicians.length?(g.musicians.find(x=>String(x.memberId)===String(mem.id))?.pct||0):Math.round(100/activeCount);
-      dataRows.push(['JOB-'+String(g.jobNo||0).padStart(6,'0'),g.name,g.date,g.venue||'',gigNet(g),pct+'%',cut,g.status==='paid'?'จ่ายเต็ม':g.status==='deposit'?'มัดจำ':'ยืนยัน',isPaid?'✓ จ่ายแล้ว':(isForecast?'คาดการณ์':'รอจ่าย'),typeof paid==='object'?paid.note||'':'']);
+
+      dataRows.push([
+        'JOB-'+String(g.jobNo||0).padStart(6,'0'),
+        g.name,
+        fd(g.date),
+        g.venue||'',
+        bd.fee||0,
+        bd.travel||0,
+        bd.oil||0,
+        bd.overtime||0,
+        bd.other||0,
+        bd.otherNote||'',
+        tip,
+        total,
+        g.status==='paid'?'จ่ายเต็ม':g.status,
+        isPaid?'✓ จ่ายแล้ว':'รอจ่าย'
+      ]);
     });
 
     const period=`${TM2[fromM]}${fromM!==toM?' – '+TM2[toM]:''} ${y}`;
@@ -7598,21 +8579,28 @@ async function doExportExcel(){
       ['สมาชิก',mem.name+(mem.lastname?' '+mem.lastname:''),'Nick:',mem.nick,'ตำแหน่ง:',mem.role],
       ['ช่วงเวลา',period,'วง:',S.bandInfo?.name||''],
       [],
-      ['สรุป',''],
-      ['รายได้รับจริง (PAID)','฿'+f(totalPaid),'จำนวนงาน',paidCnt],
-      ['รายได้คาดการณ์ (UNPAID)','฿'+f(totalForecast),'จำนวนงาน',unpaidCnt],
-      ['รวมรายได้','฿'+f(totalPaid+totalForecast)],
+      ['สรุป'],
+      ['รายได้ (breakdown)','฿'+f(totalBdIncome)],
+      ['ทิป','฿'+f(totalTipIncome)],
+      ['รวมรายได้','฿'+f(totalBdIncome+totalTipIncome),'จำนวนงาน',paidCnt],
+      ['รายได้คาดการณ์','฿'+f(totalForecast)],
       [],
-      ['ORDER ID','ชื่องาน','วันที่','สถานที่','ค่าตัวสุทธิ (฿)','ส่วนแบ่ง (%)','ส่วนแบ่ง (฿)','สถานะงาน','สถานะจ่ายเงิน','หมายเหตุ'],
+      [
+        'ORDER ID','ชื่องาน','วันที่','สถานที่',
+        'ค่าตัว (฿)','นั่งรถ (฿)','น้ำมัน (฿)','ต่อเวลา (฿)','อื่นๆ (฿)','หมายเหตุ',
+        'ทิป (฿)','รวมรายได้ (฿)',
+        'สถานะงาน','สถานะจ่ายเงิน'
+      ],
       ...dataRows
     ];
 
     const ws=XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols']=[{wch:14},{wch:30},{wch:12},{wch:20},{wch:16},{wch:12},{wch:14},{wch:14},{wch:14},{wch:20}];
-    /* bold header rows */
-    ['A1','B1','A4','A9','B9','C9','D9','E9','F9','G9','H9','I9','J9'].forEach(ref=>{
-      if(ws[ref]) ws[ref].s={font:{bold:true}};
-    });
+    ws['!cols']=[
+      {wch:14},{wch:28},{wch:14},{wch:18},
+      {wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:16},
+      {wch:10},{wch:12},
+      {wch:12},{wch:14}
+    ];
     XLSX.utils.book_append_sheet(wb,ws,(mem.nick||mem.name).substring(0,28));
   });
 
@@ -7676,6 +8664,76 @@ async function doExportExcel(){
     </div>
   </div>
 </div>
+
+<!-- Modal: Export ZIP สลิป -->
+<div class="overlay" id="modal-slip-export" style="align-items:center;justify-content:center">
+  <div style="background:var(--wh);border-radius:16px;width:440px;max-width:95vw;padding:24px;box-shadow:var(--sh-lg)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:15px;font-weight:700;color:var(--ink)">📦 Export ZIP สลิป</div>
+      <button onclick="cx('modal-slip-export')" style="width:28px;height:28px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:12px;color:var(--ink3)">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg">
+        <label class="fl">จากเดือน</label>
+        <select class="fi" id="slip-export-from" style="font-size:12px">
+          <option value="0">มกราคม</option><option value="1">กุมภาพันธ์</option>
+          <option value="2">มีนาคม</option><option value="3">เมษายน</option>
+          <option value="4">พฤษภาคม</option><option value="5">มิถุนายน</option>
+          <option value="6">กรกฎาคม</option><option value="7">สิงหาคม</option>
+          <option value="8">กันยายน</option><option value="9">ตุลาคม</option>
+          <option value="10">พฤศจิกายน</option><option value="11">ธันวาคม</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">ถึงเดือน</label>
+        <select class="fi" id="slip-export-to" style="font-size:12px">
+          <option value="0">มกราคม</option><option value="1">กุมภาพันธ์</option>
+          <option value="2">มีนาคม</option><option value="3">เมษายน</option>
+          <option value="4">พฤษภาคม</option><option value="5">มิถุนายน</option>
+          <option value="6">กรกฎาคม</option><option value="7">สิงหาคม</option>
+          <option value="8">กันยายน</option><option value="9">ตุลาคม</option>
+          <option value="10">พฤศจิกายน</option><option value="11">ธันวาคม</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">ปี</label>
+      <select class="fi" id="slip-export-year" style="font-size:12px">
+        <option value="2025">2025</option>
+        <option value="2026" selected>2026</option>
+        <option value="2027">2027</option>
+      </select>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="fl" style="margin-bottom:6px">ประเภทสลิป</label>
+      <div style="display:flex;gap:16px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+          <input type="checkbox" id="slip-exp-recv" checked style="accent-color:var(--red)"> รับเงิน (recv/)
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+          <input type="checkbox" id="slip-exp-pay" checked style="accent-color:var(--red)"> จ่ายเงินนักดนตรี (pay/)
+        </label>
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.7">
+      📁 recv/ → JOB-000001_ชื่องาน_recv.jpg<br>
+      📁 pay/ → JOB-000001_ชื่องาน_ณภัทร_pay.jpg
+    </div>
+    <div id="slip-export-progress" style="display:none;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:6px" id="slip-export-status">กำลังดึงข้อมูล...</div>
+      <div style="background:var(--bg);border-radius:20px;height:6px;overflow:hidden">
+        <div id="slip-export-bar" style="background:var(--red);height:100%;width:0%;transition:width .3s;border-radius:20px"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-r" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px" onclick="doExportSlipZip()" id="btn-slip-export">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download ZIP
+      </button>
+      <button class="btn btn-o" onclick="cx('modal-slip-export')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 <script>
 /* แสดง FAB บน mobile ทุกกรณี */
 (function initFAB(){
@@ -7686,6 +8744,7 @@ async function doExportExcel(){
     }
   }
   document.addEventListener('DOMContentLoaded', showFAB);
+  document.addEventListener('DOMContentLoaded', initRememberMe);
   window.addEventListener('load', showFAB);
   /* fallback */
   setTimeout(showFAB, 300);
