@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BandestCo v3 — Band Management</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -185,18 +185,18 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);font-size:13px;l
   transition:border-color .12s;
 }
 .chart-sel:focus{outline:none;border-color:var(--red)}
-.bar-wrap{margin-top:14px;position:relative;overflow-x:auto;overflow-y:hidden}
+.bar-wrap{margin-top:14px;position:relative;overflow-x:auto;overflow-y:visible;padding-top:24px}
 .bar-wrap.day-view{overflow-x:scroll;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--rb) transparent}
 .bar-wrap.day-view::-webkit-scrollbar{height:4px}
 .bar-wrap.day-view::-webkit-scrollbar-track{background:transparent}
 .bar-wrap.day-view::-webkit-scrollbar-thumb{background:var(--rm);border-radius:2px}
-.bar-chart{display:flex;align-items:flex-end;gap:3px;height:220px;padding:0 0 24px;position:relative}
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:220px;padding:0 0 24px;position:relative;overflow:visible}
 .bar-chart::before{content:'';position:absolute;left:0;right:0;top:0;bottom:22px;border-bottom:1px solid var(--bd)}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
-.bar{width:100%;border-radius:4px 4px 0 0;background:#E2E8F0;transition:all .3s;position:relative;min-height:2px}
+.bar{width:100%;border-radius:4px 4px 0 0;background:#E2E8F0;transition:all .3s;position:relative;min-height:2px;overflow:visible}
 .bar.act{background:var(--red)}.bar:hover{opacity:.75;cursor:pointer}
 .bar-lbl{font-size:9px;color:var(--ink3);white-space:nowrap}
-.bar-tip{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--ink2);white-space:nowrap;font-weight:600}
+.bar-tip{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--ink2);white-space:nowrap;font-weight:600;background:var(--wh);padding:1px 3px;border-radius:3px;border:1px solid var(--bd);z-index:10}
 .chart-ft{display:flex;justify-content:space-between;margin-top:8px;font-size:11px}
 .chart-ft-l{color:var(--ink2)}.chart-ft-l span{color:var(--red);font-weight:700}
 .chart-ft-r{color:var(--ink3)}
@@ -731,6 +731,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
   .mob-bottom-nav{display:none!important}
   .mob-sidebar-overlay{display:none!important}
   #mob-fab-menu{display:none!important}
+  #sb-close-btn{display:none!important}
 }
 /* Bottom Nav */
 .mob-bottom-nav{
@@ -791,7 +792,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
     <!-- Tab 1: หัวหน้าวง -->
     <div class="lpane active" id="lt-leader">
       <div class="login-err" id="login-err-leader"></div>
-      <div class="fg"><label class="fl">Email / Username</label><input class="fi" id="login-user-leader" placeholder="อีเมลหรือ username" autocomplete="username" onkeydown="if(event.key==='Enter')doLoginLeader()"></div>
+      <div class="fg"><label class="fl">Email / Username</label><input class="fi" id="login-user-leader" style="font-size:16px" placeholder="อีเมลหรือ username" autocomplete="username" onkeydown="if(event.key==='Enter')doLoginLeader()"></div>
       <div class="fg"><label class="fl">รหัสผ่าน</label><input class="fi" id="login-pass-leader" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLoginLeader()"></div>
       <button class="btn btn-r" style="width:100%;padding:11px 0;font-size:13px;margin-top:4px" onclick="doLoginLeader()">เข้าสู่ระบบ — หัวหน้าวง</button>
     </div>
@@ -800,7 +801,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
     <div class="lpane" id="lt-member">
       <div class="login-err" id="login-err-member"></div>
       <div style="background:var(--rl);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--ink3);margin-bottom:14px">Login ได้เมื่อหัวหน้าวงสร้าง Username/Password ให้ใน <strong>ตั้งค่า/Setup</strong></div>
-      <div class="fg"><label class="fl">Username</label><input class="fi" id="login-user-member" placeholder="username" onkeydown="if(event.key==='Enter')doLoginMember()"></div>
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="login-user-member" style="font-size:16px" placeholder="username" onkeydown="if(event.key==='Enter')doLoginMember()"></div>
       <div class="fg"><label class="fl">รหัสผ่าน</label><input class="fi" id="login-pass-member" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLoginMember()"></div>
       <button class="btn btn-r" style="width:100%;padding:11px 0;font-size:13px;margin-top:4px" onclick="doLoginMember()">เข้าสู่ระบบ — สมาชิกวง</button>
     </div>
@@ -809,8 +810,8 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
     <div class="lpane" id="lt-register">
       <div class="login-err" id="login-err-reg"></div>
       <div class="login-success" id="login-ok-reg"></div>
-      <div class="fg"><label class="fl">ชื่อวงดนตรี *</label><input class="fi" id="reg-band" placeholder="เช่น BandestCo, The Jazz Boys"></div>
-      <div class="fg"><label class="fl">ชื่อหัวหน้าวง *</label><input class="fi" id="reg-leader" placeholder="ชื่อ-นามสกุล หรือชื่อเล่น"></div>
+      <div class="fg"><label class="fl">ชื่อวงดนตรี *</label><input class="fi" id="reg-band" style="font-size:16px" placeholder="เช่น BandestCo, The Jazz Boys"></div>
+      <div class="fg"><label class="fl">ชื่อหัวหน้าวง *</label><input class="fi" id="reg-leader" style="font-size:16px" placeholder="ชื่อ-นามสกุล หรือชื่อเล่น"></div>
       <div class="fg">
         <label class="fl">Email *</label>
         <div style="position:relative">
@@ -861,7 +862,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       </div>
       <!-- ปุ่มซ่อน sidebar — แสดงเฉพาะ mobile -->
       <button id="sb-close-btn" onclick="toggleMobSidebar()"
-        style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.1);border:none;cursor:pointer;color:rgba(255,255,255,.8);flex-shrink:0;transition:background .15s"
+        style="align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.1);border:none;cursor:pointer;color:rgba(255,255,255,.8);flex-shrink:0;transition:background .15s"
         onmouseover="this.style.background='rgba(255,255,255,.2)'"
         onmouseout="this.style.background='rgba(255,255,255,.1)'"
         title="ซ่อน Sidebar">
@@ -1105,6 +1106,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
                 <th style="width:160px">ลูกค้า</th>
                 <th style="width:90px">แหล่งที่มา</th>
                 <th style="width:110px">ค่าตัวสุทธิ</th>
+                <th style="width:90px">นักดนตรี</th>
                 <th style="width:110px">สถานะรับเงิน</th>
                 <th style="width:115px">สถานะจ่ายค่าตัว</th>
                 <th style="width:80px">ประเภทงาน</th>
@@ -3116,6 +3118,7 @@ function rg(){
         <div class="tamt" style="font-size:13px">฿${f(netVal)}</div>
         ${g.fee!==netVal?`<div style="font-size:9px;color:var(--ink3)">ก่อนหัก ฿${f(g.fee)}</div>`:''}
       </td>
+      <td>${(()=>{const hasM=g.musicians&&g.musicians.length>0;return hasM?'<span class="badge bg" style="font-size:10px;background:#D1FAE5;color:#065F46"><span class="bd2" style="background:#065F46"></span>Assigned</span>':'<span class="badge bs" style="font-size:10px;background:#FEF3C7;color:#92400E"><span class="bd2" style="background:#92400E"></span>No Assign</span>';})()} </td>
       <td>${bx(g.status)}</td>
       <td>${g.status!=='cancelled'?gigPayBadge(g):'—'}</td>
       <td><span class="badge bs" style="font-size:10px">${g.type||'—'}</span></td>
@@ -3378,7 +3381,7 @@ function rcal(){
   for(let i=0;i<f1;i++) h+='<div class="cal-cell empty"></div>';
   for(let d=1;d<=days;d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    let dg=S.gigs.filter(g=>g.date===ds&&g.status!=='cancelled');
+    let dg=S.gigs.filter(g=>g.date===ds&&g.status!=='cancelled'&&g.musicians&&g.musicians.length>0);
     if(filterMid) dg=dg.filter(g=>{
       if(!g.musicians||!g.musicians.length) return true;
       return g.musicians.some(mu=>String(mu.memberId)===String(filterMid));
@@ -3732,7 +3735,10 @@ function calcExpenses(){
   const otherFee=parseFloat(document.getElementById('ge-other-fee')?.value)||0;
   const total=soundFee+otherFee;
   const totalIncome=parseFloat(document.getElementById('gf')?.value)||0;
-  const net=totalIncome-total;
+  /* ถ้ามี WHT ให้ใช้รายได้หลังหักภาษีเป็นฐาน */
+  const whtEnabled=document.getElementById('gig-wht')?.checked||false;
+  const baseIncome=whtEnabled&&gigState.whtNet?gigState.whtNet:totalIncome;
+  const net=baseIncome-total;
   const expEl=document.getElementById('ge-total-display');
   const netEl=document.getElementById('ge-net-display');
   if(expEl) expEl.textContent='฿'+f(total);
@@ -4868,7 +4874,7 @@ function renderClientList(items){
     list.innerHTML=`<div style="padding:10px 12px;font-size:12px;color:var(--ink3);text-align:center">ไม่พบลูกค้า</div>`;
     openCmb('cmb-client');return;
   }
-  list.innerHTML=items.map(cl=>`<div class="cmb-opt" onclick="selectClient('${cl.id}')" style="display:flex;flex-direction:column;gap:2px">
+  list.innerHTML=items.map(cl=>`<div class="cmb-opt" data-client-id="${cl.id}" onclick="selectClientById(this)" style="display:flex;flex-direction:column;gap:2px">
     <span style="font-weight:500">${cl.name}</span>
     ${cl.phone?`<span style="font-size:10px;color:var(--ink3)">${cl.phone}</span>`:''}
   </div>`).join('');
@@ -4893,6 +4899,10 @@ function toggleClientDropdown(){
     showAllClients();
     document.getElementById('gclient-search')?.focus();
   }
+}
+function selectClientById(el){
+  const id=el.getAttribute('data-client-id')||el.closest('[data-client-id]')?.getAttribute('data-client-id');
+  if(id) selectClient(id);
 }
 function selectClient(id){
   const cl=S.clients.find(x=>x.id===id);if(!cl)return;
@@ -6422,10 +6432,21 @@ function renderExpensePage(){
   const monthData=Array.from({length:12},(_,i)=>list.filter(e=>new Date(e.date).getMonth()===i).reduce((s,e)=>s+e.amount,0));
   const mx=Math.max(...monthData,1);
   const chartEl=document.getElementById('exp-chart');
-  if(chartEl) chartEl.innerHTML=monthData.map((v,i)=>{
-    const pct=Math.round(v/mx*100),ia=(i===cm&&y===cy);
-    return`<div class="bar-col"><div class="bar${ia?' act':''}" style="height:${Math.max(pct,2)}%;background:${ia?'var(--amber)':'#F5C6AA'}">${ia&&v>0?`<span class="bar-tip">${v>=1000?(v/1000).toFixed(1)+'K':v}</span>`:''}</div><div class="bar-lbl">${TS[i].replace('.','')}</div></div>`;
-  }).join('');
+  if(chartEl){
+    chartEl.style.cssText='display:flex;align-items:flex-end;gap:3px;height:160px;padding:0 0 22px;position:relative;min-width:0';
+    chartEl.innerHTML=monthData.map((v,i)=>{
+      const pct=Math.round(v/mx*100);
+      const ia=(i===cm&&y===cy);
+      const barColor=ia?'var(--amber)':'#F5C6AA';
+      const tipColor=ia?'var(--ink)':'var(--ink3)';
+      return`<div class="bar-col">
+        <div class="bar" style="height:${Math.max(pct,v>0?2:0)}%;background:${barColor};${ia?'box-shadow:0 0 0 1.5px #F59E0B inset':''}">
+          ${v>0?`<span class="bar-tip" style="color:${tipColor}">${v>=1000?(v/1000).toFixed(1)+'K':f(v)}</span>`:''}
+        </div>
+        <div class="bar-lbl" style="${ia?'font-weight:700;color:var(--amber)':''}">${TS[i].replace('.','')}</div>
+      </div>`;
+    }).join('');
+  }
 
   /* ── Category breakdown ── */
   const catMap=list.reduce((m,e)=>{m[e.cat]=(m[e.cat]||0)+e.amount;return m;},{});
@@ -6676,14 +6697,26 @@ function renderAdChannel(){
         }).join('')
       : '<div style="color:var(--ink3);font-size:12px;text-align:center;padding:16px">ไม่มีค่าโฆษณาในเดือนนี้</div>';
   } else {
-    /* All months → bar chart */
-    const maxM=Math.max(...monthlyTotals,1);
-    if(monthlyEl){ monthlyEl.style.cssText='display:flex;align-items:flex-end;gap:3px;height:130px;padding:0 0 22px;position:relative;min-width:0'; }
-    if(monthlyEl) monthlyEl.innerHTML=monthlyTotals.map((v,i)=>{
-      const pct=Math.round(v/maxM*100);
+    /* All months → grouped bar chart by channel */
+    const allMax=Math.max(...Object.values(monthlyByChannel).flatMap(arr=>arr),1);
+    const channels=[...allAdChannels];
+    const barGap=channels.length>1?2:3;
+    if(monthlyEl){ monthlyEl.style.cssText='display:flex;align-items:flex-end;gap:4px;height:200px;padding:0 0 22px;position:relative;min-width:0'; }
+    if(monthlyEl) monthlyEl.innerHTML=Array.from({length:12},(_,i)=>{
       const ia=i===cmNow&&y===new Date().getFullYear();
-      const col=ia?'#FDCB6E':'#F5DFA0';
-      return`<div class="bar-col"><div class="bar" style="height:${Math.max(pct,v>0?2:0)}%;background:${col};${ia?'box-shadow:0 0 0 1.5px #F59E0B inset':''}">${ia&&v>0?`<span class="bar-tip" style="color:var(--ink2)">${v>=1000?(v/1000).toFixed(1)+'K':v}</span>`:''}</div><div class="bar-lbl">${TS[i].replace('.','')}</div></div>`;
+      const bars=channels.map(ch=>{
+        const v=monthlyByChannel[ch]?.[i]||0;
+        const pct=Math.round(v/allMax*100);
+        const col=ADC_COLORS[ch]||'#636E72';
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;height:100%;justify-content:flex-end">
+          ${v>0?`<div style="font-size:8px;font-weight:700;color:${col};white-space:nowrap;margin-bottom:2px;background:var(--wh);padding:0 2px;border-radius:2px;z-index:5">${v>=1000?(v/1000).toFixed(1)+'K':f(v)}</div>`:''}
+          <div style="width:100%;border-radius:3px 3px 0 0;background:${v>0?col:'transparent'};height:${Math.max(v>0?pct:0,v>0?2:0)}%;transition:all .3s;${ia?'box-shadow:0 0 0 1px rgba(0,0,0,0.15)':''}"></div>
+        </div>`;
+      }).join('');
+      return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0;height:100%;${ia?'background:rgba(253,203,110,.08);border-radius:4px':''}">
+        <div style="flex:1;width:100%;display:flex;align-items:flex-end;gap:${barGap}px;padding:0 2px">${bars}</div>
+        <div class="bar-lbl" style="${ia?'font-weight:700;color:#F59E0B':''}">${TS[i].replace('.','')}</div>
+      </div>`;
     }).join('');
   }
 
