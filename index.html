@@ -8615,11 +8615,9 @@ ${text}
   "source": "คัดลอกจากรายการแหล่งที่มา exact เป๊ะ หรือ null",
   "type": "คัดลอกจากรายการประเภทงาน exact เป๊ะ หรือ null",
   "bandFee": ค่าตัวรวมทั้งวง (ไม่ใช่รายคน),
-  "travelOil": ค่าน้ำมันเดินทาง,
-  "travelCar": ค่านั่งรถเดินทาง,
   "afterParty": ค่า after party,
   "soundFee": ค่าระบบเสียง (รายได้จากลูกค้า),
-  "soundTravel": ค่าเดินทางทีมเสียง (รายได้),
+  "soundTravel": ค่าเดินทางทีมเสียง (รายได้จากลูกค้า),
   "otherIncome": รายได้อื่นๆ,
   "otherIncomeNote": "รายละเอียดรายได้อื่นๆ",
   "discount": ส่วนลดท้ายบิล,
@@ -8634,9 +8632,11 @@ ${text}
 กฎสำคัญ:
 1. bandFee = ค่าวงรวม, musicians[].fee = ค่าตัวแต่ละคน (คนละอย่างกัน)
 2. source และ type ต้อง copy ตัวอักษรจากรายการที่ให้ ห้ามแต่งเอง
-3. expenseRows = ค่าใช้จ่ายของวง ไม่ใช่ค่าใช้จ่ายลูกค้า
-4. ตัวเลขทุกตัวเป็น number ไม่ใช่ string
-5. musicians = [] ถ้าไม่มีข้อมูล`;
+3. expenseRows = ค่าใช้จ่ายของวง เช่น ค่าทีมเสียง ค่าเช่าอุปกรณ์ — ใส่เฉพาะเมื่อ prompt ระบุชัดว่าเป็น "ค่าใช้จ่ายในงาน" เท่านั้น
+4. ค่าน้ำมัน/ค่ารถของสมาชิกให้ใส่ใน musicians[].oil และ musicians[].travel เสมอ ห้ามใส่ใน expenseRows
+5. ถ้าไม่รู้ว่าค่าน้ำมัน/รถเป็นของสมาชิกคนไหน ให้แบ่งเท่ากันทุกคน
+6. ตัวเลขทุกตัวเป็น number ไม่ใช่ string
+7. musicians = [] ถ้าไม่มีข้อมูล`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -8792,8 +8792,6 @@ function _reApplyAIFill(p){
   /* ── รายได้ ── */
   const feeVal=p.bandFee||p.fee||0;
   if(feeVal>0) document.getElementById('gf-band').value=feeVal;
-  if(p.travelOil>0) document.getElementById('gf-travel-oil').value=p.travelOil;
-  if(p.travelCar>0) document.getElementById('gf-travel-car').value=p.travelCar;
   if(p.afterParty>0) document.getElementById('gf-after').value=p.afterParty;
   if(p.soundFee>0) document.getElementById('gf-sound').value=p.soundFee;
   if(p.soundTravel>0) document.getElementById('gf-sound-oil').value=p.soundTravel;
