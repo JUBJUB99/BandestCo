@@ -1902,6 +1902,18 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
 </button>
 
 <!-- Mobile sidebar overlay -->
+<!-- MEMBER PHOTO LIGHTBOX -->
+<div id="modal-photo-lightbox" onclick="closeMemberPhotoLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:14px;cursor:zoom-out">
+  <div style="position:relative;max-width:90vw;max-height:80vh" onclick="event.stopPropagation()">
+    <img id="lightbox-img" src="" style="max-width:90vw;max-height:75vh;object-fit:contain;border-radius:12px;display:block">
+    <div id="lightbox-initials" style="display:none;width:240px;height:240px;border-radius:12px;background:var(--rl);align-items:center;justify-content:center">
+      <span style="font-size:80px;font-weight:700;color:var(--red)" id="lightbox-nick"></span>
+    </div>
+  </div>
+  <div id="lightbox-name" style="color:#fff;font-size:16px;font-weight:500"></div>
+  <div style="color:rgba(255,255,255,0.5);font-size:12px">กดที่ไหนก็ได้เพื่อปิด</div>
+</div>
+
 <!-- FORGOT PASSWORD MODAL -->
 <div class="overlay" id="modal-forgot" style="align-items:center;justify-content:center;z-index:10000">
   <div class="modal" style="max-width:400px;width:95vw;padding:28px 28px 24px">
@@ -3892,11 +3904,19 @@ function rmem(){
     const stxt=isActive?'Active':'Inactive';
     const jd=mem.joinDate?fmtJoin(mem.joinDate):'—';
     return`<div class="mem-card" style="${isActive?'':'opacity:0.7'}">
-      <div class="mem-card-photo" onclick="editMem('${mem.id}')">
+      <div class="mem-card-photo" onclick="openMemberPhotoLightbox('${mem.id}')">
         ${photoHtml}
         <div class="ph-overlay">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <span style="font-size:11px">แก้ไข</span>
+          <div style="display:flex;gap:8px">
+            <div onclick="event.stopPropagation();openMemberPhotoLightbox('${mem.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:6px;background:rgba(0,0,0,0.3);cursor:pointer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="#fff" stroke-width="1.8"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" stroke="#fff" stroke-width="1.8"/></svg>
+              <span style="font-size:10px;color:#fff">ดูรูป</span>
+            </div>
+            <div onclick="event.stopPropagation();editMem('${mem.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:6px;background:rgba(0,0,0,0.3);cursor:pointer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span style="font-size:10px;color:#fff">แก้ไข</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="mem-card-body">
@@ -6869,6 +6889,39 @@ async function doRegister(){
 function doLogin(){doLoginLeader();}
 
 /* ══════════ FORGOT / RESET PASSWORD ══════════ */
+/* ══════════ MEMBER PHOTO LIGHTBOX ══════════ */
+function openMemberPhotoLightbox(memberId){
+  const mem=S.members.find(m=>String(m.id)===String(memberId));
+  if(!mem) return;
+  const lb=document.getElementById('modal-photo-lightbox');
+  const img=document.getElementById('lightbox-img');
+  const ini=document.getElementById('lightbox-initials');
+  const nick=document.getElementById('lightbox-nick');
+  const name=document.getElementById('lightbox-name');
+  name.textContent=mem.name+(mem.lastname?' '+mem.lastname:'')+' ('+mem.nick+')';
+  if(mem.photo){
+    img.style.display='block';
+    ini.style.display='none';
+    const isKey=mem.photo.startsWith('photo_')||mem.photo.startsWith('slip_');
+    if(isKey){
+      img.src='';
+      SlipStore.load(mem.photo).then(d=>{if(d)img.src=d;});
+    } else {
+      img.src=mem.photo;
+    }
+  } else {
+    img.style.display='none';
+    ini.style.display='flex';
+    nick.textContent=mem.nick;
+  }
+  lb.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeMemberPhotoLightbox(){
+  document.getElementById('modal-photo-lightbox').style.display='none';
+  document.body.style.overflow='';
+}
+
 function openForgotPassword(){
   const emailEl=document.getElementById('forgot-email');
   if(emailEl) emailEl.value=document.getElementById('login-user-leader')?.value||'';
@@ -8514,67 +8567,62 @@ async function doAIFill(){
   resultEl.textContent='กำลังวิเคราะห์ข้อมูล...';
 
   const today=new Date().toISOString().split('T')[0];
+  const todayFull=new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const sourceList=(S.sources||[]).join(', ');
   const jobTypeList=(S.jobTypes||[]).map(t=>typeof t==='object'?t.name:t).join(', ');
   const clientList=(S.clients||[]).map(c=>c.name).join(', ');
+  const memberList=(S.members||[]).filter(m=>m.status==='active').map(m=>`${m.name}|${m.nick}`).join(', ');
 
-  const memberList=(S.members||[]).filter(m=>m.status==='active').map(m=>`${m.name} (${m.nick})`).join(', ');
-  const prompt=`วิเคราะห์ข้อความด้านล่างแล้วแยกข้อมูลงานดนตรี ตอบเป็น JSON เท่านั้น ไม่มีคำอธิบาย ไม่มี markdown:
+  const systemPrompt=`คุณคือระบบแยกข้อมูลงานดนตรีจากข้อความภาษาไทย/อังกฤษ
+ตอบเป็น JSON object เท่านั้น ห้าม markdown ห้าม backtick ห้ามคำอธิบายใดๆ
+ถ้าไม่มีข้อมูลให้ใส่ null หรือ 0 ห้ามแต่งข้อมูลเอง`;
+
+  const prompt=`วันนี้คือ: ${today} (${todayFull})
 
 ข้อความ:
 ${text}
 
-รายชื่อสมาชิกวง: ${memberList}
-วันนี้: ${today}
-แหล่งที่มาที่มีในระบบ: ${sourceList}
-ประเภทงานที่มีในระบบ: ${jobTypeList}
-ลูกค้าที่มีในระบบ: ${clientList}
+ข้อมูลอ้างอิงในระบบ:
+- สมาชิกวง (ชื่อจริง|ชื่อเล่น): ${memberList}
+- แหล่งที่มา: ${sourceList}
+- ประเภทงาน: ${jobTypeList}
+- ลูกค้าเดิม: ${clientList}
 
-ให้แยกข้อมูลเป็น JSON ดังนี้:
+แยกข้อมูลเป็น JSON:
 {
-  "name": "ชื่องาน (ถ้าไม่มีให้สรุปสั้นๆ จากข้อมูล)",
-  "date": "YYYY-MM-DD (วันที่จัดงาน ใช้ ค.ศ. เสมอ ถ้าเป็น พ.ศ. ให้ลบ 543)",
-  "timeStart": "HH:MM (เวลาเริ่ม 24h format, null ถ้าไม่มี)",
-  "timeEnd": "HH:MM (เวลาจบ 24h format, null ถ้าไม่มี)",
-  "venue": "ชื่อสถานที่/โรงแรม",
-  "province": "จังหวัด (เช่น กรุงเทพมหานคร, เชียงใหม่)",
-  "mapLink": "URL Google Maps ถ้ามี หรือ null",
-  "bandsize": จำนวนชิ้นดนตรี เช่น 2,3,4,5,6 หรือ null,
-  "source": "แหล่งที่มา เลือกจาก: ${sourceList} หรือ null",
-  "type": "ประเภทงาน เลือกจาก: ${jobTypeList} หรือ null",
-  "fee": ค่าตัวหลัก (ตัวเลข),
-  "travelOil": ค่าเดินทาง-น้ำมัน,
-  "travelCar": ค่าเดินทาง-นั่งรถ,
-  "afterParty": ค่า After Party,
-  "soundFee": ค่าระบบเสียง (รายได้),
-  "soundTravel": ค่าเดินทางเสียง (รายได้),
+  "name": "ชื่องาน ถ้าไม่มีให้สรุปจากข้อมูล เช่น งานแต่ง+ชื่อลูกค้า",
+  "date": "YYYY-MM-DD ใช้ ค.ศ. เสมอ ถ้าเป็น พ.ศ.ลบ 543 ถ้าบอกว่าวันเสาร์หน้า/อาทิตย์นี้ให้คำนวณจากวันนี้",
+  "timeStart": "HH:MM format 24 ชม. หรือ null",
+  "timeEnd": "HH:MM format 24 ชม. หรือ null",
+  "venue": "ชื่อสถานที่หรือโรงแรม",
+  "province": "จังหวัดเต็ม เช่น กรุงเทพมหานคร ไม่ใช่ กทม.",
+  "mapLink": "URL maps.google.com หรือ maps.app.goo.gl หรือ null",
+  "bandsize": จำนวนชิ้นดนตรีเป็น number หรือ null,
+  "source": "คัดลอกจากรายการแหล่งที่มา exact เป๊ะ หรือ null",
+  "type": "คัดลอกจากรายการประเภทงาน exact เป๊ะ หรือ null",
+  "bandFee": ค่าตัวรวมทั้งวง (ไม่ใช่รายคน),
+  "travelOil": ค่าน้ำมันเดินทาง,
+  "travelCar": ค่านั่งรถเดินทาง,
+  "afterParty": ค่า after party,
+  "soundFee": ค่าระบบเสียง (รายได้จากลูกค้า),
+  "soundTravel": ค่าเดินทางทีมเสียง (รายได้),
   "otherIncome": รายได้อื่นๆ,
-  "otherIncomeNote": "หมายเหตุรายได้อื่นๆ",
-  "expenseRows": [{"fee": ตัวเลข, "note": "รายละเอียด"}, ...],
-  "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง (ถ้าชื่อคล้ายในระบบให้ใช้ชื่อในระบบ)",
-  "clientPhone": "เบอร์โทรลูกค้า ถ้ามีหลายเบอร์คั่นด้วย comma เช่น 0615261219,0942144101",
-  "clientBankName": "ชื่อธนาคารลูกค้า หรือ null",
-  "clientBankNo": "เลขบัญชีลูกค้า หรือ null",
-  "note": "หมายเหตุอื่นๆ ที่ไม่ใช่ link map",
-  "musicians": [
-    {
-      "nick": "ชื่อเล่นหรือชื่อสมาชิก (match จากรายชื่อที่ให้)",
-      "fee": ค่าตัว,
-      "travel": ค่านั่งรถ,
-      "oil": ค่าน้ำมัน,
-      "overtime": ค่าต่อเวลา,
-      "other": ค่าอื่นๆ,
-      "otherNote": "หมายเหตุ"
-    }
-  ]
+  "otherIncomeNote": "รายละเอียดรายได้อื่นๆ",
+  "discount": ส่วนลดท้ายบิล,
+  "expenseRows": [{"fee": number, "note": "รายละเอียด"}],
+  "clientName": "ชื่อลูกค้า ถ้าใกล้เคียงชื่อในระบบให้ใช้ชื่อในระบบ",
+  "clientPhone": "เบอร์คั่นด้วย comma ถ้าหลายเบอร์ ตัวเลขล้วนไม่มีขีด",
+  "clientBankName": "ชื่อธนาคาร หรือ null",
+  "clientBankNo": "เลขบัญชี หรือ null",
+  "note": "หมายเหตุ ไม่รวม map link",
+  "musicians": [{"nick": "ชื่อเล่นหรือชื่อจาก memberList", "fee": ค่าตัวรายคน, "travel": ค่ารถ, "oil": ค่าน้ำมัน, "overtime": ค่าต่อเวลา, "other": ค่าอื่น, "otherNote": "หมายเหตุ"}]
 }
-หมายเหตุสำคัญ:
-- ถ้ามี link Google Maps ให้แยกใส่ mapLink ไม่ใส่ใน note
-- expenseRows คือค่าใช้จ่ายของวง เช่น ค่าทีมเสียง, ค่าเช่า, ค่าเดินทาง ใส่ทุกรายการ
-- musicians.fee คือค่าตัวแต่ละคน breakdown แยกจากค่าวงรวม
-- ถ้าไม่มีข้อมูลสมาชิกให้เป็น []
-- ตัวเลขทุกตัวเป็น number ไม่ใช่ string
-- ถ้าไม่มีข้อมูลให้ใส่ 0 หรือ null`;
+กฎสำคัญ:
+1. bandFee = ค่าวงรวม, musicians[].fee = ค่าตัวแต่ละคน (คนละอย่างกัน)
+2. source และ type ต้อง copy ตัวอักษรจากรายการที่ให้ ห้ามแต่งเอง
+3. expenseRows = ค่าใช้จ่ายของวง ไม่ใช่ค่าใช้จ่ายลูกค้า
+4. ตัวเลขทุกตัวเป็น number ไม่ใช่ string
+5. musicians = [] ถ้าไม่มีข้อมูล`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -8582,7 +8630,8 @@ ${text}
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:2000,
+        max_tokens:4000,
+        system:systemPrompt,
         messages:[{role:'user',content:prompt}]
       })
     });
@@ -8601,17 +8650,15 @@ ${text}
     if(parsed.timeEnd){const te=document.getElementById('gtend');if(te)te.value=parsed.timeEnd;}
     if(parsed.venue) document.getElementById('gv').value=parsed.venue;
     if(parsed.province) document.getElementById('gprov').value=parsed.province;
-    if(parsed.fee>0){
-      document.getElementById('gf-band').value=parsed.fee;
-      calcTotalIncome();
-    }
+    const feeVal=parsed.bandFee||parsed.fee||0;
+    if(feeVal>0){document.getElementById('gf-band').value=feeVal;calcTotalIncome();}
     if(parsed.source){
       const gs=document.getElementById('gsource');
-      if(gs){const opt=Array.from(gs.options||[]).find(o=>o.value===parsed.source);if(opt)gs.value=parsed.source;}
+      if(gs){const srcL=parsed.source.toLowerCase();const opt=Array.from(gs.options||[]).find(o=>o.value.toLowerCase()===srcL);if(opt)gs.value=opt.value;}
     }
     if(parsed.type){
       const gt=document.getElementById('gtype');
-      if(gt){const opt=Array.from(gt.options||[]).find(o=>o.value===parsed.type);if(opt)gt.value=parsed.type;}
+      if(gt){const typL=parsed.type.toLowerCase();const opt=Array.from(gt.options||[]).find(o=>o.value.toLowerCase()===typL);if(opt)gt.value=opt.value;}
     }
     if(parsed.note) document.getElementById('gnote').value=parsed.note;
     /* Client — หา match จาก clients */
@@ -8726,10 +8773,11 @@ function _reApplyAIFill(p){
   if(p.mapLink){const gm=document.getElementById('gmap');if(gm)gm.value=p.mapLink;}
   /* ── ขนาดวง / ประเภท / แหล่งที่มา ── */
   if(p.bandsize){const gb=document.getElementById('gbandsize');if(gb&&Array.from(gb.options).find(o=>o.value===String(p.bandsize)))gb.value=String(p.bandsize);}
-  if(p.source){const gs=document.getElementById('gsource');if(gs&&Array.from(gs.options).find(o=>o.value===p.source))gs.value=p.source;}
-  if(p.type){const gt=document.getElementById('gtype');if(gt&&Array.from(gt.options).find(o=>o.value===p.type))gt.value=p.type;}
+  if(p.source){const gs=document.getElementById('gsource');if(gs){const srcL=p.source.toLowerCase();const opt=Array.from(gs.options).find(o=>o.value.toLowerCase()===srcL);if(opt)gs.value=opt.value;}}
+  if(p.type){const gt=document.getElementById('gtype');if(gt){const typL=p.type.toLowerCase();const opt=Array.from(gt.options).find(o=>o.value.toLowerCase()===typL);if(opt)gt.value=opt.value;}}
   /* ── รายได้ ── */
-  if(p.fee>0) document.getElementById('gf-band').value=p.fee;
+  const feeVal=p.bandFee||p.fee||0;
+  if(feeVal>0) document.getElementById('gf-band').value=feeVal;
   if(p.travelOil>0) document.getElementById('gf-travel-oil').value=p.travelOil;
   if(p.travelCar>0) document.getElementById('gf-travel-car').value=p.travelCar;
   if(p.afterParty>0) document.getElementById('gf-after').value=p.afterParty;
