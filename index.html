@@ -2133,6 +2133,10 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         <input type="hidden" id="gf-other" value="0">
         <input type="hidden" id="gf-other-note">
         <input type="hidden" id="gf">
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <label style="font-size:11px;color:var(--ink3);white-space:nowrap;min-width:80px">ส่วนลดท้ายบิล (฿)</label>
+          <input class="fi income-f" id="gf-discount" type="number" min="0" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px;flex:1;border-color:#F0997B;color:#993C1D">
+        </div>
         <div style="margin-top:8px;background:var(--wh);border:1.5px solid var(--red);border-radius:var(--r);padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:11px;color:var(--ink2);font-weight:500">รวมรายได้</span>
           <span id="gf-total-display" style="font-size:18px;font-weight:700;color:var(--red)">฿0</span>
@@ -4205,12 +4209,13 @@ function calcTotalIncome(){
     if(v>0){total+=v;lines.push(`<span>${f.label}: <strong style="color:var(--ink2)">฿${f.value||v.toLocaleString('th-TH')}</strong></span>`);}
     if(v>0 && f.id==='gf-other'){const n=document.getElementById('gf-other-note')?.value;if(n)lines[lines.length-1]=lines[lines.length-1].replace('รายได้อื่น ๆ',`รายได้อื่น (${n})`);}
   });
+  const disc=parseFloat(document.getElementById('gf-discount')?.value)||0;
+  if(disc>0){total=Math.max(0,total-disc);lines.push(`<span style="color:#993C1D">ส่วนลด: <strong>-฿${disc.toLocaleString('th-TH')}</strong></span>`);}
   document.getElementById('gf').value=total;
   document.getElementById('gf-total-display').textContent='฿'+total.toLocaleString('th-TH');
   document.getElementById('income-breakdown').innerHTML=lines.join('');
   if(gigState.count>0) updateSummary();
   calcExpenses();
-  /* update WHT label rate */
   const rateLabel=document.getElementById('gig-wht-rate-label');
   if(rateLabel) rateLabel.textContent=`(${S.bandInfo?.whtRate||3}%)`;
   calcWHT();
@@ -4420,7 +4425,7 @@ function openGig(){
   const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
   if(saveBtn)saveBtn.style.display='';
   document.getElementById('mgig-t').textContent='เพิ่มงานใหม่';
-  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','gf-discount','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   const geRows=document.getElementById('ge-rows');if(geRows)geRows.innerHTML='';
   setPhoneTags('');renderPhoneTagsNew([]);
   const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=false;
@@ -4494,7 +4499,7 @@ function clearGigDraft(){
   const db=document.getElementById('draft-banner');if(db)db.style.display='none';
   const dd=document.getElementById('draft-dot');if(dd)dd.style.display='none';
   /* clear all form fields */
-  ['gn','gtstart','gtend','gv','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-sound-car','gf-other','gf-other-note'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['gn','gtstart','gtend','gv','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-sound-car','gf-other','gf-other-note','gf-discount'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});;
   const geRowsClr=document.getElementById('ge-rows');if(geRowsClr)geRowsClr.innerHTML='';
   const gdClr=document.getElementById('gd');if(gdClr)gdClr.value='';
   document.getElementById('gf-total-display').textContent='฿0';
@@ -4528,6 +4533,7 @@ function editGig(id){
   const inc=g.income||{};
   ['band','travel-oil','travel-car','after','sound','sound-oil','sound-car','other'].forEach(k=>{const el=document.getElementById('gf-'+k);if(el)el.value=inc[k]||'';});
   const onEl=document.getElementById('gf-other-note');if(onEl)onEl.value=inc.otherNote||'';
+  const discEl=document.getElementById('gf-discount');if(discEl)discEl.value=inc.discount||'';
   calcTotalIncome();
   const exp=g.expenses||{};
   const geRows=document.getElementById('ge-rows');if(geRows)geRows.innerHTML='';
@@ -4704,7 +4710,7 @@ function sg(){
     }
   }
   const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
-  const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||''};
+  const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||'',discount:gv('gf-discount')};
   const expenses={expenseRows:getExpenseRows(),soundMemberId:null,soundFee:0,adsFee:0,adsChannel:'',otherFee:0,otherNote:''};
   const data={name:n,date:d,expenses,recDate:document.getElementById('grec').value,timeStart:document.getElementById('gtstart').value,timeEnd:document.getElementById('gtend').value,fee:fe,income,venue:document.getElementById('gv').value.trim(),mapLink:document.getElementById('gmap')?.value.trim()||'',province:document.getElementById('gprov').value.trim(),type:document.getElementById('gtype').value,status:document.getElementById('gst').value,bandSize:document.getElementById('gbandsize').value,source:document.getElementById('gsource').value,note:document.getElementById('gnote').value.trim(),clientId,clientName,clientPhone,clientBankName:document.getElementById('gcbank-name-new')?.value.trim()||'',clientBankNo:document.getElementById('gcbank-no-new')?.value.trim()||'',musicians:gigState.count>0?getGigMembers():[],splitMode:gigState.splitMode,whtEnabled:document.getElementById('gig-wht')?.checked||false,whtRate:gigState.whtRate||0,whtAmt:gigState.whtAmt||0,whtNet:gigState.whtNet||0};
   if(S.eid){
@@ -8732,6 +8738,7 @@ function _reApplyAIFill(p){
   if(p.soundTravel>0) document.getElementById('gf-sound-oil').value=p.soundTravel;
   if(p.otherIncome>0) document.getElementById('gf-other').value=p.otherIncome;
   if(p.otherIncomeNote) document.getElementById('gf-other-note').value=p.otherIncomeNote;
+  if(p.discount>0){const d=document.getElementById('gf-discount');if(d)d.value=p.discount;}
   if(typeof calcTotalIncome==='function') calcTotalIncome();
   /* ── ค่าใช้จ่าย ── */
   const aiRows=document.getElementById('ge-rows');if(aiRows)aiRows.innerHTML='';
