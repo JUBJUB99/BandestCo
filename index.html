@@ -794,6 +794,14 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
 </style>
 </head>
 <body>
+<script>
+(function(){
+  try{
+    const s=sessionStorage.getItem('bco_session');
+    if(s){const d=JSON.parse(s);if(d&&d.token&&Date.now()-d.ts<8*3600*1000){const t=document.createElement('style');t.textContent='#login-screen{display:none!important}';t.id='hide-login-early';document.head.appendChild(t);}}
+  }catch(e){}
+})();
+</script>
 
 <!-- ── LOGIN SCREEN ── -->
 <div id="login-screen">
@@ -2994,6 +3002,8 @@ function nav(id,el){
   if(!currentUser||!_sbToken){
     doLogout();return;
   }
+  /* จำหน้าปัจจุบัน */
+  try{sessionStorage.setItem('bco_last_page',id);}catch(e){}
   /* reset all pages */
   document.querySelectorAll('.page').forEach(p=>{
     p.classList.remove('active');
@@ -6562,6 +6572,7 @@ function switchLoginTab(id,el){
 function loginSuccess(user){
   currentUser=user;
   _sessionStart=Date.now();
+  try{sessionStorage.setItem('bco_session',JSON.stringify({user,token:_sbToken,bandId:_sbBandId,ts:Date.now()}));}catch(e){}
   applyAuthUI();
   const ls=document.getElementById('login-screen');
   ls.classList.add('hidden');
@@ -6583,6 +6594,8 @@ function loginSuccess(user){
 async function afterCloudLogin(user){
   currentUser=user;
   _sessionStart=Date.now();
+  /* บันทึก session ไว้สำหรับ refresh */
+  try{sessionStorage.setItem('bco_session',JSON.stringify({user,token:_sbToken,bandId:_sbBandId,ts:Date.now()}));}catch(e){}
   const ls=document.getElementById('login-screen');
   ls.classList.add('hidden');
   setTimeout(()=>{ls.style.display='none';},300);
@@ -6999,6 +7012,7 @@ function doLogout(){
   currentUser=null;
   sbSignOut();
   _sbToken=null; _sbBandId=null;
+  try{sessionStorage.removeItem('bco_session');sessionStorage.removeItem('bco_last_page');}catch(e){}
   /* reset S data */
   S.gigs=[];S.members=[];S.clients=[];S.users=[];S.sources=[];S.jobTypes=[];
   S.expenses=[];S.bandInfo={};S.plan=null;S._gigDraft=null;S._jobSeq=0;
@@ -9321,6 +9335,47 @@ async function doExportExcel(){
   }
   document.addEventListener('DOMContentLoaded', showFAB);
   document.addEventListener('DOMContentLoaded', initRememberMe);
+  document.addEventListener('DOMContentLoaded', async function restoreSession(){
+    try{
+      const raw=sessionStorage.getItem('bco_session');
+      if(!raw) return;
+      const sess=JSON.parse(raw);
+      /* session หมดอายุหลัง 8 ชั่วโมง */
+      if(!sess||!sess.token||Date.now()-sess.ts>8*3600*1000){
+        sessionStorage.removeItem('bco_session');return;
+      }
+      /* restore token + bandId */
+      _sbToken=sess.token; _sbBandId=sess.bandId;
+      currentUser=sess.user;
+      /* verify token ยังใช้ได้ */
+      const ok=await fetch(`${SUPABASE_URL}/auth/v1/user`,{
+        headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+_sbToken}
+      }).then(r=>r.ok).catch(()=>false);
+      if(!ok){
+        sessionStorage.removeItem('bco_session');
+        _sbToken=null;_sbBandId=null;currentUser=null;
+        const earlyHide=document.getElementById('hide-login-early');
+        if(earlyHide) earlyHide.remove();
+        return;
+      }
+      /* โหลดข้อมูลและเข้าระบบ */
+      await loadFromCloud();
+      applyAuthUI();applyPlanUI();
+      const ls=document.getElementById('login-screen');
+      if(ls){ls.classList.add('hidden');setTimeout(()=>{ls.style.display='none';},300);}
+      /* กลับไปหน้าที่อยู่ก่อน refresh */
+      const lastPage=sessionStorage.getItem('bco_last_page')||'gigs';
+      const sbEl=document.querySelector(`.sb-item[onclick*="'${lastPage}'"]`);
+      nav(lastPage,sbEl);
+      /* เอา early-hide style ออก */
+      const earlyHide=document.getElementById('hide-login-early');
+      if(earlyHide) earlyHide.remove();
+    }catch(e){
+      console.error('restore session error:',e);
+      const earlyHide=document.getElementById('hide-login-early');
+      if(earlyHide) earlyHide.remove();
+    }
+  });
   window.addEventListener('load', showFAB);
   window.addEventListener('resize', showFAB);
   setInterval(showFAB, 800);
