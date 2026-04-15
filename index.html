@@ -613,6 +613,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
   .tb-right::-webkit-scrollbar{display:none}
   .tb-right .btn-r{padding:5px 10px;font-size:11px;white-space:nowrap}
   .tb-right .fi,.tb-right select,.tb-right .chart-sel{height:30px;font-size:11px;padding:3px 6px;min-width:0;max-width:110px}
+  #gig-search{max-width:100px!important}
   .tb-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .tb-tabs::-webkit-scrollbar{display:none}
   .tb-tab{white-space:nowrap;flex-shrink:0;font-size:13px;padding:0 12px}
@@ -1106,18 +1107,28 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
     <div class="topbar" style="flex-shrink:0">
       <div class="tb-title">ข้อมูลงาน</div>
       <div class="tb-right">
-        <input id="gig-search" class="fi" placeholder="ค้นหางาน..." style="width:180px;height:30px;padding:4px 10px;font-size:12px" oninput="rg()">
-        <select id="gig-filter-status" class="chart-sel" style="padding:5px 10px;font-size:12px;height:30px" onchange="rg()">
+        <input id="gig-search" class="fi" placeholder="ค้นหางาน..." style="width:160px;height:30px;padding:4px 10px;font-size:12px" oninput="rg()">
+        <select id="gig-filter-month" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
+          <option value="">ทุกเดือน</option>
+          <option value="01">ม.ค.</option><option value="02">ก.พ.</option><option value="03">มี.ค.</option>
+          <option value="04">เม.ย.</option><option value="05">พ.ค.</option><option value="06">มิ.ย.</option>
+          <option value="07">ก.ค.</option><option value="08">ส.ค.</option><option value="09">ก.ย.</option>
+          <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+        </select>
+        <select id="gig-filter-year" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
+          <option value="">ทุกปี</option>
+        </select>
+        <select id="gig-filter-status" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
           <option value="">ทุกสถานะ</option>
           <option value="confirmed">ยืนยัน</option>
           <option value="deposit">จ่ายมัดจำ</option>
           <option value="paid">จ่ายเต็ม</option>
         </select>
-        <select id="gig-sort" class="chart-sel" style="padding:5px 10px;font-size:12px;height:30px" onchange="rg()">
-          <option value="new">บันทึก: ใหม่ → เก่า</option>
-          <option value="old">บันทึก: เก่า → ใหม่</option>
-          <option value="date-new">วันงาน: ใหม่ → เก่า</option>
-          <option value="date-old">วันงาน: เก่า → ใหม่</option>
+        <select id="gig-sort" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
+          <option value="new">บันทึก: ใหม่→เก่า</option>
+          <option value="old">บันทึก: เก่า→ใหม่</option>
+          <option value="date-new">วันงาน: ใหม่→เก่า</option>
+          <option value="date-old">วันงาน: เก่า→ใหม่</option>
         </select>
         <button onclick="openAIFill()" id="btn-ai-fill" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--f);height:32px">✨ AI กรอกงาน</button>
         <button class="btn btn-r" id="btn-add-gig" onclick="openGig()" style="position:relative">
@@ -1706,13 +1717,48 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
 <!-- AI FILL MODAL -->
 <div class="overlay" id="modal-ai-fill" style="align-items:center;justify-content:center">
   <div style="background:var(--wh);border-radius:16px;width:500px;max-width:95vw;padding:24px;box-shadow:var(--sh-lg);position:relative">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
       <div>
         <div style="font-size:14px;font-weight:700;color:var(--ink)">AI กรอกข้อมูลงาน</div>
         <div style="font-size:11px;color:var(--ink3)">วาง text จาก LINE/WhatsApp แล้วให้ AI วิเคราะห์</div>
       </div>
-      <button onclick="cx('modal-ai-fill')" style="margin-left:auto;width:28px;height:28px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:12px;color:var(--ink3)">✕</button>
+      <button onclick="toggleAITemplate()" id="btn-ai-template" style="margin-left:auto;padding:4px 10px;border:1px solid #8B5CF6;border-radius:20px;background:transparent;cursor:pointer;font-size:11px;color:#6366F1;font-family:var(--f);white-space:nowrap">📋 ดู Template</button>
+      <button onclick="cx('modal-ai-fill')" style="width:28px;height:28px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:12px;color:var(--ink3);flex-shrink:0">✕</button>
+    </div>
+    <!-- Template box -->
+    <div id="ai-template-box" style="display:none;background:var(--bg);border:1px solid #AFA9EC;border-radius:8px;padding:10px 12px;margin-bottom:10px;position:relative">
+      <pre id="ai-template-text" style="font-size:10px;color:var(--ink2);line-height:1.6;margin:0;white-space:pre-wrap;font-family:var(--f);max-height:180px;overflow-y:auto">ชื่องาน: งานแต่งงาน คุณสมชาย-คุณสมหญิง
+วันที่: 25/05/2568
+เวลาเริ่ม: 18:00
+เวลาจบ: 22:00
+สถานที่: โรงแรมแกรนด์ไฮแอท
+จังหวัด: กรุงเทพมหานคร
+Google Map: https://maps.app.goo.gl/xxxxx
+ขนาดวง: 5
+ประเภทงาน: งานแต่งงาน
+แหล่งที่มา: Facebook
+ลูกค้า: คุณสมชาย ใจดี
+เบอร์: 0812345678 / 0898765432
+ธนาคาร: กสิกรไทย
+เลขบัญชี: 123-4-56789-0
+รายได้:
+- ค่าตัว: 20000
+- เดินทาง-น้ำมัน: 500
+- เดินทาง-รถ: 1000
+- After Party: 3000
+- ค่าเสียง: 5000
+- เสียง-เดินทาง: 500
+- ส่วนลด: 1000
+ค่าใช้จ่ายในงาน:
+- ค่าทีมเสียง: 3000
+- ค่าเช่าชุด: 500
+สมาชิก:
+- เอ็ม: 8000
+- เจน: 6000
+- บีม: 6000
+หมายเหตุ: ลูกค้าขอเพลงไทยสากล ชุดสีดำ</pre>
+      <button onclick="copyAITemplate()" id="btn-copy-template" style="margin-top:8px;width:100%;padding:6px;border:1px solid #8B5CF6;border-radius:6px;background:transparent;cursor:pointer;font-size:12px;color:#6366F1;font-family:var(--f);font-weight:500">📋 Copy และใส่ใน textarea</button>
     </div>
     <textarea id="ai-fill-input" rows="6" class="fi" placeholder="วางข้อความที่นี่ เช่น:
 งานแต่งงาน คุณสมชาย × คุณสมหญิง
@@ -2433,6 +2479,8 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
    headers ฉีด JWT token ของ user ที่ login อยู่
 ─────────────────────────────────────────────────────────── */
 let _sbToken = null;   /* JWT จาก login */
+let _sbRefreshToken = null; /* refresh token สำหรับ auto-renew */
+let _sbTokenRefreshTimer = null;
 let _sbBandId = null;  /* band_id ของ session */
 
 function sbHeaders(extra={}) {
@@ -2587,6 +2635,8 @@ async function sbSignIn(email, password) {
     console.log('sbSignIn status:', r.status, d.error||'OK');
     if(!r.ok || !d.access_token) return null;
     _sbToken = d.access_token;
+    if(d.refresh_token) _sbRefreshToken = d.refresh_token;
+    startTokenRefreshTimer(d.expires_in||3600);
     return d;
   } catch(e) { console.error('sbSignIn error:', e); return null; }
 }
@@ -2610,6 +2660,7 @@ async function sbSignUp(email, password, bandName, leaderName) {
     console.log('sbSignUp response:', r.status, d);
     if(!r.ok) { console.error('sbSignUp failed:', d); return null; }
     if(d.access_token) _sbToken = d.access_token;
+    if(d.refresh_token){_sbRefreshToken=d.refresh_token;startTokenRefreshTimer(d.expires_in||3600);}
     return d;
   } catch(e) { console.error('sbSignUp exception:', e); return null; }
 }
@@ -2623,6 +2674,41 @@ async function sbSignOut() {
     });
   } catch {}
   _sbToken = null; _sbBandId = null;
+  _sbRefreshToken = null;
+  if(_sbTokenRefreshTimer) clearTimeout(_sbTokenRefreshTimer);
+}
+
+function startTokenRefreshTimer(expiresInSec){
+  if(_sbTokenRefreshTimer) clearTimeout(_sbTokenRefreshTimer);
+  /* refresh ก่อนหมดอายุ 2 นาที */
+  const ms=Math.max((expiresInSec-120)*1000, 60000);
+  _sbTokenRefreshTimer=setTimeout(()=>sbDoRefreshToken(), ms);
+}
+
+async function sbDoRefreshToken(){
+  if(!SUPABASE_URL||!_sbRefreshToken) return;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON},
+      body:JSON.stringify({refresh_token:_sbRefreshToken})
+    });
+    const d=await r.json();
+    if(r.ok&&d.access_token){
+      _sbToken=d.access_token;
+      if(d.refresh_token) _sbRefreshToken=d.refresh_token;
+      /* update sessionStorage */
+      try{
+        const sess=JSON.parse(sessionStorage.getItem('bco_session')||'null');
+        if(sess){sess.token=_sbToken;sess.ts=Date.now();sessionStorage.setItem('bco_session',JSON.stringify(sess));}
+      }catch(e){}
+      startTokenRefreshTimer(d.expires_in||3600);
+    } else {
+      /* refresh ไม่ได้ → logout */
+      toast('⚠️ Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+      setTimeout(()=>doLogout(),1500);
+    }
+  }catch(e){console.error('token refresh error:',e);}
 }
 
 /* ══════════════════════════════════════
@@ -3431,7 +3517,15 @@ function rc(){
 function rg(){
   const search=(document.getElementById('gig-search')?.value||'').toLowerCase();
   const filterSt=document.getElementById('gig-filter-status')?.value||'';
+  const filterMonth=document.getElementById('gig-filter-month')?.value||'';
+  const filterYear=document.getElementById('gig-filter-year')?.value||'';
   const sortDir=document.getElementById('gig-sort')?.value||'new';
+  /* populate year dropdown จาก gigs ที่มี */
+  const yrEl=document.getElementById('gig-filter-year');
+  if(yrEl&&yrEl.options.length<=1){
+    const years=[...new Set(S.gigs.map(g=>g.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a);
+    years.forEach(y=>{if(!Array.from(yrEl.options).find(o=>o.value===y))yrEl.add(new Option(parseInt(y)+543+' ('+y+')',y));});
+  }
   /* show draft dot if draft exists */
   const dd=document.getElementById('draft-dot');
   if(dd) dd.style.display=S._gigDraft?'block':'none';
@@ -3441,7 +3535,10 @@ function rg(){
   if(currentUser?.role==='member'&&currentUser?.memberId&&currentUser.memberId!=='__leader__'){
     list=list.filter(g=>g.musicians&&g.musicians.some(mu=>String(mu.memberId)===String(currentUser.memberId)));
   }
-  /* sort: jobNo มากไปน้อย (Z-A) by default */
+  /* filter เดือน/ปี ตามวันที่จัดงาน */
+  if(filterMonth) list=list.filter(g=>g.date&&g.date.slice(5,7)===filterMonth);
+  if(filterYear) list=list.filter(g=>g.date&&g.date.slice(0,4)===filterYear);
+  /* sort */
   list.sort((a,b)=>{
     if(sortDir==='date-new'||sortDir==='date-old'){
       const da=a.date||'';const db=b.date||'';
@@ -3449,7 +3546,7 @@ function rg(){
     }
     return sortDir==='old'?(a.jobNo||0)-(b.jobNo||0):(b.jobNo||0)-(a.jobNo||0);
   });
-  if(search) list=list.filter(g=>(g.name+g.venue+g.province+(g.source||'')).toLowerCase().includes(search));
+  if(search) list=list.filter(g=>(g.name+g.venue+g.province+(g.source||'')+(g.clientName||'')).toLowerCase().includes(search));
   if(filterSt) list=list.filter(g=>g.status===filterSt);
   document.getElementById('gigs-b').innerHTML=list.map(g=>{
     const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
@@ -7047,6 +7144,25 @@ function closeMemberPhotoLightbox(){
   document.body.style.overflow='';
 }
 
+function toggleAITemplate(){
+  const box=document.getElementById('ai-template-box');
+  const btn=document.getElementById('btn-ai-template');
+  const show=box.style.display==='none';
+  box.style.display=show?'block':'none';
+  btn.textContent=show?'✕ ซ่อน Template':'📋 ดู Template';
+}
+function copyAITemplate(){
+  const tmpl=document.getElementById('ai-template-text')?.textContent||'';
+  document.getElementById('ai-fill-input').value=tmpl;
+  /* ซ่อน template box หลัง copy */
+  document.getElementById('ai-template-box').style.display='none';
+  document.getElementById('btn-ai-template').textContent='📋 ดู Template';
+  /* feedback */
+  const btn=document.getElementById('btn-copy-template');
+  if(btn){const orig=btn.textContent;btn.textContent='✅ คัดลอกแล้ว!';setTimeout(()=>{btn.textContent=orig;},1500);}
+  toast('✅ ใส่ template แล้ว — แก้ไขข้อมูลให้ตรงแล้วกด วิเคราะห์และกรอก');
+}
+
 function openForgotPassword(){
   const emailEl=document.getElementById('forgot-email');
   if(emailEl) emailEl.value=document.getElementById('login-user-leader')?.value||'';
@@ -8672,6 +8788,8 @@ function exportContractPDF(gigId){
 function openAIFill(){
   document.getElementById('ai-fill-input').value='';
   document.getElementById('ai-fill-result').style.display='none';
+  const tbox=document.getElementById('ai-template-box');if(tbox)tbox.style.display='none';
+  const tbtn=document.getElementById('btn-ai-template');if(tbtn)tbtn.textContent='📋 ดู Template';
   document.getElementById('modal-ai-fill').classList.add('open');
 }
 
@@ -9461,6 +9579,9 @@ async function doExportExcel(){
       /* restore token + bandId */
       _sbToken=sess.token; _sbBandId=sess.bandId;
       currentUser=sess.user;
+      /* คำนวณ remaining time จาก ts */
+      const elapsed=Math.floor((Date.now()-sess.ts)/1000);
+      startTokenRefreshTimer(Math.max(3600-elapsed, 60));
       /* verify token ยังใช้ได้ */
       const ok=await fetch(`${SUPABASE_URL}/auth/v1/user`,{
         headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+_sbToken}
