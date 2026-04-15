@@ -5563,6 +5563,8 @@ function addSource(){
   const inp=document.getElementById('new-source'),v=inp.value.trim();
   if(!v)return;if(S.sources.includes(v)){toast('มีแหล่งที่มานี้แล้ว');return;}
   S.sources.push(v);inp.value='';renderSourceMaster();toast('เพิ่มแล้ว');
+  if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/sources`,{method:'POST',headers:sbHeaders(),
+    body:JSON.stringify({band_id:_sbBandId,name:v,sort_order:S.sources.length})}).catch(console.error);
 }
 function renderSourceMaster(){
   const el=document.getElementById('source-list-wrap');
@@ -5589,6 +5591,8 @@ function removeSource(i){
   if(inUse){toast(`❌ "${s}" มีงานใช้อยู่ ${S.gigs.filter(g=>g.source===s).length} งาน ไม่สามารถลบได้`);return;}
   if(!confirm(`ลบแหล่งที่มา "${s}" ใช่ไหม?`))return;
   S.sources.splice(i,1);renderSourceMaster();populateSourceDropdown();resetIncomeFilterDropdowns();toast('ลบแล้ว');
+  if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/sources?band_id=eq.${_sbBandId}&name=eq.${encodeURIComponent(s)}`,
+    {method:'DELETE',headers:sbHeaders({'Prefer':''})}).catch(console.error);
 }
 
 function resetIncomeFilterDropdowns(){
@@ -5609,6 +5613,8 @@ function addJobType(){
   if(inp)inp.value='';
   renderJobTypeMaster();populateJobTypeDropdown();rcalLegend();
   toast(`เพิ่มประเภทงาน "${v}" แล้ว`);
+  if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/job_types`,{method:'POST',headers:sbHeaders(),
+    body:JSON.stringify({band_id:_sbBandId,name:v,color,sort_order:S.jobTypes.length})}).catch(console.error);
 }
 
 function renderJobTypeMaster(){
@@ -5639,6 +5645,8 @@ function removeJobType(i){
   if(inUse){toast(`❌ "${name}" มีงานใช้อยู่ ${S.gigs.filter(g=>g.type===name).length} งาน ไม่สามารถลบได้`);return;}
   if(!confirm(`ลบประเภทงาน "${name}" ใช่ไหม?`))return;
   S.jobTypes.splice(i,1);renderJobTypeMaster();populateJobTypeDropdown();rcalLegend();resetIncomeFilterDropdowns();toast('ลบแล้ว');
+  if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/job_types?band_id=eq.${_sbBandId}&name=eq.${encodeURIComponent(name)}`,
+    {method:'DELETE',headers:sbHeaders({'Prefer':''})}).catch(console.error);
 }
 
 function populateJobTypeDropdown(){
@@ -5695,12 +5703,15 @@ function toggleClientEdit(id){
 
 function saveClientEdit(id){
   if(!requireAdmin('แก้ไขลูกค้า'))return;
-  const cl=S.clients.find(x=>x.id===id);if(!cl)return;
+  const cl=S.clients.find(x=>String(x.id)===String(id));if(!cl)return;
   cl.phone=document.getElementById('clm-phone-'+id)?.value.trim()||'';
   cl.bankName=document.getElementById('clm-bank-'+id)?.value.trim()||'';
   cl.bankNo=document.getElementById('clm-no-'+id)?.value.trim()||'';
   renderClientMaster();
   toast(`อัปเดต "${cl.name}" แล้ว`);
+  if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/clients?id=eq.${cl.id}`,{method:'PATCH',headers:sbHeaders(),
+    body:JSON.stringify({phone:cl.phone||null,bank_name:cl.bankName||null,bank_no:cl.bankNo||null})
+  }).catch(console.error);
 }
 function openAddClient(){if(!requireAdmin('เพิ่มลูกค้า'))return;['cl-name','cl-phone','cl-bank-name','cl-bank-no'].forEach(i=>document.getElementById(i).value='');document.getElementById('mclient').classList.add('open');}
 function saveClient(){
@@ -7129,6 +7140,8 @@ function deleteExpense(id){
   if(!confirm('ลบรายการนี้?'))return;
   S.expenses=S.expenses.filter(x=>x.id!==id);
   renderExpensePage();rd();toast('ลบแล้ว');
+  if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/band_expenses?id=eq.${id}`,
+    {method:'DELETE',headers:sbHeaders({'Prefer':''})}).catch(console.error);
 }
 
 function renderExpensePage(){
