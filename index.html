@@ -8577,7 +8577,7 @@ ${text}
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
+        max_tokens:2000,
         messages:[{role:'user',content:prompt}]
       })
     });
@@ -8591,14 +8591,9 @@ ${text}
     /* Fill form fields */
     if(parsed.name) document.getElementById('gn').value=parsed.name;
     if(parsed.date) document.getElementById('gd').value=parsed.date;
-    if(parsed.timeStart){
-      const ts=document.getElementById('gtstart');
-      if(ts){const opt=Array.from(ts.options).find(o=>o.value===parsed.timeStart);if(opt)ts.value=parsed.timeStart;}
-    }
-    if(parsed.timeEnd){
-      const te=document.getElementById('gtend');
-      if(te){const opt=Array.from(te.options).find(o=>o.value===parsed.timeEnd);if(opt)te.value=parsed.timeEnd;}
-    }
+    /* time: text input โดยตรง */
+    if(parsed.timeStart){const ts=document.getElementById('gtstart');if(ts)ts.value=parsed.timeStart;}
+    if(parsed.timeEnd){const te=document.getElementById('gtend');if(te)te.value=parsed.timeEnd;}
     if(parsed.venue) document.getElementById('gv').value=parsed.venue;
     if(parsed.province) document.getElementById('gprov').value=parsed.province;
     if(parsed.fee>0){
@@ -8607,11 +8602,11 @@ ${text}
     }
     if(parsed.source){
       const gs=document.getElementById('gsource');
-      if(gs){const opt=Array.from(gs.options).find(o=>o.value===parsed.source);if(opt)gs.value=parsed.source;}
+      if(gs){const opt=Array.from(gs.options||[]).find(o=>o.value===parsed.source);if(opt)gs.value=parsed.source;}
     }
     if(parsed.type){
       const gt=document.getElementById('gtype');
-      if(gt){const opt=Array.from(gt.options).find(o=>o.value===parsed.type);if(opt)gt.value=parsed.type;}
+      if(gt){const opt=Array.from(gt.options||[]).find(o=>o.value===parsed.type);if(opt)gt.value=parsed.type;}
     }
     if(parsed.note) document.getElementById('gnote').value=parsed.note;
     /* Client — หา match จาก clients */
@@ -8627,18 +8622,20 @@ ${text}
       }
     }
     /* Musicians — match ชื่อเล่นกับสมาชิกจริง */
-    if(parsed.musicians&&parsed.musicians.length>0){
+    if(parsed.musicians&&Array.isArray(parsed.musicians)&&parsed.musicians.length>0){
       const activeMembers=S.members.filter(m=>m.status==='active');
-      const totalFee=parsed.musicians.reduce((s,m)=>s+(m.fee||0),0);
+      const totalFee=parsed.musicians.reduce((s,m)=>s+(m?.fee||0),0);
       const matchedMusicians=[];
       parsed.musicians.forEach(mu=>{
+        if(!mu||!mu.nick) return; /* skip ถ้าไม่มี nick */
+        const nickLow=(mu.nick||'').toLowerCase();
         const match=activeMembers.find(m=>
-          m.nick&&(m.nick.toLowerCase()===mu.nick.toLowerCase()||
-          m.name.toLowerCase().includes(mu.nick.toLowerCase())||
-          mu.nick.toLowerCase().includes(m.nick.toLowerCase()))
+          m.nick&&(m.nick.toLowerCase()===nickLow||
+          m.name.toLowerCase().includes(nickLow)||
+          nickLow.includes(m.nick.toLowerCase()))
         );
         if(match){
-          const pct=totalFee>0?Math.round((mu.fee/totalFee)*100):Math.round(100/parsed.musicians.length);
+          const pct=totalFee>0?Math.round(((mu.fee||0)/totalFee)*100):Math.round(100/parsed.musicians.length);
           matchedMusicians.push({memberId:match.id,pct});
         }
       });
@@ -8676,7 +8673,12 @@ ${text}
     },600);
   }catch(e){
     console.error('AI fill error:',e);
-    resultEl.textContent='❌ ไม่สามารถวิเคราะห์ได้: '+e.message;
+    /* แยก error message ให้อ่านง่าย */
+    let msg=e.message||'เกิดข้อผิดพลาด';
+    if(msg.includes('not iterable')) msg='AI ส่งข้อมูลรูปแบบไม่ถูกต้อง — ลองวางข้อมูลใหม่อีกครั้ง';
+    if(msg.includes('JSON')) msg='ไม่สามารถอ่านข้อมูลจาก AI ได้ — ลองใหม่อีกครั้ง';
+    if(msg.includes('fetch')||msg.includes('network')) msg='เชื่อมต่อ AI ไม่ได้ — ตรวจสอบอินเทอร์เน็ต';
+    resultEl.textContent='❌ '+msg;
     resultEl.style.color='var(--red)';
   }
   if(btn){btn.textContent='✨ วิเคราะห์และกรอก';btn.disabled=false;}
@@ -8755,14 +8757,16 @@ function _reApplyAIFill(p){
   /* ── หมายเหตุ ── */
   if(p.note) document.getElementById('gnote').value=p.note;
   /* ── นักดนตรี ── */
-  if(p.musicians&&p.musicians.length>0){
+  if(p.musicians&&Array.isArray(p.musicians)&&p.musicians.length>0){
     const activeMembers=S.members.filter(m=>m.status==='active');
     const matchedMusicians=[];
     p.musicians.forEach(mu=>{
+      if(!mu||!mu.nick) return;
+      const nickLow=(mu.nick||'').toLowerCase();
       const match=activeMembers.find(m=>
-        m.nick&&(m.nick.toLowerCase()===mu.nick.toLowerCase()||
-        m.name.toLowerCase().includes(mu.nick.toLowerCase())||
-        mu.nick.toLowerCase().includes(m.nick.toLowerCase()))
+        m.nick&&(m.nick.toLowerCase()===nickLow||
+        m.name.toLowerCase().includes(nickLow)||
+        nickLow.includes(m.nick.toLowerCase()))
       );
       if(match){
         const totalAmt=(mu.fee||0)+(mu.travel||0)+(mu.oil||0)+(mu.overtime||0)+(mu.other||0);
