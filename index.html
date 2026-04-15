@@ -590,6 +590,11 @@ body.view-only .pay-check{
 .mob-sidebar-overlay.open{display:block}
 
 input[type=date]{font-family:var(--f);letter-spacing:.03em}
+/* force Thai date format DD/MM/YYYY */
+input[type=date]::-webkit-datetime-edit-fields-wrapper{direction:ltr}
+input[type=date]::-webkit-datetime-edit-day-field{order:1}
+input[type=date]::-webkit-datetime-edit-month-field{order:2}
+input[type=date]::-webkit-datetime-edit-year-field{order:3}
 @media(max-width:768px){
   /* ═══ LAYOUT ═══ */
   .shell{flex-direction:column}
@@ -1109,8 +1114,10 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <option value="paid">จ่ายเต็ม</option>
         </select>
         <select id="gig-sort" class="chart-sel" style="padding:5px 10px;font-size:12px;height:30px" onchange="rg()">
-          <option value="new">ใหม่ → เก่า</option>
-          <option value="old">เก่า → ใหม่</option>
+          <option value="new">บันทึก: ใหม่ → เก่า</option>
+          <option value="old">บันทึก: เก่า → ใหม่</option>
+          <option value="date-new">วันงาน: ใหม่ → เก่า</option>
+          <option value="date-old">วันงาน: เก่า → ใหม่</option>
         </select>
         <button onclick="openAIFill()" id="btn-ai-fill" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--f);height:32px">✨ AI กรอกงาน</button>
         <button class="btn btn-r" id="btn-add-gig" onclick="openGig()" style="position:relative">
@@ -2013,7 +2020,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">วันที่จัดงาน *</label>
-          <input type="date" class="fi" id="gd" style="font-size:12px">
+          <input type="date" class="fi" id="gd" style="font-size:12px" lang="th">
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">เวลาเริ่ม</label>
@@ -2204,7 +2211,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
             </div>
             <div class="fg" style="margin-bottom:0">
               <label class="fl">วันที่บันทึก</label>
-              <input type="date" class="fi" id="grec" style="font-size:12px">
+              <input type="date" class="fi" id="grec" style="font-size:12px" lang="th">
             </div>
           </div>
         </div>
@@ -2263,6 +2270,9 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         </div>
         <input type="file" id="mmem-file" accept="image/*" style="display:none" onchange="previewPhoto(this)">
         <div style="font-size:10px;color:var(--ink3);text-align:center;margin-top:5px">คลิกเพื่อใส่รูป</div>
+        <div id="mmem-delete-photo-wrap" style="display:none;text-align:center;margin-top:4px">
+          <button type="button" onclick="deleteMemPhoto()" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;font-family:var(--f);padding:0;text-decoration:underline">ลบรูป</button>
+        </div>
       </div>
       <div style="flex:1">
         <div class="fr" style="margin-bottom:0">
@@ -2963,10 +2973,52 @@ const fd=d=>{const x=new Date(d);return`${String(x.getDate()).padStart(2,'0')}/$
 function syncGigDate(){
   /* native date input — ไม่ต้อง sync อะไร ค่าอยู่ใน gd.value แล้ว */
 }
+/* ── Date Dropdown Helpers ── */
+function initDateDropdown(prefix){
+  const now=new Date();
+  const curYear=now.getFullYear();
+  /* populate day */
+  const dayEl=document.getElementById(prefix+'-day');
+  if(dayEl&&dayEl.options.length<=1){
+    for(let d=1;d<=31;d++) dayEl.add(new Option(d,String(d).padStart(2,'0')));
+  }
+  /* populate year ±3 ปี */
+  const yrEl=document.getElementById(prefix+'-year');
+  if(yrEl&&yrEl.options.length<=1){
+    for(let y=curYear-2;y<=curYear+5;y++) yrEl.add(new Option(y+543,y)); /* แสดง พ.ศ. เก็บ ค.ศ. */
+  }
+}
+function syncDateField(prefix){
+  const day=document.getElementById(prefix+'-day')?.value||'';
+  const mon=document.getElementById(prefix+'-month')?.value||'';
+  const yr=document.getElementById(prefix+'-year')?.value||''; /* ค.ศ. */
+  const hidden=document.getElementById(prefix);
+  if(hidden) hidden.value=(day&&mon&&yr)?`${yr}-${mon}-${day}`:'';
+}
 function setGigDateDropdowns(dateStr){
-  /* set native date input */
-  const gdEl=document.getElementById('gd');
-  if(gdEl) gdEl.value=dateStr||'';
+  /* set hidden + dropdowns */
+  const hidden=document.getElementById('gd');
+  if(hidden) hidden.value=dateStr||'';
+  if(!dateStr) return;
+  const m=dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return;
+  const[,yr,mon,day]=m;
+  initDateDropdown('gd');
+  const dy=document.getElementById('gd-day');if(dy)dy.value=day;
+  const dm=document.getElementById('gd-month');if(dm)dm.value=mon;
+  const dyr=document.getElementById('gd-year');if(dyr)dyr.value=yr;
+}
+function setRecDateDropdowns(dateStr){
+  const hidden=document.getElementById('grec');
+  if(hidden) hidden.value=dateStr||'';
+  if(!dateStr) return;
+  const m=dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return;
+  const[,yr,mon,day]=m;
+  initDateDropdown('grec');
+  const dy=document.getElementById('grec-day');if(dy)dy.value=day;
+  const dm=document.getElementById('grec-month');if(dm)dm.value=mon;
+  const dyr=document.getElementById('grec-year');if(dyr)dyr.value=yr;
 }
 function formatDateDisplay(){} /* stub */
 /* แสดง JOB-###### จาก jobNo ที่บันทึกไว้ในแต่ละ gig */
@@ -3378,10 +3430,13 @@ function rg(){
     list=list.filter(g=>g.musicians&&g.musicians.some(mu=>String(mu.memberId)===String(currentUser.memberId)));
   }
   /* sort: jobNo มากไปน้อย (Z-A) by default */
-  list.sort((a,b)=> sortDir==='old'
-    ? (a.jobNo||0)-(b.jobNo||0)
-    : (b.jobNo||0)-(a.jobNo||0)
-  );
+  list.sort((a,b)=>{
+    if(sortDir==='date-new'||sortDir==='date-old'){
+      const da=a.date||'';const db=b.date||'';
+      return sortDir==='date-new'?db.localeCompare(da):da.localeCompare(db);
+    }
+    return sortDir==='old'?(a.jobNo||0)-(b.jobNo||0):(b.jobNo||0)-(a.jobNo||0);
+  });
   if(search) list=list.filter(g=>(g.name+g.venue+g.province+(g.source||'')).toLowerCase().includes(search));
   if(filterSt) list=list.filter(g=>g.status===filterSt);
   document.getElementById('gigs-b').innerHTML=list.map(g=>{
@@ -6136,6 +6191,7 @@ function openMem(){
   document.getElementById('mmem-initials').textContent='?';
   document.getElementById('mmem-preview').style.display='none';
   document.getElementById('mmem-initials').style.display='';
+  document.getElementById('mmem-delete-photo-wrap').style.display='none';
   document.getElementById('mmem').classList.add('open');
 }
 function editMem(id){
@@ -6163,6 +6219,7 @@ function editMem(id){
       document.getElementById('mmem-initials').style.display='none';
     }
   } else{prev.style.display='none';document.getElementById('mmem-initials').style.display='';}
+  document.getElementById('mmem-delete-photo-wrap').style.display=mem.photo?'block':'none';
   document.getElementById('mmem').classList.add('open');
 }
 function sm(){
@@ -6196,11 +6253,23 @@ async function previewPhoto(inp){
     const compressed=await compressImage(inp.files[0],400,400,0.80);
     const key=newSlipKey().replace('slip_','photo_');
     await SlipStore.save(key,compressed);
-    S._photoData=key; /* store KEY only */
+    S._photoData=key;
     const prev=document.getElementById('mmem-preview');
     prev.src=compressed;prev.style.display='block';
     document.getElementById('mmem-initials').style.display='none';
+    document.getElementById('mmem-delete-photo-wrap').style.display='block';
   }catch(e){toast('บีบอัดรูปไม่สำเร็จ');console.error(e);}
+}
+function deleteMemPhoto(){
+  if(!confirm('ต้องการลบรูปโปรไฟล์ใช่ไหม?')) return;
+  S._photoData=null;
+  const prev=document.getElementById('mmem-preview');
+  prev.src='';prev.style.display='none';
+  const nick=document.getElementById('mk').value||document.getElementById('mn').value||'?';
+  document.getElementById('mmem-initials').textContent=nick;
+  document.getElementById('mmem-initials').style.display='';
+  document.getElementById('mmem-delete-photo-wrap').style.display='none';
+  document.getElementById('mmem-file').value='';
 }
 function updateInitials(v){
   const prev=document.getElementById('mmem-preview');
