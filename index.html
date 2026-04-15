@@ -8547,7 +8547,7 @@ ${text}
   "otherIncomeNote": "หมายเหตุรายได้อื่นๆ",
   "expenseRows": [{"fee": ตัวเลข, "note": "รายละเอียด"}, ...],
   "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง (ถ้าชื่อคล้ายในระบบให้ใช้ชื่อในระบบ)",
-  "clientPhone": "เบอร์โทรลูกค้า",
+  "clientPhone": "เบอร์โทรลูกค้า ถ้ามีหลายเบอร์คั่นด้วย comma เช่น 0615261219,0942144101",
   "clientBankName": "ชื่อธนาคารลูกค้า หรือ null",
   "clientBankNo": "เลขบัญชีลูกค้า หรือ null",
   "note": "หมายเหตุอื่นๆ ที่ไม่ใช่ link map",
@@ -8619,6 +8619,11 @@ ${text}
       } else {
         setCtype('new');
         document.getElementById('gcname-new').value=parsed.clientName;
+        const phoneStr=typeof parsed.clientPhone==='string'?parsed.clientPhone:String(parsed.clientPhone||'');
+        if(phoneStr){
+          const phones=phoneStr.split(/[,\/]/).map(s=>s.replace(/\D/g,'').trim()).filter(s=>s.length>=9);
+          if(phones.length){renderPhoneTagsNew(phones);syncPhoneNewHidden();}
+        }
       }
     }
     /* Musicians — match ชื่อเล่นกับสมาชิกจริง */
@@ -8731,7 +8736,7 @@ function _reApplyAIFill(p){
   /* ── ค่าใช้จ่าย ── */
   const aiRows=document.getElementById('ge-rows');if(aiRows)aiRows.innerHTML='';
   if(Array.isArray(p.expenseRows)&&p.expenseRows.length){
-    p.expenseRows.forEach(r=>{ if(r.fee>0) addExpenseRow(r.fee,r.note||''); });
+    p.expenseRows.forEach(r=>{ if(r&&r.fee>0) addExpenseRow(r.fee,r.note||''); });
   } else {
     if(p.expenseSoundFee>0) addExpenseRow(p.expenseSoundFee,'ค่าทีมเสียง');
     if(p.expenseOtherFee>0) addExpenseRow(p.expenseOtherFee,p.expenseOtherNote||'');
@@ -8749,9 +8754,14 @@ function _reApplyAIFill(p){
     } else {
       setCtype('new');
       document.getElementById('gcname-new').value=p.clientName;
-      if(p.clientPhone){renderPhoneTagsNew(p.clientPhone.split(',').map(s=>s.trim()).filter(Boolean));syncPhoneNewHidden();}
+      /* phone — guard ให้แน่ใจว่าเป็น string */
+      const phoneStr=typeof p.clientPhone==='string'?p.clientPhone:String(p.clientPhone||'');
+      if(phoneStr){
+        const phones=phoneStr.split(/[,\/]/).map(s=>s.replace(/\D/g,'').trim()).filter(s=>s.length>=9);
+        if(phones.length){renderPhoneTagsNew(phones);syncPhoneNewHidden();}
+      }
       if(p.clientBankName){const bn=document.getElementById('gcbank-name-new');if(bn)bn.value=p.clientBankName;}
-      if(p.clientBankNo){const bno=document.getElementById('gcbank-no-new');if(bno)bno.value=p.clientBankNo;}
+      if(p.clientBankNo){const bno=document.getElementById('gcbank-no-new');if(bno)bno.value=String(p.clientBankNo);}
     }
   }
   /* ── หมายเหตุ ── */
