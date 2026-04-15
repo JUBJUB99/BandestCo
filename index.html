@@ -824,6 +824,9 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         <label for="remember-leader" style="font-size:12px;color:var(--ink3);cursor:pointer">จำการเข้าสู่ระบบ</label>
       </div>
       <button class="btn btn-r" style="width:100%;padding:11px 0;font-size:13px;margin-top:4px" onclick="doLoginLeader()">เข้าสู่ระบบ — หัวหน้าวง</button>
+      <div style="text-align:center;margin-top:10px">
+        <button type="button" onclick="openForgotPassword()" style="background:none;border:none;color:var(--ink3);font-size:12px;cursor:pointer;font-family:var(--f);text-decoration:underline">ลืมรหัสผ่าน?</button>
+      </div>
     </div>
 
     <!-- Tab 2: สมาชิกวง -->
@@ -1900,6 +1903,39 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
 </button>
 
 <!-- Mobile sidebar overlay -->
+<!-- FORGOT PASSWORD MODAL -->
+<div class="overlay" id="modal-forgot" style="align-items:center;justify-content:center;z-index:10000">
+  <div class="modal" style="max-width:400px;width:95vw;padding:28px 28px 24px">
+    <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px">ลืมรหัสผ่าน</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:18px">กรอก Email ที่ใช้สมัครวง ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปให้</div>
+    <div class="login-err" id="forgot-err" style="margin-bottom:10px"></div>
+    <div class="fg"><label class="fl">Email หัวหน้าวง</label>
+      <input class="fi" id="forgot-email" type="email" placeholder="email@example.com" style="font-size:13px" onkeydown="if(event.key==='Enter')doForgotPassword()">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-o" style="flex:1" onclick="cx('modal-forgot')">ยกเลิก</button>
+      <button class="btn btn-r" style="flex:1" id="forgot-btn" onclick="doForgotPassword()">ส่ง Email รีเซ็ต</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD MODAL (เปิดเมื่อ URL มี #type=recovery) -->
+<div class="overlay" id="modal-reset-pass" style="align-items:center;justify-content:center;z-index:10000">
+  <div class="modal" style="max-width:400px;width:95vw;padding:28px 28px 24px">
+    <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px">ตั้งรหัสผ่านใหม่</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:18px">กรอกรหัสผ่านใหม่สำหรับบัญชีของคุณ</div>
+    <div class="login-err" id="reset-pass-err" style="margin-bottom:10px"></div>
+    <div class="fg"><label class="fl">รหัสผ่านใหม่</label>
+      <input class="fi" id="reset-new-pass" type="password" placeholder="อย่างน้อย 8 ตัวอักษร" style="font-size:13px">
+    </div>
+    <div class="fg"><label class="fl">ยืนยันรหัสผ่าน</label>
+      <input class="fi" id="reset-confirm-pass" type="password" placeholder="พิมพ์รหัสผ่านอีกครั้ง" style="font-size:13px" onkeydown="if(event.key==='Enter')doResetPassword()">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-r" style="width:100%" id="reset-pass-btn" onclick="doResetPassword()">บันทึกรหัสผ่านใหม่</button>
+    </div>
+  </div>
+</div>
 <div class="mob-sidebar-overlay" id="mob-overlay" onclick="toggleMobSidebar()"></div>
 
 <!-- Mobile bottom navigation -->
@@ -2887,7 +2923,7 @@ let S={
     {name:'Corporate Party', color:'#8B5CF6'}
   ],  /* ← ประเภทงาน Master {name, color} */
   users:[],
-  bandInfo:{name:'BandestCo',leader:'Admin',email:'admin',adminPass:'admin1234',adminPassHash:''},  /* passwords hashed at login */
+  bandInfo:{name:'BandestCo',leader:'Admin',email:'admin',adminPass:'',adminPassHash:''},
   plan:{
     type:'trial',
     trialEndsAt: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
@@ -6465,7 +6501,7 @@ function recordFail(tab){
 function recordSuccess(tab){ _loginAttempts[tab]={count:0,lockedUntil:0}; }
 
 /* Hash password on register/save — upgrade plaintext to hash if needed */
-async function hashPassword(plain){ return await sha256(plain+'__bco_salt__'); }
+async function hashPassword(plain,username=''){return await sha256(plain+'__bco_salt__');}
 function hashSync(plain){
   /* synchronous fallback using simple obfuscation for display (real hash is async) */
   return plain; /* replaced by async version at runtime */
@@ -6567,25 +6603,23 @@ function saveRememberMe(tab,uname,pass){
   try{localStorage.setItem(`rm_${tab}`,JSON.stringify({u:uname,p:pass,t:Date.now()}));}catch(e){}
 }
 function loadRememberMe(tab){
-  try{const d=JSON.parse(localStorage.getItem(`rm_${tab}`)||'null');if(!d)return null;/* expire 30 days */if(Date.now()-d.t>30*24*3600*1000){localStorage.removeItem(`rm_${tab}`);return null;}return d;}catch(e){return null;}
+  try{const d=JSON.parse(localStorage.getItem(`rm_${tab}`)||'null');if(!d)return null;if(Date.now()-d.t>30*24*3600*1000){localStorage.removeItem(`rm_${tab}`);return null;}return d;}catch(e){return null;}
 }
 function clearRememberMe(tab){
   try{localStorage.removeItem(`rm_${tab}`);}catch(e){}
 }
 function initRememberMe(){
-  /* leader */
   const ld=loadRememberMe('leader');
   if(ld){
     const u=document.getElementById('login-user-leader');const p=document.getElementById('login-pass-leader');
     const cb=document.getElementById('remember-leader');
-    if(u)u.value=ld.u;if(p)p.value=ld.p;if(cb)cb.checked=true;
+    if(u)u.value=ld.u;if(p)p.value=ld.p||'';if(cb)cb.checked=true;
   }
-  /* member */
   const md=loadRememberMe('member');
   if(md){
     const u=document.getElementById('login-user-member');const p=document.getElementById('login-pass-member');
     const cb=document.getElementById('remember-member');
-    if(u)u.value=md.u;if(p)p.value=md.p;if(cb)cb.checked=true;
+    if(u)u.value=md.u;if(p)p.value=md.p||'';if(cb)cb.checked=true;
   }
 }
 
@@ -6625,7 +6659,7 @@ async function doLoginLeader(){
 
   /* ── Local fallback (ไม่มี Supabase) ── */
   const bi=S.bandInfo||{};
-  const passHash=await hashPassword(pass);
+  const passHash=await hashPassword(pass,uname);
   const emailMatch=bi.email&&bi.email.toLowerCase()===uname&&
     (bi.adminPassHash?bi.adminPassHash===passHash:bi.adminPass===pass);
   const userMatch=S.users.find(u=>(u.username.toLowerCase()===uname)&&u.role==='admin'&&
@@ -6670,7 +6704,7 @@ async function doLoginMember(){
   }
 
   /* Local fallback */
-  const passHash=await hashPassword(pass);
+  const passHash=await hashPassword(pass,uname);
   const acc=S.users.find(u=>u.username.toLowerCase()===uname&&u.role==='member'&&
     (u.passwordHash?u.passwordHash===passHash:u.password===pass));
   if(!acc){showLoginErr('login-err-member','Username หรือรหัสผ่านไม่ถูกต้อง');return;}
@@ -6754,7 +6788,7 @@ async function doRegister(){
     }
 
     /* 2. Insert band row — ใช้ anon key เพื่อ bypass RLS ชั่วคราว */
-    const passHash=await hashPassword(pass);
+    const passHash=await hashPassword(pass,email);
     const bandRes=await fetch(`${SUPABASE_URL}/rest/v1/bands`,{
       method:'POST',
       headers:{
@@ -6815,7 +6849,7 @@ async function doRegister(){
   }
 
   /* ── Local fallback ── */
-  hashPassword(pass).then(h=>{S.bandInfo={name:band,leader,email,adminPass:'',adminPassHash:h};});
+  hashPassword(pass,email).then(h=>{S.bandInfo={name:band,leader,email,adminPass:'',adminPassHash:h};});
   S.bandInfo={name:band,leader,email,adminPass:'',adminPassHash:''};
   document.querySelectorAll('.sb-logo-name').forEach(el=>el.textContent=band);
   const bnEl=document.getElementById('sb-band-name');
@@ -6828,6 +6862,80 @@ async function doRegister(){
 
 /* Legacy — keep for backward compat */
 function doLogin(){doLoginLeader();}
+
+/* ══════════ FORGOT / RESET PASSWORD ══════════ */
+function openForgotPassword(){
+  const emailEl=document.getElementById('forgot-email');
+  if(emailEl) emailEl.value=document.getElementById('login-user-leader')?.value||'';
+  document.getElementById('forgot-err').style.display='none';
+  document.getElementById('modal-forgot').classList.add('open');
+}
+
+async function doForgotPassword(){
+  const email=(document.getElementById('forgot-email')?.value||'').trim();
+  const errEl=document.getElementById('forgot-err');
+  const btn=document.getElementById('forgot-btn');
+  errEl.style.display='none';
+  if(!email){errEl.textContent='กรุณากรอก Email';errEl.style.display='block';return;}
+  btn.textContent='กำลังส่ง...';btn.disabled=true;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/recover`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON},
+      body:JSON.stringify({email, redirect_to: window.location.href.split('#')[0]+'#type=recovery'})
+    });
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error_description||d.message||'ส่งไม่สำเร็จ');
+    cx('modal-forgot');
+    toast('📧 ส่ง Email รีเซ็ตรหัสผ่านแล้ว — กรุณาตรวจสอบกล่องจดหมาย');
+  }catch(e){
+    errEl.textContent='❌ '+e.message;errEl.style.display='block';
+  }finally{btn.textContent='ส่ง Email รีเซ็ต';btn.disabled=false;}
+}
+
+async function doResetPassword(){
+  const pass=(document.getElementById('reset-new-pass')?.value||'');
+  const confirm=(document.getElementById('reset-confirm-pass')?.value||'');
+  const errEl=document.getElementById('reset-pass-err');
+  const btn=document.getElementById('reset-pass-btn');
+  errEl.style.display='none';
+  if(pass.length<8){errEl.textContent='รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร';errEl.style.display='block';return;}
+  if(pass!==confirm){errEl.textContent='รหัสผ่านไม่ตรงกัน';errEl.style.display='block';return;}
+  btn.textContent='กำลังบันทึก...';btn.disabled=true;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+_resetToken},
+      body:JSON.stringify({password:pass})
+    });
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error_description||d.message||'บันทึกไม่สำเร็จ');
+    cx('modal-reset-pass');
+    _resetToken=null;
+    window.location.hash='';
+    toast('✅ เปลี่ยนรหัสผ่านสำเร็จ — กรุณาเข้าสู่ระบบใหม่');
+  }catch(e){
+    errEl.textContent='❌ '+e.message;errEl.style.display='block';
+  }finally{btn.textContent='บันทึกรหัสผ่านใหม่';btn.disabled=false;}
+}
+
+/* ตรวจ URL hash สำหรับ recovery link จาก email */
+let _resetToken=null;
+(function checkRecoveryHash(){
+  const hash=window.location.hash;
+  if(!hash.includes('type=recovery')) return;
+  const params=new URLSearchParams(hash.replace('#',''));
+  const token=params.get('access_token');
+  if(!token) return;
+  _resetToken=token;
+  /* รอ DOM พร้อม */
+  setTimeout(()=>{
+    document.getElementById('reset-pass-err').style.display='none';
+    document.getElementById('reset-new-pass').value='';
+    document.getElementById('reset-confirm-pass').value='';
+    document.getElementById('modal-reset-pass').classList.add('open');
+  },500);
+})();
 
 function doLogout(){
   currentUser=null;
@@ -7071,7 +7179,7 @@ async function saveUserAccount(){
   const btn=document.querySelector('[onclick="saveUserAccount()"]');
   if(btn){btn.disabled=true;btn.textContent='กำลังบันทึก...';}
 
-  hashPassword(password||'').then(async passHash=>{
+  hashPassword(password||'',username).then(async passHash=>{
     if(editId){
       /* ── UPDATE ── */
       const idx=S.users.findIndex(u=>u.id===editId);
