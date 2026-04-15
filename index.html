@@ -484,6 +484,9 @@ body.view-only .pay-check{
 .cmb-opt:hover{background:var(--rl);color:var(--red)}
 
 /* note pill */
+.phone-tag{display:inline-flex;align-items:center;gap:4px;background:var(--rl);color:var(--red);font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.phone-tag button{border:none;background:none;color:var(--red);cursor:pointer;font-size:13px;padding:0;line-height:1;opacity:.7}
+.phone-tag button:hover{opacity:1}
 .note-pill{display:inline-block;background:var(--abg);color:var(--atxt);font-size:9px;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;font-weight:600}
 .bs-pill{display:inline-block;background:var(--bbg);color:var(--btxt);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
 
@@ -669,16 +672,21 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
   /* ═══ RECV / PAY PAGES ═══ */
   #recv-page-list,#pay-page-list{grid-template-columns:1fr!important}
   #recv-list,#pay-list{grid-template-columns:1fr!important}
+  #page-recv > div[style*="padding:20px 24px"],
+  #page-pay > div[style*="padding:20px 24px"]{padding:12px!important}
 
   /* ═══ INCOME PAGE ═══ */
-  #page-income .content{padding:12px 12px}
-  #itable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-  #itable-table{width:auto!important;border-collapse:separate;border-spacing:0}
+  #page-income .content{padding:12px}
+  #income-kpi{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #page-income .topbar{flex-wrap:wrap;height:auto;min-height:50px;padding:8px 12px 8px 56px;gap:6px}
+  #income-filters{flex-wrap:wrap;gap:4px;margin-left:0!important;width:100%}
+  #income-filters select{height:28px;font-size:11px;padding:2px 6px;flex:1;min-width:80px}
+  #income-filters button{padding:4px 10px;font-size:11px;height:28px}
+  /* income table: horizontal scroll */
+  #itable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+  #itable-table{min-width:unset!important;font-size:11px;width:100%!important}
   #itable thead{display:none}
-  #itable tbody{display:flex;flex-direction:row;gap:8px;width:max-content}
-  #itable tbody tr{display:flex!important;flex-direction:column;width:140px;background:var(--wh);border:1px solid var(--bd2);border-radius:12px;overflow:hidden;padding:0!important;cursor:pointer;flex-shrink:0}
-  #itable tbody td{display:block!important;padding:0!important;font-size:11px;border:none!important;background:transparent!important;width:auto!important}
-  #itable{min-width:unset}
+  #idetail-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
 
   /* ═══ MEMBERS ═══ */
   #mem-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px}
@@ -1139,7 +1147,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
                 <th style="width:160px">ลูกค้า</th>
                 <th style="width:90px">แหล่งที่มา</th>
                 <th style="width:110px">ค่าตัวสุทธิ</th>
-                <th style="width:90px">นักดนตรี</th>
+                <th style="width:90px">สมาชิก</th>
                 <th style="width:110px">สถานะรับเงิน</th>
                 <th style="width:115px">สถานะจ่ายค่าตัว</th>
                 <th style="width:100px">🎁 ทิป</th>
@@ -1218,7 +1226,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         กลับ
       </button>
-      <div class="tb-title" style="margin-left:8px">จ่ายค่าตัวนักดนตรี</div>
+      <div class="tb-title" style="margin-left:8px">จ่ายค่าตัวสมาชิก</div>
       <div class="tb-right">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--ink2);white-space:nowrap;user-select:none">
           <input type="checkbox" id="pay-show-history" onchange="renderPayPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
@@ -1248,7 +1256,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           📊 Export Excel
         </button>
       </div>
-      <div class="tb-right">
+      <div class="tb-right" id="income-filters" style="margin-left:auto;flex-wrap:wrap;gap:4px">
         <select id="income-filter-month" class="chart-sel" style="height:30px;padding:4px 10px;font-size:12px" onchange="ri()">
           <option value="">ทุกเดือน</option>
           <option value="0">มกราคม</option><option value="1">กุมภาพันธ์</option>
@@ -1276,14 +1284,13 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div class="tc" style="margin-bottom:16px">
         <div id="itable-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="itable-table" style="width:100%;border-collapse:collapse">
           <thead><tr>
-            <th>สมาชิก</th>
-            <th>ตำแหน่ง</th>
-            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap">รายได้</th>
-            <th style="background:#FEF9F0;color:#92400E;white-space:nowrap">ทิป</th>
-            <th style="background:#F0FDF4;color:#166534;white-space:nowrap">รวมรายได้</th>
-            <th style="background:#FEF2F2;color:#B91C1C;text-align:center">งาน</th>
-            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap">คาดการณ์</th>
-            <th style="background:#EFF6FF;color:#1D4ED8;text-align:center">งาน</th>
+            <th style="text-align:left;min-width:130px">สมาชิก</th>
+            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap;text-align:right">💰 รายได้ (paid)</th>
+            <th style="background:#FEF9F0;color:#92400E;white-space:nowrap;text-align:right">🎁 ทิป</th>
+            <th style="background:#F0FDF4;color:#166534;white-space:nowrap;text-align:right;font-weight:700">✅ รวมรายได้</th>
+            <th style="background:#FEF2F2;color:#B91C1C;text-align:center;white-space:nowrap">งาน paid</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap;text-align:right">📋 คาดการณ์</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;text-align:center;white-space:nowrap">งาน</th>
           </tr></thead>
           <tbody id="itable"></tbody>
         </table></div>
@@ -1363,12 +1370,15 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
           <div class="cal-popup-lbl">เบอร์</div><div class="cal-popup-val" id="cpop-phone"></div>
           <div class="cal-popup-lbl">ประเภทวง</div><div class="cal-popup-val" id="cpop-band"></div>
           <div class="cal-popup-lbl">แหล่งที่มา</div><div class="cal-popup-val" id="cpop-src"></div>
-          <div class="cal-popup-lbl">นักดนตรี</div><div class="cal-popup-val" id="cpop-members"></div>
+          <div class="cal-popup-lbl">สมาชิก</div><div class="cal-popup-val" id="cpop-members"></div>
           <div class="cal-popup-lbl" id="cpop-note-lbl" style="display:none">หมายเหตุ</div>
           <div class="cal-popup-val" id="cpop-note" style="color:var(--amber);display:none;font-size:11px"></div>
         </div>
-        <div style="display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--bd);justify-content:flex-end">
-          <button class="btn btn-o" style="padding:10px 20px;font-size:12px" onclick="document.getElementById('cal-popup').classList.remove('open')">ปิด</button>
+        <div style="display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--bd);justify-content:space-between;align-items:center">
+          <button id="cpop-goto-btn" class="btn btn-r" style="padding:10px 20px;font-size:12px;display:none" onclick="calPopupGoToGig()">
+            📋 ดูรายละเอียดงาน
+          </button>
+          <button class="btn btn-o" style="padding:10px 20px;font-size:12px;margin-left:auto" onclick="document.getElementById('cal-popup').classList.remove('open')">ปิด</button>
         </div>
       </div>
     </div>
@@ -1952,15 +1962,33 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">เวลาเริ่ม</label>
-          <select class="fi" id="gtstart" style="font-size:12px">
-            <option value="">—</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option><option value="22:30">22:30</option><option value="23:00">23:00</option><option value="23:30">23:30</option><option value="00:00">00:00</option><option value="01:00">01:00</option><option value="02:00">02:00</option>
-          </select>
+          <input class="fi" id="gtstart" list="time-opts-start" placeholder="—" autocomplete="off" style="font-size:12px" oninput="formatTimeInput(this)">
+          <datalist id="time-opts-start">
+            <option value="08:00"><option value="08:30"><option value="09:00"><option value="09:30">
+            <option value="10:00"><option value="10:30"><option value="11:00"><option value="11:30">
+            <option value="12:00"><option value="12:30"><option value="13:00"><option value="13:30">
+            <option value="14:00"><option value="14:30"><option value="15:00"><option value="15:30">
+            <option value="16:00"><option value="16:30"><option value="17:00"><option value="17:30">
+            <option value="18:00"><option value="18:30"><option value="19:00"><option value="19:30">
+            <option value="20:00"><option value="20:30"><option value="21:00"><option value="21:30">
+            <option value="22:00"><option value="22:30"><option value="23:00"><option value="23:30">
+            <option value="00:00"><option value="01:00"><option value="02:00">
+          </datalist>
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">เวลาจบ</label>
-          <select class="fi" id="gtend" style="font-size:12px">
-            <option value="">—</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option><option value="22:30">22:30</option><option value="23:00">23:00</option><option value="23:30">23:30</option><option value="00:00">00:00</option><option value="01:00">01:00</option><option value="02:00">02:00</option><option value="03:00">03:00</option>
-          </select>
+          <input class="fi" id="gtend" list="time-opts-end" placeholder="—" autocomplete="off" style="font-size:12px" oninput="formatTimeInput(this)">
+          <datalist id="time-opts-end">
+            <option value="09:00"><option value="09:30"><option value="10:00"><option value="10:30">
+            <option value="11:00"><option value="11:30"><option value="12:00"><option value="12:30">
+            <option value="13:00"><option value="13:30"><option value="14:00"><option value="14:30">
+            <option value="15:00"><option value="15:30"><option value="16:00"><option value="16:30">
+            <option value="17:00"><option value="17:30"><option value="18:00"><option value="18:30">
+            <option value="19:00"><option value="19:30"><option value="20:00"><option value="20:30">
+            <option value="21:00"><option value="21:30"><option value="22:00"><option value="22:30">
+            <option value="23:00"><option value="23:30"><option value="00:00"><option value="01:00">
+            <option value="02:00"><option value="03:00">
+          </datalist>
         </div>
       </div>
     </div>
@@ -2018,18 +2046,36 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
             <div class="cmb-list" id="client-list"></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-            <div class="fg" style="margin-bottom:0"><label class="fl">เบอร์</label><input class="fi" id="gcphone" readonly style="background:var(--wh);font-size:12px;color:var(--ink2)"></div>
-            <div class="fg" style="margin-bottom:0"><label class="fl">ธนาคาร</label><input class="fi" id="gcbank-name" readonly style="background:var(--wh);font-size:12px;color:var(--ink2)" placeholder="—"></div>
-            <div class="fg" style="margin-bottom:0"><label class="fl">เลขบัญชี</label><input class="fi" id="gcbank-no" readonly style="background:var(--wh);font-size:12px;color:var(--ink2)" placeholder="—"></div>
+            <div class="fg" style="margin-bottom:0;grid-column:1/-1">
+              <label class="fl">เบอร์</label>
+              <div id="gcphone-tags" style="display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px 8px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);align-items:center;cursor:text" onclick="document.getElementById('gcphone-inp').focus()">
+                <input id="gcphone-inp" maxlength="10" placeholder="กดพิมพ์เบอร์แล้ว Enter"
+                  style="border:none;outline:none;background:transparent;font-size:12px;font-family:var(--f);width:180px;min-width:80px;color:var(--ink)"
+                  oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+                  onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addPhoneTag();}">
+              </div>
+              <input type="hidden" id="gcphone">
+            </div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">ธนาคาร</label><input class="fi" id="gcbank-name" style="font-size:12px;color:var(--ink)" placeholder="—"></div>
+            <div class="fg" style="margin-bottom:0;grid-column:2/-1"><label class="fl">เลขบัญชี</label><input class="fi" id="gcbank-no" style="font-size:12px;color:var(--ink)" placeholder="—"></div>
           </div>
         </div>
         <div id="client-new-block" style="display:none">
           <div class="fg" style="margin-bottom:6px"><input class="fi" id="gcname-new" placeholder="ชื่อผู้ว่าจ้าง *" style="font-size:12px"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-            <div class="fg" style="margin-bottom:0"><input class="fi" id="gcphone-new" placeholder="เบอร์ติดต่อ" style="font-size:12px"></div>
-            <div class="fg" style="margin-bottom:0"><input class="fi" id="gcbank-name-new" placeholder="ธนาคาร" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:6px">
+            <label class="fl">เบอร์</label>
+            <div id="gcphone-new-tags" style="display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px 8px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);align-items:center;cursor:text" onclick="document.getElementById('gcphone-new-inp').focus()">
+              <input id="gcphone-new-inp" maxlength="10" placeholder="กดพิมพ์เบอร์แล้ว Enter"
+                style="border:none;outline:none;background:transparent;font-size:12px;font-family:var(--f);width:180px;min-width:80px;color:var(--ink)"
+                oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+                onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addPhoneTagNew();}">
+            </div>
+            <input type="hidden" id="gcphone-new">
           </div>
-          <input class="fi" id="gcbank-no-new" placeholder="เลขบัญชี" style="font-size:12px;width:100%">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div class="fg" style="margin-bottom:0"><input class="fi" id="gcbank-name-new" placeholder="ธนาคาร" style="font-size:12px"></div>
+            <div class="fg" style="margin-bottom:0"><input class="fi" id="gcbank-no-new" placeholder="เลขบัญชี" style="font-size:12px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -2040,7 +2086,7 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div style="background:var(--bg);border-radius:var(--r);padding:12px 14px">
         <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">💰 รายได้จากลูกค้า</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-          <div class="fg" style="margin-bottom:0"><label class="fl">ค่าวง (฿)</label><input class="fi income-f" id="gf-band" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">ค่าตัว (฿)</label><input class="fi income-f" id="gf-band" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">เดินทาง-น้ำมัน (฿)</label><input class="fi income-f" id="gf-travel-oil" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">เดินทาง-รถ (฿)</label><input class="fi income-f" id="gf-travel-car" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">After Party (฿)</label><input class="fi income-f" id="gf-after" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
@@ -2074,14 +2120,14 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       <div style="display:flex;flex-direction:column;gap:8px">
         <!-- Expenses -->
         <div style="background:var(--bg);border-radius:var(--r);padding:12px 14px">
-          <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">🔧 ค่าใช้จ่ายในงาน</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-            <div class="fg" style="margin-bottom:0"><label class="fl">ทีมเสียง</label><select class="fi expense-f" id="ge-sound-member" onchange="calcExpenses()" style="font-size:11px"><option value="">— ภายนอก —</option></select></div>
-            <div class="fg" style="margin-bottom:0"><label class="fl">ค่าทีมเสียง (฿)</label><input class="fi expense-f" id="ge-sound-fee" type="number" placeholder="0" oninput="calcExpenses()" style="font-size:12px"></div>
-            <div class="fg" style="margin-bottom:0"><label class="fl">ค่าใช้จ่ายอื่นๆ (฿)</label><input class="fi expense-f" id="ge-other-fee" type="number" placeholder="0" oninput="calcExpenses()" style="font-size:12px"></div>
-            <div class="fg" style="margin-bottom:0"><label class="fl">หมายเหตุ</label><input class="fi" id="ge-other-note" placeholder="เช่น ค่าเช่าเครื่องดนตรี" style="font-size:12px"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase">🔧 ค่าใช้จ่ายในงาน</div>
+            <button type="button" onclick="addExpenseRow()" style="font-size:10px;padding:2px 10px;border:1px solid var(--bd2);border-radius:5px;background:var(--wh);cursor:pointer;color:var(--ink3);font-family:var(--f)">+ เพิ่ม</button>
           </div>
-          <div style="margin-top:8px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);padding:7px 11px;display:flex;justify-content:space-between;align-items:center">
+          <div id="ge-rows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px"></div>
+          <input type="hidden" id="ge-sound-member" value="">
+          <input type="hidden" id="ge-sound-fee" value="0">
+          <div style="margin-top:6px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);padding:7px 11px;display:flex;justify-content:space-between;align-items:center">
             <div><span style="font-size:10px;color:var(--ink3)">ค่าใช้จ่าย: </span><span id="ge-total-display" style="font-size:13px;font-weight:600;color:#6C5CE7">฿0</span></div>
             <div><span style="font-size:10px;color:var(--ink3)">สุทธิ: </span><span id="ge-net-display" style="font-size:13px;font-weight:700;color:var(--green)">฿0</span></div>
           </div>
@@ -2112,12 +2158,12 @@ input[type=date]{font-family:var(--f);letter-spacing:.03em}
       </div>
     </div>
 
-    <!-- ROW 4: นักดนตรี -->
+    <!-- ROW 4: สมาชิก -->
     <div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
-      <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">🎸 นักดนตรี</div>
+      <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">🎸 สมาชิก</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center">
         <div class="fg" style="margin-bottom:0">
-          <label class="fl">จำนวนนักดนตรี</label>
+          <label class="fl">จำนวนสมาชิก</label>
           <input class="fi" id="gcount" type="number" min="1" max="20" placeholder="เช่น 5" oninput="onCountChange()" style="font-size:12px">
         </div>
         <div class="fg" style="margin-bottom:0">
@@ -2507,7 +2553,7 @@ async function loadFromCloud() {
   toast('☁ กำลังโหลดข้อมูล...');
   try {
     /* Step 1: load gigs first to get IDs */
-    const [members, clients, sources, jobTypes, users, gigs, bandExpenses, band] = await Promise.all([
+    const [members, clients, sources, jobTypes, users, gigs, bandExpenses, band, usedSlipsRows] = await Promise.all([
       sbGet('members',      `band_id=eq.${_sbBandId}&order=created_at`),
       sbGet('clients',      `band_id=eq.${_sbBandId}&order=name`),
       sbGet('sources',      `band_id=eq.${_sbBandId}&order=sort_order`),
@@ -2515,7 +2561,8 @@ async function loadFromCloud() {
       sbGet('users',        `band_id=eq.${_sbBandId}`),
       sbGet('gigs',         `band_id=eq.${_sbBandId}&order=date.desc`),
       sbGet('band_expenses',`band_id=eq.${_sbBandId}&order=date.desc`),
-      sbGet('bands',        `id=eq.${_sbBandId}&limit=1`)
+      sbGet('bands',        `id=eq.${_sbBandId}&limit=1`),
+      sbGet('used_slips',   `band_id=eq.${_sbBandId}`)
     ]);
 
     console.log('loadFromCloud: gigs=',gigs?.length,'members=',members?.length);
@@ -2548,10 +2595,12 @@ async function loadFromCloud() {
 
     if(band&&band[0]){
       const b=band[0];
-      S.bandInfo={name:b.name,leader:b.leader_name,email:b.email,adminPass:'',adminPassHash:''};
+      S.bandInfo={name:b.name,leader:b.leader_name,email:b.email,adminPass:'',adminPassHash:'',whtRate:parseFloat(b.wht_rate)||3};
       S.plan={type:b.plan_type,trialEndsAt:b.trial_ends_at,proExpiresAt:b.pro_expires_at,paymentKey:''};
       S._jobSeq=b.job_seq||0;
     }
+    /* load used slips สำหรับ duplicate check */
+    S.usedSlips=(usedSlipsRows||[]).map(r=>r.trans_ref).filter(Boolean);
 
     /* Assemble gigs with nested arrays */
     S.gigs = (gigs||[]).map(g => {
@@ -2564,12 +2613,31 @@ async function loadFromCloud() {
       const payments = (gigPayments||[]).filter(x=>x.gig_id===g.id).map(x=>({date:x.date,amount:parseFloat(x.amount),type:x.type,note:x.note||'',slip:x.slip_key||null}));
       const memberPayRaw = (gigMemberPays||[]).filter(x=>x.gig_id===g.id);
       const memberPayments = {};
-      memberPayRaw.forEach(x=>{memberPayments[x.member_id]={paid:x.paid,slip:x.slip_key||null,note:x.note||'',date:x.paid_date||null};});
+      memberPayRaw.forEach(x=>{
+        let slips=[];
+        try{if(x.slips_json) slips=JSON.parse(x.slips_json);}catch(e){}
+        if(!slips.length&&x.slip_key) slips=[x.slip_key];
+        memberPayments[x.member_id]={
+          paid:x.paid, slip:x.slip_key||null, slips,
+          amount:parseFloat(x.amount)||0, note:x.note||'', date:x.paid_date||null
+        };
+      });
       const incItems = (gigIncomeItems||[]).filter(x=>x.gig_id===g.id);
       const income = {};
       incItems.forEach(x=>{income[x.category]=parseFloat(x.amount);if(x.note)income.otherNote=x.note;});
       const expRow = (gigExpenses||[]).find(x=>x.gig_id===g.id)||{};
-      const expenses = {soundFee:parseFloat(expRow.sound_fee||0),soundMemberId:expRow.sound_member_id||null,adsFee:parseFloat(expRow.ads_fee||0),adsChannel:expRow.ads_channel||'',otherFee:parseFloat(expRow.other_fee||0),otherNote:expRow.other_note||''};
+      /* parse expenseRows: ถ้า other_note เป็น JSON array → ใช้เป็น expenseRows */
+      let expenseRows=[];
+      try{if(expRow.other_note&&expRow.other_note.startsWith('['))expenseRows=JSON.parse(expRow.other_note);}catch(e){}
+      const expenses = {
+        expenseRows: expenseRows.length ? expenseRows :
+          /* backward compat: แปลง old format */
+          [...(parseFloat(expRow.sound_fee||0)>0?[{fee:parseFloat(expRow.sound_fee),note:'ค่าทีมเสียง'}]:[]),
+           ...(parseFloat(expRow.other_fee||0)>0?[{fee:parseFloat(expRow.other_fee),note:expRow.other_note&&!expRow.other_note.startsWith('[')?expRow.other_note:''}]:[])],
+        soundFee:parseFloat(expRow.sound_fee||0),soundMemberId:expRow.sound_member_id||null,
+        adsFee:parseFloat(expRow.ads_fee||0),adsChannel:expRow.ads_channel||'',
+        otherFee:parseFloat(expRow.other_fee||0),otherNote:!expRow.other_note?.startsWith('[')?expRow.other_note||'':''
+      };
       return {
         id:g.id, jobNo:g.job_no, name:g.name, date:g.date,
         recDate:g.rec_date, timeStart:g.time_start, timeEnd:g.time_end,
@@ -2685,12 +2753,15 @@ async function syncGig(gig) {
       .filter(k=>inc[k]>0).map(k=>({gig_id:dbId,category:k,amount:inc[k],note:k==='other'?inc.otherNote||null:null}));
     if(incRows.length) await sbInsert('gig_income_items', incRows);
 
-    /* Gig expenses */
+    /* Gig expenses — save as JSON in other_note field, preserve backward compat */
     const exp=gig.expenses||{};
     await fetch(`${SUPABASE_URL}/rest/v1/gig_expenses?gig_id=eq.${dbId}`,{method:'DELETE',headers:sbHeaders({'Prefer':''})});
-    await sbInsert('gig_expenses',{gig_id:dbId,sound_fee:exp.soundFee||0,sound_member_id:exp.soundMemberId||null,ads_fee:exp.adsFee||0,ads_channel:exp.adsChannel||null,other_fee:exp.otherFee||0,other_note:exp.otherNote||null});
+    const expRows=exp.expenseRows||[];
+    const totalExp=expRows.reduce((s,r)=>s+(r.fee||0),0);
+    const expNote=expRows.length?JSON.stringify(expRows):null;
+    await sbInsert('gig_expenses',{gig_id:dbId,sound_fee:0,sound_member_id:null,ads_fee:0,ads_channel:null,other_fee:totalExp,other_note:expNote});
 
-  } catch(e) { console.error('❌ syncGig exception:', e); }
+  } catch(e) { console.error('❌ syncGig exception:', e); toast('⚠ บันทึกขึ้น Cloud ไม่สำเร็จ — ตรวจสอบอินเทอร์เน็ต'); }
 }
 
 /* Sync single gig_payment (รับเงิน) */
@@ -2714,17 +2785,26 @@ async function syncPayment(gigId, payment) {
 async function syncMemberPayment(gigId, memberId, payData) {
   if(!SUPABASE_URL) return;
   try {
-    let slipKey = payData.slip;
-    if(slipKey && slipKey.startsWith('slip_')) {
-      const data = await SlipStore.load(slipKey);
-      if(data) slipKey = await sbUploadSlip('slips', slipKey, data) || slipKey;
+    /* Upload slips ทุกใบ */
+    const allSlips=Array.isArray(payData.slips)&&payData.slips.length
+      ?payData.slips
+      :(payData.slip?[payData.slip]:[]);
+    const uploadedSlips=[];
+    for(const key of allSlips){
+      if(key&&key.startsWith('slip_')){
+        const data=await SlipStore.load(key).catch(()=>null);
+        if(data) await sbUploadSlip('slips',key,data).catch(()=>null);
+      }
+      uploadedSlips.push(key);
     }
+    const slipKey=uploadedSlips[uploadedSlips.length-1]||null;
     /* upsert via delete + insert */
     await fetch(`${SUPABASE_URL}/rest/v1/member_payments?gig_id=eq.${gigId}&member_id=eq.${memberId}`,
       {method:'DELETE', headers:sbHeaders({'Prefer':''})});
     await sbInsert('member_payments', {
       gig_id:gigId, member_id:memberId, paid:payData.paid||false,
       amount:payData.amount||0, slip_key:slipKey||null,
+      slips_json:uploadedSlips.length?JSON.stringify(uploadedSlips):null,
       note:payData.note||null, paid_date:payData.date||null
     });
   } catch(e) { console.error('syncMemberPayment', e); }
@@ -2842,7 +2922,8 @@ const oid=g=>{
 const mg=(m,y)=>S.gigs.filter(g=>{const d=new Date(g.date);return d.getMonth()===m&&d.getFullYear()===y});
 const mi=(mem,m,y)=>{const activeM=S.members.filter(x=>x.status==='active').length||1;return mg(m,y).filter(g=>g.status==='confirmed'||g.status==='deposit'||g.status==='paid').reduce((s,g)=>s+g.fee*(1/activeM),0);};
 const BD={confirmed:['b-confirmed','ยังไม่จ่าย'],deposit:['b-deposit','จ่ายมัดจำ'],paid:['b-paid','จ่ายเต็ม'],cancelled:['b-cancelled','ยกเลิก'],pending:['bs','ยังไม่จ่าย'],active:['bg','Active'],inactive:['bs','Inactive']};
-const gigNet=g=>{const exp=g.expenses||{};const totalExp=(exp.soundFee||0)+(exp.adsFee||0)+(exp.otherFee||0);return g.fee-totalExp;};
+const gigExpTotal=g=>{const e=g.expenses||{};if(e.expenseRows) return e.expenseRows.reduce((s,r)=>s+(r.fee||0),0);return(e.soundFee||0)+(e.adsFee||0)+(e.otherFee||0);};
+const gigNet=g=>g.fee-gigExpTotal(g);
 const gigPayBadge=g=>{const ps=getGigPayStatus(g);const map={'ยังไม่จ่าย':'b-pay-none','จ่ายบางส่วน':'b-pay-part','จ่ายครบทั้งวง':'b-pay-full'};return`<span class="badge ${map[ps.label]||'bs'}" style="font-size:10px"><span class="bd2"></span>${ps.label}</span>`;};
 const gigTipBadge=g=>{
   const mus=g.musicians||[];
@@ -2876,7 +2957,12 @@ function nav(id,el){
   /* sync mobile bottom nav */
   document.querySelectorAll('.mob-nav-item').forEach(b=>b.classList.remove('active'));
   const mbn=document.getElementById('mbn-'+id);if(mbn)mbn.classList.add('active');
-  if(window.innerWidth<=768)closeMobSidebar();
+  if(window.innerWidth<=768){
+    closeMobSidebar();
+    /* restore FAB */
+    const fab=document.getElementById('mob-fab-menu');
+    if(fab) fab.style.display='flex';
+  }
 }
 
 function stab(id,el,g){
@@ -2890,7 +2976,7 @@ function gigRevenuePaid(g){
   /* Revenue = only from payments actually received (tab รับเงิน) */
   return(g.payments||[]).reduce((s,p)=>s+p.amount,0);
 }
-function gigExpTotal(g){const e=g.expenses||{};return(e.soundFee||0)+(e.adsFee||0)+(e.otherFee||0);}
+
 function gigMemberPayTotal(g){
   /* ถ้างาน paid แล้ว = คำนวณค่าตัวรวมทุกคน (ไม่ต้องรอกด "จ่ายแล้ว") */
   if(g.status==='paid'){
@@ -3453,65 +3539,93 @@ function ri(){
 
   if(!incomeSelectedMid) incomeSelectedMid=(memData.find(m=>m.realIncome>0||m.forecastIncome>0)||memData[0])?.id||null;
 
-  const isMobile=window.innerWidth<=768;
-  if(isMobile){
-    /* Mobile: horizontal scroll cards */
+  /* render เป็น card เสมอบน mobile — ไม่เช็ค width */
+  const isMob=window.innerWidth<=900;
+  if(isMob){
+    const wrap=document.getElementById('itable-wrap');
+    if(wrap){wrap.style.overflow='visible';wrap.style.width='100%';}
+    document.getElementById('itable-table').style.width='100%';
     document.getElementById('itable').innerHTML=memData.map(mem=>{
       const isSelected=mem.id===incomeSelectedMid;
-      return`<tr style="cursor:pointer;${isSelected?'outline:2px solid var(--red);':''}border-radius:12px;overflow:hidden" onclick="selectIncomeMember('${mem.id}')">
-        <td colspan="6" style="padding:0">
-          <div style="padding:10px 12px;min-width:130px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-              ${avx(mem.nick)}
-              <div>
-                <div style="font-weight:600;font-size:12px;color:${isSelected?'var(--red)':'var(--ink)'}">${mem.nick}</div>
-                <div style="font-size:9px;color:var(--ink3)">${mem.role}</div>
-              </div>
+      return`<tr><td colspan="7" style="padding:0 0 6px">
+        <div onclick="selectIncomeMember('${mem.id}')"
+          style="background:var(--wh);border-radius:10px;overflow:hidden;cursor:pointer;
+            box-shadow:${isSelected?'0 0 0 2px var(--red)':'0 0 0 1px var(--bd2)'}">
+          <!-- Header -->
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+            background:${isSelected?'#FFF0F0':'var(--bg)'}">
+            ${avx(mem.nick)}
+            <div style="flex:1">
+              <div style="font-weight:700;font-size:13px;color:${isSelected?'var(--red)':'var(--ink)'}">${mem.name}${mem.lastname?' '+mem.lastname:''}</div>
+              <div style="font-size:10px;color:var(--ink3)">${mem.role}</div>
             </div>
-            <div style="font-size:10px;color:var(--ink3);margin-bottom:2px">Paid</div>
-            <div style="font-weight:700;color:#DC2626;font-size:13px">฿${f(mem.realIncome)}</div>
-            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px;background:${mem.paidGigCount>0?'#DC2626':'#E5E7EB'};color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:0 6px;margin-bottom:6px">${mem.paidGigCount}</span>
-            <div style="font-size:10px;color:var(--ink3);margin-bottom:2px">Unpaid</div>
-            <div style="font-weight:700;color:#2563EB;font-size:13px">฿${f(mem.forecastIncome)}</div>
-            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px;background:${mem.unpaidGigCount>0?'#2563EB':'#E5E7EB'};color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:0 6px">${mem.unpaidGigCount}</span>
           </div>
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--bd)">
+            <div style="padding:9px 4px;text-align:center;border-right:1px solid var(--bd)">
+              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">รายได้</div>
+              <div style="font-weight:700;font-size:12px;color:#DC2626">฿${f(mem.bdIncome)}</div>
+            </div>
+            <div style="padding:9px 4px;text-align:center;border-right:1px solid var(--bd)">
+              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ทิป</div>
+              <div style="font-weight:600;font-size:12px;color:#B45309">${mem.tipIncome>0?'฿'+f(mem.tipIncome):'—'}</div>
+            </div>
+            <div style="padding:9px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
+              <div style="font-size:9px;color:#166534;font-weight:600;margin-bottom:2px">รวม</div>
+              <div style="font-weight:800;font-size:13px;color:#15803D">฿${f(mem.totalIncome)}</div>
+            </div>
+            <div style="padding:9px 4px;text-align:center">
+              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">งาน</div>
+              <div style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;background:${mem.paidGigCount>0?'#DC2626':'#D1D5DB'};color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:0 5px">${mem.paidGigCount}</div>
+            </div>
+          </div>
+          ${mem.forecastIncome>0?`
+          <div style="display:flex;justify-content:space-between;align-items:center;
+            padding:5px 14px;background:#EFF6FF;border-top:1px solid #BFDBFE">
+            <span style="font-size:10px;color:#1D4ED8">คาดการณ์ · ${mem.unpaidGigCount} งาน</span>
+            <span style="font-weight:700;font-size:12px;color:#2563EB">฿${f(mem.forecastIncome)}</span>
+          </div>`:''}
+        </div>
+      </td></tr>`;
+    }).join('');
+  } else {
+    /* Desktop: table render */
+    const wrap=document.getElementById('itable-wrap');
+    if(wrap) wrap.style.overflow='auto';
+    document.getElementById('itable').innerHTML=memData.map(mem=>{
+      const isSelected=mem.id===incomeSelectedMid;
+      return`<tr style="cursor:pointer;${isSelected?'background:var(--rl);':''}transition:background .12s;border-bottom:1px solid var(--bd)" onclick="selectIncomeMember('${mem.id}')">
+        <td style="padding:10px 12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            ${isSelected?`<div style="width:3px;height:36px;background:var(--red);border-radius:2px;flex-shrink:0"></div>`:''}
+            ${avx(mem.nick)}
+            <div>
+              <div style="font-weight:600;font-size:13px;color:${isSelected?'var(--red)':'var(--ink)'};white-space:nowrap">${mem.name}${mem.lastname?' '+mem.lastname:''}</div>
+              <div style="font-size:10px;color:var(--ink3)">${mem.role}</div>
+            </div>
+          </div>
+        </td>
+        <td style="background:#FEF2F2;text-align:right;padding:10px 14px;white-space:nowrap">
+          <div style="font-weight:700;color:#DC2626;font-size:14px">฿${f(mem.bdIncome)}</div>
+        </td>
+        <td style="background:#FFF7ED;text-align:right;padding:10px 14px;white-space:nowrap">
+          <div style="font-weight:600;color:#92400E;font-size:13px">${mem.tipIncome>0?'฿'+f(mem.tipIncome):'—'}</div>
+        </td>
+        <td style="background:#F0FDF4;text-align:right;padding:10px 14px;white-space:nowrap;border-left:2px solid #BBF7D0">
+          <div style="font-weight:800;color:#166534;font-size:15px">฿${f(mem.totalIncome)}</div>
+        </td>
+        <td style="background:#FEF2F2;text-align:center;padding:10px 10px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.paidGigCount>0?'#DC2626':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.paidGigCount}</span>
+        </td>
+        <td style="background:#EFF6FF;text-align:right;padding:10px 14px;white-space:nowrap">
+          <div style="font-weight:600;color:#2563EB;font-size:13px">${mem.forecastIncome>0?'฿'+f(mem.forecastIncome):'—'}</div>
+        </td>
+        <td style="background:#EFF6FF;text-align:center;padding:10px 10px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.unpaidGigCount>0?'#2563EB':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.unpaidGigCount}</span>
         </td>
       </tr>`;
     }).join('');
-  } else {
-  document.getElementById('itable').innerHTML=memData.map(mem=>{
-    const isSelected=mem.id===incomeSelectedMid;
-    return`<tr style="cursor:pointer;${isSelected?'background:var(--rl);':''}transition:background .12s" onclick="selectIncomeMember('${mem.id}')">
-      <td><div style="display:flex;align-items:center;gap:8px">
-        ${isSelected?`<div style="width:3px;height:32px;background:var(--red);border-radius:2px;margin-right:2px;flex-shrink:0"></div>`:'<div style="width:5px;flex-shrink:0"></div>'}
-        ${avx(mem.nick)}
-        <div>
-          <div style="font-weight:${isSelected?'600':'500'};color:${isSelected?'var(--red)':'var(--ink)'}">${mem.name}${mem.lastname?' '+mem.lastname:''}</div>
-          <div style="font-size:10px;color:var(--ink3)">${mem.role}</div>
-        </div>
-      </div></td>
-      <td style="color:var(--ink3)">${mem.role}</td>
-      <td style="background:#FEF9F9">
-        <div style="font-weight:700;color:#DC2626;font-size:13px">฿${f(mem.bdIncome)}</div>
-      </td>
-      <td style="background:#FFF7ED">
-        <div style="font-weight:700;color:#92400E;font-size:13px">฿${f(mem.tipIncome)}</div>
-      </td>
-      <td style="background:#F0FDF4">
-        <div style="font-weight:700;color:#166534;font-size:13px">฿${f(mem.totalIncome)}</div>
-      </td>
-      <td style="background:#FEF9F9;text-align:center">
-        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:22px;background:${mem.paidGigCount>0?'#DC2626':'#E5E7EB'};color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:0 8px">${mem.paidGigCount}</span>
-      </td>
-      <td style="background:#F0F7FF">
-        <div style="font-weight:700;color:#2563EB;font-size:13px">฿${f(mem.forecastIncome)}</div>
-      </td>
-      <td style="background:#F0F7FF;text-align:center">
-        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:22px;background:${mem.unpaidGigCount>0?'#2563EB':'#E5E7EB'};color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:0 8px">${mem.unpaidGigCount}</span>
-      </td>
-    </tr>`;
-  }).join('');
-  }
+  } /* end desktop */
 
   renderIncomeDetail(filterMonth!==null?filterMonth:new Date().getMonth(),y,allGigs);
 }
@@ -3701,7 +3815,26 @@ function openCalPopup(gigId){
   if(g.note&&noteEl&&noteLbl){noteEl.style.display='block';noteLbl.style.display='block';noteEl.textContent=g.note;}
   else if(noteEl&&noteLbl){noteEl.style.display='none';noteLbl.style.display='none';}
   /* calendar popup — view only, no edit */
+  /* show goto button for admin only */
+  const gotoBtn=document.getElementById('cpop-goto-btn');
+  if(gotoBtn){
+    gotoBtn.style.display=currentUser?.role==='admin'?'inline-flex':'none';
+    gotoBtn.dataset.gigId=String(gigId);
+  }
   document.getElementById('cal-popup').classList.add('open');
+}
+function calPopupGoToGig(){
+  const gotoBtn=document.getElementById('cpop-goto-btn');
+  const gigId=gotoBtn?.dataset.gigId;
+  if(!gigId) return;
+  document.getElementById('cal-popup').classList.remove('open');
+  nav('gigs');
+  /* รอ nav เสร็จแล้ว scroll ไปที่งาน + เปิด detail */
+  setTimeout(()=>{
+    const row=document.getElementById('gig-row-'+gigId);
+    if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.style.background='var(--rl)';setTimeout(()=>row.style.background='',1500);}
+    editGig(gigId);
+  },300);
 }
 function closCalPopup(e){if(e.target===document.getElementById('cal-popup'))document.getElementById('cal-popup').classList.remove('open');}
 function rmem(){
@@ -3958,7 +4091,7 @@ function onCountChange(){
 function onFeeChange(){ if(gigState.count>0) updateSummary(); }
 
 const INCOME_FIELDS=[
-  {id:'gf-band',    label:'ค่าวง',                group:'band'},
+  {id:'gf-band',    label:'ค่าตัว',                group:'band'},
   {id:'gf-travel-oil', label:'ค่าเดินทาง (น้ำมัน)',  group:'band'},
   {id:'gf-travel-car', label:'ค่าเดินทาง (นั่งรถ)',  group:'band'},
   {id:'gf-after',   label:'ค่า After Party',       group:'after'},
@@ -3967,12 +4100,34 @@ const INCOME_FIELDS=[
   {id:'gf-sound-car',label:'ค่าเดินทางเสียง (นั่งรถ)',group:'sound'},
   {id:'gf-other',   label:'รายได้อื่น ๆ',           group:'other'},
 ];
+function addExpenseRow(fee='', note=''){
+  const wrap=document.getElementById('ge-rows');
+  if(!wrap)return;
+  const idx=wrap.children.length;
+  const row=document.createElement('div');
+  row.className='ge-row';
+  row.style.cssText='display:grid;grid-template-columns:1fr 2fr auto;gap:6px;align-items:center';
+  row.innerHTML=`
+    <input class="fi expense-f" type="number" placeholder="฿ จำนวนเงิน" value="${fee}" oninput="calcExpenses()" style="font-size:12px;margin:0">
+    <input class="fi" type="text" placeholder="หมายเหตุ เช่น ค่าเช่าเครื่องดนตรี" value="${note}" style="font-size:12px;margin:0">
+    <button type="button" onclick="this.closest('.ge-row').remove();calcExpenses()" style="width:26px;height:26px;border:1px solid var(--rb);border-radius:5px;background:none;color:var(--red);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>`;
+  wrap.appendChild(row);
+  calcExpenses();
+}
+function getExpenseRows(){
+  const rows=document.querySelectorAll('#ge-rows .ge-row');
+  const result=[];
+  rows.forEach(row=>{
+    const fee=parseFloat(row.querySelector('input[type="number"]')?.value)||0;
+    const note=row.querySelector('input[type="text"]')?.value||'';
+    if(fee>0||note) result.push({fee,note});
+  });
+  return result;
+}
 function calcExpenses(){
-  const soundFee=parseFloat(document.getElementById('ge-sound-fee')?.value)||0;
-  const otherFee=parseFloat(document.getElementById('ge-other-fee')?.value)||0;
-  const total=soundFee+otherFee;
+  const rows=getExpenseRows();
+  const total=rows.reduce((s,r)=>s+r.fee,0);
   const totalIncome=parseFloat(document.getElementById('gf')?.value)||0;
-  /* ถ้ามี WHT ให้ใช้รายได้หลังหักภาษีเป็นฐาน */
   const whtEnabled=document.getElementById('gig-wht')?.checked||false;
   const baseIncome=whtEnabled&&gigState.whtNet?gigState.whtNet:totalIncome;
   const net=baseIncome-total;
@@ -3980,14 +4135,8 @@ function calcExpenses(){
   const netEl=document.getElementById('ge-net-display');
   if(expEl) expEl.textContent='฿'+f(total);
   if(netEl){netEl.textContent='฿'+f(net);netEl.style.color=net>=0?'var(--green)':'var(--red)';}
-  const lines=[];
-  const soundMem=document.getElementById('ge-sound-member')?.value;
-  const soundMemName=soundMem?S.members.find(x=>x.id==soundMem)?.nick:'ภายนอก';
-  if(soundFee>0) lines.push(`ทีมเสียง${soundMem?' ('+soundMemName+')':''}:  ฿${f(soundFee)}`);
-  const otherNote=document.getElementById('ge-other-note')?.value;
-  if(otherFee>0) lines.push(`อื่นๆ${otherNote?' ('+otherNote+')':''}:  ฿${f(otherFee)}`);
   const bdEl=document.getElementById('expense-breakdown');
-  if(bdEl) bdEl.innerHTML=lines.map(l=>`<span>${l}</span>`).join('');
+  if(bdEl) bdEl.innerHTML=rows.filter(r=>r.fee>0).map(r=>`<span>${r.note?r.note+': ':'อื่นๆ: '}฿${f(r.fee)}</span>`).join('  ');
 }
 function calcWHT(){
   const checked=document.getElementById('gig-wht')?.checked||false;
@@ -4115,9 +4264,7 @@ function onMemberRowChange(changedIdx){
 }
 function updateSummary(){
   const grossIncome=parseFloat(document.getElementById('gf').value)||0;
-  const expSound=parseFloat(document.getElementById('ge-sound-fee')?.value)||0;
-  const expOther=parseFloat(document.getElementById('ge-other-fee')?.value)||0;
-  const totalExp=expSound+expOther;
+  const totalExp=getExpenseRows().reduce((s,r)=>s+r.fee,0);
   const netBase=grossIncome-totalExp;
   const n=gigState.count;
   if(!n)return;
@@ -4147,7 +4294,7 @@ function updateSummary(){
         feeEl.value=amount;feeEl.dataset.autoFilled='1';
       }
     }
-    rows.push({name:mem?`${mem.name} (${mem.nick})`:`นักดนตรี ${i+1}`,pct,amount});
+    rows.push({name:mem?`${mem.name} (${mem.nick})`:`สมาชิก ${i+1}`,pct,amount});
   }
   const totalPct=rows.reduce((s,r)=>s+r.pct,0);
   const totalAmt=rows.reduce((s,r)=>s+r.amount,0);
@@ -4191,10 +4338,9 @@ function updateSummary(){
 }
 function getGigMembers(){
   const n=gigState.count;const res=[];
-  const expS=parseFloat(document.getElementById('ge-sound-fee')?.value)||0;
-  const expO=parseFloat(document.getElementById('ge-other-fee')?.value)||0;
+  const totalExp=getExpenseRows().reduce((s,r)=>s+r.fee,0);
   const grossFee=parseFloat(document.getElementById('gf')?.value)||0;
-  const netB2=grossFee-(expS+expO);
+  const netB2=grossFee-totalExp;
   /* หา gig ที่กำลัง edit เพื่อ preserve tip เดิม */
   const existingGig=S.eid?S.gigs.find(g=>String(g.id)===String(S.eid)):null;
   for(let i=0;i<n;i++){
@@ -4238,7 +4384,9 @@ function openGig(){
   const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
   if(saveBtn)saveBtn.style.display='';
   document.getElementById('mgig-t').textContent='เพิ่มงานใหม่';
-  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','ge-sound-fee','ge-other-fee','ge-other-note','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const geRows=document.getElementById('ge-rows');if(geRows)geRows.innerHTML='';
+  setPhoneTags('');renderPhoneTagsNew([]);
   const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=false;
   const today=new Date().toISOString().split('T')[0];
   const gdEl=document.getElementById('gd');if(gdEl)gdEl.value=today;
@@ -4248,10 +4396,9 @@ function openGig(){
   const etd=document.getElementById('ge-total-display');if(etd)etd.textContent='฿0';
   const end=document.getElementById('ge-net-display');if(end){end.textContent='฿0';end.style.color='var(--green)';}
   const ebd=document.getElementById('expense-breakdown');if(ebd)ebd.innerHTML='';
-  const geSM=document.getElementById('ge-sound-member');if(geSM)geSM.value='';
   document.getElementById('gst').value='confirmed';document.getElementById('gtype').value='';updateGstDisplay('confirmed');
   document.getElementById('gbandsize').value='';
-  populateSourceDropdown();populateJobTypeDropdown();populateExpenseMemberDropdown();setCtype('old');setSplit('amt');
+  populateSourceDropdown();populateJobTypeDropdown();setCtype('old');setSplit('amt');
   document.getElementById('gig-members-wrap').style.display='none';
 
   /* ── Restore draft if exists ── */
@@ -4274,18 +4421,24 @@ function openGig(){
       if(inc.otherNote){const el=document.getElementById('gf-other-note');if(el)el.value=inc.otherNote;}
       calcTotalIncome();
     }
+    /* restore expense rows */
+    if(d.expenseRows&&d.expenseRows.length){
+      const dRows=document.getElementById('ge-rows');if(dRows)dRows.innerHTML='';
+      d.expenseRows.forEach(r=>addExpenseRow(r.fee||'',r.note||''));
+      calcExpenses();
+    }
     /* restore client */
     if(d.ctype){
       setCtype(d.ctype);
       if(d.ctype==='old'){
         if(d.clientId) gigState.selectedClientId=d.clientId;
         if(d.clientSearch){const cs=document.getElementById('gclient-search');if(cs)cs.value=d.clientSearch;}
-        if(d.clientPhone){const cp=document.getElementById('gcphone');if(cp)cp.value=d.clientPhone;}
+        if(d.clientPhone) setPhoneTags(d.clientPhone);
         if(d.clientBankName){const cb=document.getElementById('gcbank-name');if(cb)cb.value=d.clientBankName;}
         if(d.clientBankNo){const cn=document.getElementById('gcbank-no');if(cn)cn.value=d.clientBankNo;}
       } else {
         if(d.clientNameNew){const cn=document.getElementById('gcname-new');if(cn)cn.value=d.clientNameNew;}
-        if(d.clientPhoneNew){const cp=document.getElementById('gcphone-new');if(cp)cp.value=d.clientPhoneNew;}
+        if(d.clientPhoneNew){renderPhoneTagsNew((d.clientPhoneNew||'').split(',').filter(Boolean));syncPhoneNewHidden();}
       }
     }
     /* show toast hint */
@@ -4305,7 +4458,8 @@ function clearGigDraft(){
   const db=document.getElementById('draft-banner');if(db)db.style.display='none';
   const dd=document.getElementById('draft-dot');if(dd)dd.style.display='none';
   /* clear all form fields */
-  ['gn','gtstart','gtend','gv','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-sound-car','gf-other','gf-other-note','ge-sound-fee'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['gn','gtstart','gtend','gv','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-sound-car','gf-other','gf-other-note'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const geRowsClr=document.getElementById('ge-rows');if(geRowsClr)geRowsClr.innerHTML='';
   const gdClr=document.getElementById('gd');if(gdClr)gdClr.value='';
   document.getElementById('gf-total-display').textContent='฿0';
   document.getElementById('income-breakdown').innerHTML='';
@@ -4339,12 +4493,16 @@ function editGig(id){
   ['band','travel-oil','travel-car','after','sound','sound-oil','sound-car','other'].forEach(k=>{const el=document.getElementById('gf-'+k);if(el)el.value=inc[k]||'';});
   const onEl=document.getElementById('gf-other-note');if(onEl)onEl.value=inc.otherNote||'';
   calcTotalIncome();
-  populateExpenseMemberDropdown();
   const exp=g.expenses||{};
-  const smEl=document.getElementById('ge-sound-member');if(smEl)smEl.value=exp.soundMemberId||'';
-  const sfEl=document.getElementById('ge-sound-fee');if(sfEl)sfEl.value=exp.soundFee||'';
-  const ofEl=document.getElementById('ge-other-fee');if(ofEl)ofEl.value=exp.otherFee||'';
-  const onEl2=document.getElementById('ge-other-note');if(onEl2)onEl2.value=exp.otherNote||'';
+  const geRows=document.getElementById('ge-rows');if(geRows)geRows.innerHTML='';
+  /* restore expenseRows ใหม่ หรือ fallback จาก old format */
+  if(exp.expenseRows&&exp.expenseRows.length){
+    exp.expenseRows.forEach(r=>addExpenseRow(r.fee||'',r.note||''));
+  } else {
+    /* old format: soundFee + otherFee */
+    if(exp.soundFee>0) addExpenseRow(exp.soundFee,'ค่าทีมเสียง');
+    if(exp.otherFee>0) addExpenseRow(exp.otherFee,exp.otherNote||'');
+  }
   calcExpenses();
   populateSourceDropdown();populateJobTypeDropdown();document.getElementById('gsource').value=g.source||'';document.getElementById('gtype').value=g.type||'';
   // province
@@ -4357,14 +4515,14 @@ function editGig(id){
     const cl=S.clients.find(x=>x.id===g.clientId);
     if(cl){
       document.getElementById('gclient-search').value=cl.name;
-      document.getElementById('gcphone').value=cl.phone||'';
+      setPhoneTags(cl.phone||'');
       document.getElementById('gcbank-name').value=cl.bankName||'';
       document.getElementById('gcbank-no').value=cl.bankNo||'';
     }
   } else {
     setCtype('new');
     document.getElementById('gcname-new').value=g.clientName||'';
-    document.getElementById('gcphone-new').value=g.clientPhone||'';
+    renderPhoneTagsNew((g.clientPhone||'').split(',').filter(Boolean));syncPhoneNewHidden();
     document.getElementById('gcbank-name-new').value=g.clientBankName||'';
     document.getElementById('gcbank-no-new').value=g.clientBankNo||'';
   }
@@ -4464,9 +4622,8 @@ function sg(){
     if(total>100+0.5){toast('% รวมได้ '+Math.round(total)+'% เกิน 100% — กรุณาตรวจสอบ');return;}
   }
   if(gigState.count>0&&gigState.splitMode==='amt'){
-    const expS=parseFloat(document.getElementById('ge-sound-fee')?.value)||0;
-    const expO2=parseFloat(document.getElementById('ge-other-fee')?.value)||0;
-    const netB=fe-(expS+expO2);
+    const totalExp2=getExpenseRows().reduce((s,r)=>s+r.fee,0);
+    const netB=fe-totalExp2;
     const totalAmt2=Array.from({length:gigState.count},(_,i)=>parseFloat(document.getElementById('gpct-'+i)?.value)||0).reduce((s,v)=>s+v,0);
     if(totalAmt2>netB+0.5){toast(`จำนวนเงินรวม ฿${f(totalAmt2)} เกินรายได้สุทธิ ฿${f(netB)}`);return;}
   }
@@ -4512,7 +4669,7 @@ function sg(){
   }
   const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
   const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||''};
-  const expenses={soundMemberId:document.getElementById('ge-sound-member')?.value||null,soundFee:gv('ge-sound-fee'),adsFee:0,adsChannel:'',otherFee:gv('ge-other-fee'),otherNote:document.getElementById('ge-other-note')?.value||''};
+  const expenses={expenseRows:getExpenseRows(),soundMemberId:null,soundFee:0,adsFee:0,adsChannel:'',otherFee:0,otherNote:''};
   const data={name:n,date:d,expenses,recDate:document.getElementById('grec').value,timeStart:document.getElementById('gtstart').value,timeEnd:document.getElementById('gtend').value,fee:fe,income,venue:document.getElementById('gv').value.trim(),mapLink:document.getElementById('gmap')?.value.trim()||'',province:document.getElementById('gprov').value.trim(),type:document.getElementById('gtype').value,status:document.getElementById('gst').value,bandSize:document.getElementById('gbandsize').value,source:document.getElementById('gsource').value,note:document.getElementById('gnote').value.trim(),clientId,clientName,clientPhone,clientBankName:document.getElementById('gcbank-name-new')?.value.trim()||'',clientBankNo:document.getElementById('gcbank-no-new')?.value.trim()||'',musicians:gigState.count>0?getGigMembers():[],splitMode:gigState.splitMode,whtEnabled:document.getElementById('gig-wht')?.checked||false,whtRate:gigState.whtRate||0,whtAmt:gigState.whtAmt||0,whtNet:gigState.whtNet||0};
   if(S.eid){
     const i=S.gigs.findIndex(g=>g.id===S.eid);
@@ -4614,7 +4771,7 @@ function loadTipGig(){
 function renderTipForm(g){
   const el=document.getElementById('tip-content');
   const mus=g.musicians||[];
-  if(!mus.length){el.innerHTML='<div style="padding:20px;color:var(--ink3)">ไม่มีนักดนตรีใน assignment</div>';return;}
+  if(!mus.length){el.innerHTML='<div style="padding:20px;color:var(--ink3)">ไม่มีสมาชิกใน assignment</div>';return;}
   const netFee=gigNet(g);
   el.innerHTML=`
     <div style="background:var(--wh);border:1.5px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px">
@@ -4778,17 +4935,15 @@ function renderRecvPageList(){
   const _showHistoryRecv=showHistory;
   let list=S.gigs.filter(g=>{
     if(g.status==='cancelled') return false;
+    const paidTotal=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+    const remaining=g.fee>0?g.fee-paidTotal:0;
     if(showHistory){
-      /* ดูประวัติ: งานที่ status=paid หรือรับเงินครบ 100% */
-      if(g.status==='paid') return true;
-      const pays=g.payments||[];
-      const paidTotal=pays.reduce((s,p)=>s+p.amount,0);
-      return pays.length>0 && g.fee>0 && paidTotal>=g.fee;
+      /* ดูประวัติ: แสดงทุกงานที่เคยมีการรับเงิน รวมถึงที่ paid แล้ว */
+      return g.status==='paid'||(g.payments||[]).length>0;
     } else {
-      /* คงค้าง: งานที่ยังรับไม่ครบ */
-      if(g.status!=='confirmed'&&g.status!=='deposit') return false;
-      const paidTotal=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
-      return (g.fee-paidTotal) > 0;
+      /* หน้าปกติ: งานที่ยังมีคงเหลือ (ไม่ว่า status อะไรก็ตาม ยกเว้น cancelled) */
+      if(g.status==='paid') return false;
+      return remaining>0||g.status==='confirmed';
     }
   }).sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(q) list=list.filter(g=>(g.name+g.venue+(g.clientName||'')).toLowerCase().includes(q));
@@ -4942,20 +5097,24 @@ function renderPayPageList(){
             const cut=getMemberCut(g,mem);
             const payData=paid[mu.memberId];
             const isPaid=payData&&(payData===true||(typeof payData==='object'&&payData.paid));
+            const paidAmt=typeof payData==='object'&&payData.amount?payData.amount:isPaid?cut:0;
+            const isPartial=paidAmt>0&&paidAmt<cut;
             const slip=typeof payData==='object'&&payData.slip?payData.slip:null;
-            return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${isPaid?'var(--gbg)':'var(--bg)'};border-radius:8px;border:1px solid ${isPaid?'#A7F3D0':'var(--bd)'}">
+            return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${isPaid?'var(--gbg)':isPartial?'#FFFBEB':'var(--bg)'};border-radius:8px;border:1px solid ${isPaid?'#A7F3D0':isPartial?'#FCD34D':'var(--bd)'}">
               <div style="display:flex;align-items:center;gap:8px">
-                <div style="width:28px;height:28px;border-radius:8px;background:${isPaid?'var(--green)':'var(--ink3)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${mem.nick?.charAt(0)||'?'}</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:${isPaid?'#16A34A':isPartial?'#D97706':'#DC2626'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${mem.nick?.charAt(0)||'?'}</div>
                 <div>
                   <div style="font-size:12px;font-weight:600;color:var(--ink)">${mem.name}</div>
                   <div style="font-size:10px;color:var(--ink3)">${mem.role||''}</div>
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:8px">
-                ${slip?`${slipImg(slip,32)}`:'' }
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                  ${(()=>{const sl=Array.isArray(payData?.slips)&&payData.slips.length?payData.slips:slip?[slip]:[];return sl.map(s=>slipImg(s,32)).join('');})()}
+                </div>
                 <div style="text-align:right">
-                  <div style="font-size:13px;font-weight:700;color:${isPaid?'var(--green)':'var(--ink)'}">฿${f(cut)}</div>
-                  <div style="font-size:10px;font-weight:600;color:${isPaid?'var(--green)':'var(--ink3)'}">${isPaid?'✓ จ่ายแล้ว':'รอจ่าย'}</div>
+                  <div style="font-size:13px;font-weight:700;color:${isPaid?'var(--green)':isPartial?'#D97706':'var(--red)'}">฿${f(paidAmt||cut)}</div>
+                  <div style="font-size:10px;font-weight:600;color:${isPaid?'var(--green)':isPartial?'#D97706':'var(--ink3)'}">${isPaid?'✓ จ่ายแล้ว':isPartial?`บางส่วน`:'รอจ่าย'}</div>
                 </div>
               </div>
             </div>`;
@@ -5305,45 +5464,61 @@ function openPay(gigId){
   const readOnly=!isAdmin||isHistoryMode;
   const _ro=readOnly;
   document.getElementById('pay-member-rows').innerHTML=mus.map((mu,i)=>{
-    const readOnly=_ro; /* pass to template scope */
-    /* fix: compare as string to handle UUID vs number mismatch */
+    const readOnly=_ro;
     const mem=S.members.find(x=>String(x.id)===String(mu.memberId));if(!mem)return'';
     const cut=getMemberCut(g,mem||{id:mu.memberId});
     const payData=paid[mu.memberId];
-    const isPaid=!!payData;
+    const isPaid=payData&&(payData===true||(typeof payData==='object'&&payData.paid));
+    const paidAmt=typeof payData==='object'&&payData.amount?payData.amount:isPaid?cut:0;
+    const isPartial=paidAmt>0&&paidAmt<cut;
     const existSlip=typeof payData==='object'&&payData.slip?payData.slip:null;
     const mid=mu.memberId;
-    return`<div class="pay-mem-card${isPaid?' paid-done':''}" id="pay-card-${mid}" data-mid="${mid}" data-cut="${cut}" data-ro="${readOnly?'1':'0'}">
-      <div class="pay-mem-header" style="${readOnly?'cursor:default':'cursor:pointer'}" onclick="payRowClick(this)">
-        <input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" ${readOnly?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="event.stopPropagation();payCheckClick(this)">
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;color:var(--ink)">${mem.name} <span style="color:var(--ink3);font-weight:400;font-size:12px">(${mem.nick}) — ${mem.role}</span></div>
-          <div style="font-size:10px;color:var(--ink3);margin-top:2px">${Math.round(mu.pct)}% ของ ฿${f(gigNet(g))}</div>
+    /* color coding */
+    const statusColor=isPaid?'#16A34A':isPartial?'#D97706':'#DC2626';
+    const statusBg=isPaid?'#F0FDF4':isPartial?'#FFFBEB':'#FEF2F2';
+    const statusBorder=isPaid?'#86EFAC':isPartial?'#FCD34D':'#FECACA';
+    const statusLabel=isPaid?'✓ จ่ายแล้ว':isPartial?`จ่ายบางส่วน ฿${f(paidAmt)}`:'รอจ่าย';
+    return`<div class="pay-mem-card${isPaid?' paid-done':''}" id="pay-card-${mid}" data-mid="${mid}" data-cut="${cut}" data-ro="${readOnly?'1':'0'}"
+      style="background:${statusBg};border:1px solid ${statusBorder};border-radius:10px;margin-bottom:8px;overflow:hidden">
+      <div style="padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${readOnly?'':`<input type="checkbox" class="pay-check" id="pay-cb-${i}" ${isPaid?'checked':''} data-mid="${mid}" data-cut="${cut}" onclick="event.stopPropagation();payCheckClick(this)" style="accent-color:var(--red);width:16px;height:16px;flex-shrink:0">`}
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:var(--ink)">${mem.name} <span style="color:var(--ink3);font-weight:400;font-size:11px">${mem.nick} · ${mem.role}</span></div>
+            <div style="font-size:11px;color:var(--ink3);margin-top:1px">ยอดเต็ม ฿${f(cut)}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:15px;font-weight:800;color:${statusColor}" class="pay-amt-display">฿${f(paidAmt||cut)}</div>
+            <div style="font-size:10px;color:${statusColor};font-weight:600" class="pay-status-display">${statusLabel}</div>
+          </div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:14px;font-weight:700;color:${isPaid?'var(--green)':'var(--red)'}">฿${f(cut)}</div>
-          ${isPaid?'<div style="font-size:10px;color:var(--green);margin-top:2px">✓ จ่ายแล้ว</div>':''}
-        </div>
-      </div>
-      <div class="pay-mem-body">
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <div>
-            <div style="font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase">แนบสลิป</div>
-            <div id="pay-slip-thumb-${mid}" class="${existSlip?'pay-slip-thumb':'pay-slip-empty'}"
-              data-mid="${mid}" data-slip="${existSlip||''}"
-              onclick="paySlipClick(this)">
-              ${existSlip
-                ?`<img id="es_${mid}" src="" data-slip-key="${existSlip}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none">`
-                :'<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>อัปโหลด</span>'}
-            </div>
-            <input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip('${mid}',this)">
+        <!-- จำนวนที่จ่าย (editable) -->
+        ${!readOnly?`<div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <div style="flex:1">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">จำนวนที่จ่าย (฿)</div>
+            <input class="fi pay-amount" id="pay-amt-${mid}" type="number" min="0" max="${cut}"
+              placeholder="${cut}" value="${paidAmt||''}"
+              style="font-size:12px;height:32px"
+              oninput="onPayAmtInput('${mid}',${cut})">
           </div>
           <div style="flex:1">
-            <div style="font-size:10px;color:var(--ink3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase">หมายเหตุ</div>
-            <input class="fi" id="pay-note-${mid}" type="text" placeholder="เช่น โอนแล้ว 15 เม.ย." value="${typeof payData==='object'&&payData.note?payData.note:''}" style="font-size:12px;height:32px">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px">หมายเหตุ</div>
+            <input class="fi" id="pay-note-${mid}" type="text" placeholder="เช่น โอนแล้ว" value="${typeof payData==='object'&&payData.note?payData.note:''}" style="font-size:12px;height:32px">
+          </div>
+        </div>`:''}
+        <!-- slip area: multi-slip -->
+        <div id="pay-slip-area-${mid}" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px">
+          ${(()=>{
+            const slips=Array.isArray(payData?.slips)&&payData.slips.length?payData.slips:existSlip?[existSlip]:[];
+            return slips.map(s=>`<img src="" data-slip-key="${s}" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--bd2)" onclick="viewSlip('${s}')">`).join('');
+          })()}
+          <div class="add-slip-btn" onclick="triggerPaySlip('${mid}')"
+            style="width:52px;height:52px;border:1.5px dashed var(--bd2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);font-size:9px;gap:2px;background:var(--bg)">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            สลิป
           </div>
         </div>
-        ${existSlip?`<div style="margin-top:8px;font-size:10px;color:var(--green)">✓ มีสลิปแนบแล้ว — <span style="cursor:pointer;text-decoration:underline" class="view-allowed" onclick="viewSlip('${existSlip}')">ดูสลิป</span></div>`:''}
+        <input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip('${mid}',this)">
       </div>
     </div>`;
   }).join('');
@@ -5384,11 +5559,19 @@ function payRowClick(headerEl){
   togglePayRow(mid,cut);
 }
 function payCheckClick(cb){
-  const card=cb.closest('.pay-mem-card');
+  const card=cb.closest('[id^="pay-card-"]');
   if(!card||card.dataset.ro==='1') return;
   const mid=card.dataset.mid;
   const cut=parseFloat(card.dataset.cut)||0;
-  togglePayRow(mid,cut,cb.checked);
+  if(cb.checked){
+    const amtEl=document.getElementById('pay-amt-'+mid);
+    if(amtEl) amtEl.value=cut; /* fill ยอดเต็มเสมอ */
+    onPayAmtInput(mid,cut);
+  } else {
+    const amtEl=document.getElementById('pay-amt-'+mid);
+    if(amtEl) amtEl.value='';
+    onPayAmtInput(mid,cut);
+  }
 }
 function togglePayRow(mid,cut,forceVal){
   mid=String(mid); /* ensure string */
@@ -5403,11 +5586,10 @@ function togglePayRow(mid,cut,forceVal){
 
 function paySlipClick(el){
   const mid=el.dataset.mid;
-  const slip=el.dataset.slip;
-  if(slip) viewSlip(slip);
-  else triggerPaySlip(mid);
+  if(el.classList.contains('pay-slip-thumb')&&el.dataset.slip){viewSlip(el.dataset.slip);return;}
+  triggerPaySlip(mid);
 }
-function triggerPaySlip(mid){document.getElementById('pay-slip-file-'+mid).click();}
+function triggerPaySlip(mid){document.getElementById('pay-slip-file-'+mid)?.click();}
 
 async function previewPaySlip(mid,inp){
   if(!inp.files[0])return;
@@ -5415,11 +5597,19 @@ async function previewPaySlip(mid,inp){
     const compressed=await compressImage(inp.files[0]);
     const key=newSlipKey();
     await SlipStore.save(key,compressed);
-    paySlips[mid]=key; /* store KEY */
-    const th=document.getElementById('pay-slip-thumb-'+mid);
-    th.className='pay-slip-thumb';
-    th.innerHTML=`<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
-    th.onclick=()=>viewSlip(compressed);
+    if(!paySlips[mid]) paySlips[mid]=[];
+    if(typeof paySlips[mid]==='string') paySlips[mid]=[paySlips[mid]];
+    paySlips[mid].push(key);
+    const area=document.getElementById('pay-slip-area-'+mid);
+    if(area){
+      const img=document.createElement('img');
+      img.src=compressed;
+      img.style.cssText='width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--bd2)';
+      img.onclick=()=>viewSlip(compressed);
+      const addBtn=area.querySelector('.add-slip-btn');
+      if(addBtn) area.insertBefore(img,addBtn); else area.appendChild(img);
+    }
+    inp.value='';
   }catch(e){toast('บีบอัดรูปไม่สำเร็จ');console.error(e);}
 }
 
@@ -5439,27 +5629,55 @@ function updatePayTotal(){
   document.getElementById('pay-total-display').textContent='฿'+f(total);
 }
 
+function onPayAmtInput(mid, cut){
+  const amtEl=document.getElementById('pay-amt-'+mid);
+  const cb=document.querySelector(`.pay-check[data-mid="${mid}"]`);
+  if(!amtEl||!cb) return;
+  const v=parseFloat(amtEl.value)||0;
+  cb.checked=v>0;
+  const card=document.getElementById('pay-card-'+mid);
+  if(card){
+    const isFull=v>=cut,isPartial=v>0&&v<cut;
+    card.style.background=isFull?'#F0FDF4':isPartial?'#FFFBEB':'#FEF2F2';
+    card.style.borderColor=isFull?'#86EFAC':isPartial?'#FCD34D':'#FECACA';
+    const amtD=card.querySelector('.pay-amt-display');
+    const stD=card.querySelector('.pay-status-display');
+    if(amtD){amtD.style.color=isFull?'#16A34A':isPartial?'#D97706':'#DC2626';amtD.textContent=`฿${f(v||cut)}`;}
+    if(stD){stD.style.color=isFull?'#16A34A':isPartial?'#D97706':'#DC2626';stD.textContent=isFull?'✓ จ่ายแล้ว':isPartial?`บางส่วน ฿${f(v)}`:'รอจ่าย';}
+  }
+  updatePayTotal();
+}
+
 function savePay(){
   if(!requireAdmin('บันทึกจ่ายเงิน'))return;
-  const gigId=document.getElementById('pay-gig-id').value; /* UUID string */
+  const gigId=document.getElementById('pay-gig-id').value;
   const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g){toast('ไม่พบข้อมูลงาน');return;}
   if(!g.memberPayments)g.memberPayments={};
   document.querySelectorAll('.pay-check').forEach(cb=>{
-    const mid=cb.dataset.mid; /* UUID string */
-    if(cb.checked){
-      /* บันทึกหรืออัปเดตการจ่าย */
-      const slip=paySlips[mid]||(typeof g.memberPayments[mid]==='object'?g.memberPayments[mid].slip:null)||null;
+    const mid=cb.dataset.mid;
+    const cut=parseFloat(cb.dataset.cut)||0;
+    const amtEl=document.getElementById('pay-amt-'+mid);
+    const paidAmt=amtEl?Math.min(parseFloat(amtEl.value)||0,cut):cut;
+    if(cb.checked||paidAmt>0){
+      const slips=(()=>{
+        const ps=paySlips[mid];
+        const existing=typeof g.memberPayments[mid]==='object'
+          ?(Array.isArray(g.memberPayments[mid].slips)?g.memberPayments[mid].slips:
+            g.memberPayments[mid].slip?[g.memberPayments[mid].slip]:[])
+          :[];
+        if(Array.isArray(ps)&&ps.length) return [...existing,...ps];
+        if(typeof ps==='string') return [...existing,ps];
+        return existing;
+      })();
+      const slip=slips[slips.length-1]||null; /* backward compat */
       const noteEl=document.getElementById('pay-note-'+mid);
       const note=noteEl?noteEl.value.trim():'';
-      const mpData={paid:true,slip,note,date:new Date().toISOString().split('T')[0]};
+      const isFullPaid=paidAmt>=cut;
+      const mpData={paid:isFullPaid,amount:paidAmt,slip,slips,note,date:new Date().toISOString().split('T')[0]};
       g.memberPayments[mid]=mpData;
       if(CLOUD_ENABLED()) syncMemberPayment(g.id,mid,mpData).catch(console.error);
     } else {
-      /* ถ้า unchecked และไม่เคยมีข้อมูลมาก่อน → ไม่ต้องทำอะไร
-         ถ้า unchecked แต่มีข้อมูลอยู่แล้ว → ลบออก (ยกเลิกการจ่าย) */
-      if(g.memberPayments[mid]){
-        delete g.memberPayments[mid];
-      }
+      if(g.memberPayments[mid]) delete g.memberPayments[mid];
     }
   });
   cx('modal-pay');
@@ -5503,7 +5721,7 @@ function filterClient(q){
   const items=q?S.clients.filter(c=>(c.name+c.phone).toLowerCase().includes(q.toLowerCase())):S.clients.slice(0,20);
   renderClientList(items);
   gigState.selectedClientId=null;
-  document.getElementById('gcphone').value='';
+  setPhoneTags('');
   document.getElementById('gcbank-name').value='';
   document.getElementById('gcbank-no').value='';
 }
@@ -5528,13 +5746,96 @@ function selectClient(id){
   const cl=S.clients.find(x=>String(x.id)===String(id));if(!cl)return;
   gigState.selectedClientId=id;
   document.getElementById('gclient-search').value=cl.name;
-  document.getElementById('gcphone').value=cl.phone||'';
+  setPhoneTags(cl.phone||'');
   document.getElementById('gcbank-name').value=cl.bankName||'';
   document.getElementById('gcbank-no').value=cl.bankNo||'';
   document.getElementById('cmb-client').classList.remove('open');
 }
 
 /* ── CLIENT TYPE TOGGLE ── */
+/* ── Phone tag input ── */
+function addPhoneTagNew(){
+  const inp=document.getElementById('gcphone-new-inp');
+  if(!inp)return;
+  const v=inp.value.replace(/\D/g,'').slice(0,10);
+  if(!v)return;
+  const tags=[...document.querySelectorAll('#gcphone-new-tags .phone-tag')].map(t=>t.dataset.phone);
+  renderPhoneTagsNew(tags.concat(v));
+  inp.value='';syncPhoneNewHidden();
+}
+function removePhoneTagNew(phone){
+  const tags=[...document.querySelectorAll('#gcphone-new-tags .phone-tag')].map(t=>t.dataset.phone).filter(p=>p!==phone);
+  renderPhoneTagsNew(tags);syncPhoneNewHidden();
+}
+function renderPhoneTagsNew(phones){
+  const wrap=document.getElementById('gcphone-new-tags');
+  const inp=document.getElementById('gcphone-new-inp');
+  if(!wrap||!inp)return;
+  [...wrap.querySelectorAll('.phone-tag')].forEach(t=>t.remove());
+  phones.forEach(p=>{
+    const tag=document.createElement('span');
+    tag.className='phone-tag';tag.dataset.phone=p;
+    tag.innerHTML=`${p}<button type="button" onclick="removePhoneTagNew('${p}')">×</button>`;
+    wrap.insertBefore(tag,inp);
+  });
+  inp.placeholder=phones.length?'+ เพิ่มเบอร์':'กดพิมพ์เบอร์แล้ว Enter';
+}
+function syncPhoneNewHidden(){
+  const h=document.getElementById('gcphone-new');
+  if(h)h.value=[...document.querySelectorAll('#gcphone-new-tags .phone-tag')].map(t=>t.dataset.phone).join(',');
+}
+function addPhoneTag(){
+  const inp=document.getElementById('gcphone-inp');
+  if(!inp)return;
+  const v=inp.value.replace(/\D/g,'').slice(0,10);
+  if(!v)return;
+  renderPhoneTags(getPhoneTags().concat(v));
+  inp.value='';
+  syncPhoneHidden();
+}
+function getPhoneTags(){
+  return [...document.querySelectorAll('#gcphone-tags .phone-tag')].map(t=>t.dataset.phone);
+}
+function removePhoneTag(phone){
+  renderPhoneTags(getPhoneTags().filter(p=>p!==phone));
+  syncPhoneHidden();
+}
+function renderPhoneTags(phones){
+  const wrap=document.getElementById('gcphone-tags');
+  const inp=document.getElementById('gcphone-inp');
+  if(!wrap||!inp)return;
+  [...wrap.querySelectorAll('.phone-tag')].forEach(t=>t.remove());
+  phones.forEach(p=>{
+    const tag=document.createElement('span');
+    tag.className='phone-tag';tag.dataset.phone=p;
+    tag.innerHTML=`${p}<button type="button" onclick="removePhoneTag('${p}')">×</button>`;
+    wrap.insertBefore(tag,inp);
+  });
+  /* readonly ถ้าเลือกลูกค้าเก่า */
+  inp.placeholder=phones.length?'+ เพิ่มเบอร์':'กดพิมพ์เบอร์แล้ว Enter';
+}
+function setPhoneTags(phoneStr){
+  /* รับ string "08x,09x" หรือ "08x" */
+  const phones=(phoneStr||'').split(',').map(p=>p.trim()).filter(Boolean);
+  renderPhoneTags(phones);
+  syncPhoneHidden();
+}
+function syncPhoneHidden(){
+  const h=document.getElementById('gcphone');
+  if(h)h.value=getPhoneTags().join(',');
+}
+function enablePhoneTags(editable){
+  const inp=document.getElementById('gcphone-inp');
+  if(inp)inp.readOnly=!editable;
+}
+/* ── Time input format ── */
+function formatTimeInput(el){
+  let v=el.value.replace(/[^0-9:]/g,'');
+  /* auto insert colon after 2 digits if not present */
+  if(v.length===2&&!v.includes(':')&&el._prev&&el._prev.length<2) v=v+':';
+  el._prev=v;
+  el.value=v;
+}
 function setCtype(t){
   gigState.ctype=t;
   document.getElementById('ctype-old-btn').style.background=t==='old'?'var(--red)':'var(--wh)';
@@ -5543,6 +5844,7 @@ function setCtype(t){
   document.getElementById('ctype-new-btn').style.color=t==='new'?'#fff':'var(--ink3)';
   document.getElementById('client-old-block').style.display=t==='old'?'block':'none';
   document.getElementById('client-new-block').style.display=t==='new'?'block':'none';
+  enablePhoneTags(true);
 }
 
 /* ── SOURCE DROPDOWN ── */
@@ -6003,7 +6305,7 @@ async function saveBandSettings(){
   if(CLOUD_ENABLED()){
     await fetch(`${SUPABASE_URL}/rest/v1/bands?id=eq.${_sbBandId}`,{
       method:'PATCH', headers:sbHeaders(),
-      body:JSON.stringify({name, leader_name:leader})
+      body:JSON.stringify({name, leader_name:leader, wht_rate:whtRate})
     }).catch(console.error);
   }
   toast('บันทึกข้อมูลวงแล้ว ✓');
@@ -6204,6 +6506,10 @@ function loginSuccess(user){
   ls.classList.add('hidden');
   setTimeout(()=>{ls.style.display='none';},300);
   applyPlanUI();
+  /* ถ้า expired → เด้ง plan modal อัตโนมัติ (admin only) */
+  if(currentUser?.role==='admin'&&getPlanStatus().type==='expired'){
+    setTimeout(()=>openPlanModal(),800);
+  }
   /* แสดง FAB บน mobile */
   if(window.innerWidth<=768){
     const fab=document.getElementById('mob-fab-menu');
@@ -6232,6 +6538,10 @@ async function afterCloudLogin(user){
   }
   applyAuthUI();
   applyPlanUI();
+  /* ถ้า expired → เด้ง plan modal อัตโนมัติ (admin only) */
+  if(currentUser?.role==='admin'&&getPlanStatus().type==='expired'){
+    setTimeout(()=>openPlanModal(),800);
+  }
   /* แสดง FAB บน mobile */
   if(window.innerWidth<=768){
     const fab=document.getElementById('mob-fab-menu');
@@ -7004,6 +7314,7 @@ function saveGigDraft(){
       soundCar:gv('gf-sound-car'),other:gv('gf-other'),
       otherNote:document.getElementById('gf-other-note')?.value||''
     },
+    expenseRows:getExpenseRows(),
     /* client */
     ctype:gigState.ctype||'old',
     clientId:gigState.selectedClientId||null,
@@ -7689,11 +8000,13 @@ function gigActionDuplicate(){
     calcTotalIncome();
     /* ค่าใช้จ่าย */
     const exp=g.expenses||{};
-    populateExpenseMemberDropdown();
-    const smEl=document.getElementById('ge-sound-member');if(smEl)smEl.value=exp.soundMemberId||'';
-    const sfEl=document.getElementById('ge-sound-fee');if(sfEl)sfEl.value=exp.soundFee||'';
-    const ofEl=document.getElementById('ge-other-fee');if(ofEl)ofEl.value=exp.otherFee||'';
-    const onEl2=document.getElementById('ge-other-note');if(onEl2)onEl2.value=exp.otherNote||'';
+    const dupRows=document.getElementById('ge-rows');if(dupRows)dupRows.innerHTML='';
+    if(exp.expenseRows&&exp.expenseRows.length){
+      exp.expenseRows.forEach(r=>addExpenseRow(r.fee||'',r.note||''));
+    } else {
+      if(exp.soundFee>0) addExpenseRow(exp.soundFee,'ค่าทีมเสียง');
+      if(exp.otherFee>0) addExpenseRow(exp.otherFee,exp.otherNote||'');
+    }
     calcExpenses();
     /* ลูกค้า */
     if(g.clientId){
@@ -7701,7 +8014,7 @@ function gigActionDuplicate(){
       if(cl){
         setCtype('old');gigState.selectedClientId=g.clientId;
         document.getElementById('gclient-search').value=cl.name;
-        document.getElementById('gcphone').value=cl.phone||'';
+        setPhoneTags(cl.phone||'');
         document.getElementById('gcbank-name').value=cl.bankName||'';
         document.getElementById('gcbank-no').value=cl.bankNo||'';
       }
@@ -7847,6 +8160,18 @@ async function handleSlipUpload(input){
   S.plan.proExpiresAt=exp.toISOString();
   S.plan.lastSlipRef=transRef;
   S.plan.lastSlipDate=date;
+
+  /* ── Sync plan ขึ้น Supabase ── */
+  if(CLOUD_ENABLED()){
+    fetch(`${SUPABASE_URL}/rest/v1/bands?id=eq.${_sbBandId}`,{
+      method:'PATCH', headers:sbHeaders(),
+      body:JSON.stringify({
+        plan_type:'pro',
+        pro_expires_at:exp.toISOString(),
+        last_slip_ref:transRef||null
+      })
+    }).catch(console.error);
+  }
 
   applyPlanUI();
   renderPlanSettings();
@@ -8017,7 +8342,7 @@ function exportContractPDF(gigId){
     <div class="section-title">③ ผู้รับจ้าง (วงดนตรี)</div>
     <div class="row"><span class="lbl">ชื่อวง</span><span class="val">${band}</span></div>
     <div class="row"><span class="lbl">หัวหน้าวง</span><span class="val">${leader}</span></div>
-    <div class="row"><span class="lbl">นักดนตรี</span><span class="val">${musNames}</span></div>
+    <div class="row"><span class="lbl">สมาชิก</span><span class="val">${musNames}</span></div>
   </div>
   <div class="fee-box">
     <div class="lbl2">ค่าจ้างแสดงดนตรีรวมทั้งสิ้น</div>
@@ -8090,6 +8415,7 @@ ${text}
 วันนี้: ${today}
 แหล่งที่มาที่มีในระบบ: ${sourceList}
 ประเภทงานที่มีในระบบ: ${jobTypeList}
+ลูกค้าที่มีในระบบ: ${clientList}
 
 ให้แยกข้อมูลเป็น JSON ดังนี้:
 {
@@ -8099,39 +8425,43 @@ ${text}
   "timeEnd": "HH:MM (เวลาจบ 24h format, null ถ้าไม่มี)",
   "venue": "ชื่อสถานที่/โรงแรม",
   "province": "จังหวัด (เช่น กรุงเทพมหานคร, เชียงใหม่)",
-  "mapLink": "URL Google Maps ถ้ามี (https://maps.google.com/... หรือ https://maps.app.goo.gl/... หรือ null)",
+  "mapLink": "URL Google Maps ถ้ามี หรือ null",
   "bandsize": จำนวนชิ้นดนตรี เช่น 2,3,4,5,6 หรือ null,
-  "source": "แหล่งที่มา เลือกจาก: ${sourceList} หรือ null ถ้าไม่มี",
-  "type": "ประเภทงาน เลือกจาก: ${jobTypeList} หรือ null ถ้าไม่มี",
-  "fee": ค่าวงหลัก (ตัวเลข),
+  "source": "แหล่งที่มา เลือกจาก: ${sourceList} หรือ null",
+  "type": "ประเภทงาน เลือกจาก: ${jobTypeList} หรือ null",
+  "fee": ค่าตัวหลัก (ตัวเลข),
   "travelOil": ค่าเดินทาง-น้ำมัน,
   "travelCar": ค่าเดินทาง-นั่งรถ,
   "afterParty": ค่า After Party,
-  "soundFee": ค่าระบบเสียง,
-  "soundTravel": ค่าเดินทางเสียง,
-  "expenseSoundFee": ค่าจ้างทีมเสียง (ค่าใช้จ่าย),
-  "expenseOtherFee": ค่าใช้จ่ายอื่นๆ ในงาน,
-  "expenseOtherNote": "หมายเหตุค่าใช้จ่ายอื่นๆ",
-  "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง",
+  "soundFee": ค่าระบบเสียง (รายได้),
+  "soundTravel": ค่าเดินทางเสียง (รายได้),
+  "otherIncome": รายได้อื่นๆ,
+  "otherIncomeNote": "หมายเหตุรายได้อื่นๆ",
+  "expenseRows": [{"fee": ตัวเลข, "note": "รายละเอียด"}, ...],
+  "clientName": "ชื่อลูกค้า/ผู้ว่าจ้าง (ถ้าชื่อคล้ายในระบบให้ใช้ชื่อในระบบ)",
   "clientPhone": "เบอร์โทรลูกค้า",
-  "note": "หมายเหตุอื่นๆ ที่ไม่ใช่ link map (ถ้า map อยู่ใน note ให้ย้ายไปใส่ mapLink แทน)",
+  "clientBankName": "ชื่อธนาคารลูกค้า หรือ null",
+  "clientBankNo": "เลขบัญชีลูกค้า หรือ null",
+  "note": "หมายเหตุอื่นๆ ที่ไม่ใช่ link map",
   "musicians": [
     {
       "nick": "ชื่อเล่นหรือชื่อสมาชิก (match จากรายชื่อที่ให้)",
-      "fee": ค่าตัว (ตัวเลข),
+      "fee": ค่าตัว,
       "travel": ค่านั่งรถ,
       "oil": ค่าน้ำมัน,
       "overtime": ค่าต่อเวลา,
       "other": ค่าอื่นๆ,
-      "otherNote": "หมายเหตุค่าอื่นๆ"
+      "otherNote": "หมายเหตุ"
     }
   ]
 }
 หมายเหตุสำคัญ:
-- ถ้ามี link Google Maps ในข้อความ ให้แยกใส่ mapLink (ไม่ใส่ใน note)
-- musicians.fee คือค่าตัวของนักดนตรีแต่ละคน (breakdown แยกจากค่าวงรวม)
-- ถ้าไม่มีข้อมูลนักดนตรีให้เป็น []
-- ตัวเลขทุกตัวเป็น number ไม่ใช่ string`;
+- ถ้ามี link Google Maps ให้แยกใส่ mapLink ไม่ใส่ใน note
+- expenseRows คือค่าใช้จ่ายของวง เช่น ค่าทีมเสียง, ค่าเช่า, ค่าเดินทาง ใส่ทุกรายการ
+- musicians.fee คือค่าตัวแต่ละคน breakdown แยกจากค่าวงรวม
+- ถ้าไม่มีข้อมูลสมาชิกให้เป็น []
+- ตัวเลขทุกตัวเป็น number ไม่ใช่ string
+- ถ้าไม่มีข้อมูลให้ใส่ 0 หรือ null`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -8182,7 +8512,7 @@ ${text}
       if(match){
         setCtype('old');gigState.selectedClientId=match.id;
         document.getElementById('gclient-search').value=match.name;
-        document.getElementById('gcphone').value=match.phone||'';
+        setPhoneTags(match.phone||'');
       } else {
         setCtype('new');
         document.getElementById('gcname-new').value=parsed.clientName;
@@ -8267,8 +8597,9 @@ function _reApplyAIFill(p){
   /* ── ข้อมูลพื้นฐาน ── */
   if(p.name) document.getElementById('gn').value=p.name;
   if(p.date) setGigDateDropdowns(_convertBEDateToCE(p.date));
-  if(p.timeStart){const ts=document.getElementById('gtstart');if(ts&&Array.from(ts.options).find(o=>o.value===p.timeStart))ts.value=p.timeStart;}
-  if(p.timeEnd){const te=document.getElementById('gtend');if(te&&Array.from(te.options).find(o=>o.value===p.timeEnd))te.value=p.timeEnd;}
+  /* time: text input โดยตรง */
+  if(p.timeStart){const ts=document.getElementById('gtstart');if(ts)ts.value=p.timeStart;}
+  if(p.timeEnd){const te=document.getElementById('gtend');if(te)te.value=p.timeEnd;}
   /* ── สถานที่ ── */
   if(p.venue) document.getElementById('gv').value=p.venue;
   if(p.province) document.getElementById('gprov').value=p.province;
@@ -8288,9 +8619,13 @@ function _reApplyAIFill(p){
   if(p.otherIncomeNote) document.getElementById('gf-other-note').value=p.otherIncomeNote;
   if(typeof calcTotalIncome==='function') calcTotalIncome();
   /* ── ค่าใช้จ่าย ── */
-  if(p.expenseSoundFee>0) document.getElementById('ge-sound-fee').value=p.expenseSoundFee;
-  if(p.expenseOtherFee>0) document.getElementById('ge-other-fee').value=p.expenseOtherFee;
-  if(p.expenseOtherNote) document.getElementById('ge-other-note').value=p.expenseOtherNote;
+  const aiRows=document.getElementById('ge-rows');if(aiRows)aiRows.innerHTML='';
+  if(Array.isArray(p.expenseRows)&&p.expenseRows.length){
+    p.expenseRows.forEach(r=>{ if(r.fee>0) addExpenseRow(r.fee,r.note||''); });
+  } else {
+    if(p.expenseSoundFee>0) addExpenseRow(p.expenseSoundFee,'ค่าทีมเสียง');
+    if(p.expenseOtherFee>0) addExpenseRow(p.expenseOtherFee,p.expenseOtherNote||'');
+  }
   if(typeof calcExpenses==='function') calcExpenses();
   /* ── ลูกค้า ── */
   if(p.clientName){
@@ -8298,11 +8633,15 @@ function _reApplyAIFill(p){
     if(match){
       setCtype('old');gigState.selectedClientId=match.id;
       document.getElementById('gclient-search').value=match.name;
-      document.getElementById('gcphone').value=match.phone||'';
+      setPhoneTags(match.phone||'');
+      const bn=document.getElementById('gcbank-name');const bno=document.getElementById('gcbank-no');
+      if(bn)bn.value=match.bankName||'';if(bno)bno.value=match.bankNo||'';
     } else {
       setCtype('new');
       document.getElementById('gcname-new').value=p.clientName;
-      if(p.clientPhone) document.getElementById('gcphone-new').value=p.clientPhone;
+      if(p.clientPhone){renderPhoneTagsNew(p.clientPhone.split(',').map(s=>s.trim()).filter(Boolean));syncPhoneNewHidden();}
+      if(p.clientBankName){const bn=document.getElementById('gcbank-name-new');if(bn)bn.value=p.clientBankName;}
+      if(p.clientBankNo){const bno=document.getElementById('gcbank-no-new');if(bno)bno.value=p.clientBankNo;}
     }
   }
   /* ── หมายเหตุ ── */
@@ -8442,11 +8781,18 @@ async function doExportSlipZip(){
     /* pay slips */
     if(wantPay){
       Object.entries(g.memberPayments||{}).forEach(([memId,pd])=>{
-        const slip=typeof pd==='object'?pd.slip:null;
-        if(!slip) return;
+        if(typeof pd!=='object') return;
         const mem=S.members.find(x=>String(x.id)===String(memId));
         const nick=(mem?.nick||memId).replace(/[\/\\:*?"<>|]/g,'_');
-        tasks.push({type:'pay',key:slip,name:`${safeJob}_${safeName}_${nick}_pay.jpg`,gigId:g.id});
+        /* รวม slips array + slip เดี่ยว */
+        const allSlips=Array.isArray(pd.slips)&&pd.slips.length
+          ?pd.slips
+          :(pd.slip?[pd.slip]:[]);
+        allSlips.forEach((s,si)=>{
+          if(!s) return;
+          const suffix=allSlips.length>1?`_${si+1}`:'';
+          tasks.push({type:'pay',key:s,name:`${safeJob}_${safeName}_${nick}_pay${suffix}.jpg`,gigId:g.id});
+        });
       });
     }
   });
@@ -8792,14 +9138,17 @@ async function doExportExcel(){
   function showFAB(){
     if(window.innerWidth<=768){
       const fab=document.getElementById('mob-fab-menu');
-      if(fab) fab.style.display='flex';
+      const sb=document.querySelector('.sidebar');
+      const sidebarOpen=sb&&sb.classList.contains('mob-open');
+      if(fab) fab.style.display=sidebarOpen?'none':'flex';
     }
   }
   document.addEventListener('DOMContentLoaded', showFAB);
   document.addEventListener('DOMContentLoaded', initRememberMe);
   window.addEventListener('load', showFAB);
-  /* fallback */
-  setTimeout(showFAB, 300);
+  window.addEventListener('resize', showFAB);
+  setInterval(showFAB, 800);
+  setTimeout(showFAB, 100);
 })();
 </script>
 </body>
