@@ -4251,25 +4251,39 @@ function calcTotalIncome(){
 }
 function renderMemberRows(){
   const wrap=document.getElementById('gig-member-rows');
-  const existing=[...wrap.querySelectorAll('select')].map(s=>s.value);
+  /* เก็บ selection เดิมโดยใช้ memberId (ไม่ใช่ index) */
+  const existingIds=[...wrap.querySelectorAll('select')].map(s=>s.value);
+  /* เก็บ breakdown เดิมแต่ละ row */
+  const existingBd=existingIds.map((_,i)=>({
+    fee:document.getElementById(`gbd-fee-${i}`)?.value||'',
+    car:document.getElementById(`gbd-car-${i}`)?.value||'',
+    oil:document.getElementById(`gbd-oil-${i}`)?.value||'',
+    ot:document.getElementById(`gbd-ot-${i}`)?.value||'',
+    other:document.getElementById(`gbd-other-${i}`)?.value||'',
+    note:document.getElementById(`gbd-note-${i}`)?.value||''
+  }));
   const n=gigState.count;
   const activeMembers=S.members.filter(m=>m.status==='active');
   let html='';
   for(let i=0;i<n;i++){
-    const selVal=existing[i]||'';
-    const otherSelected=existing.filter((_,idx)=>idx!==i&&_);
+    /* คง selection เดิมถ้า index ยังอยู่ */
+    const selVal=existingIds[i]||'';
+    const otherSelected=existingIds.filter((_,idx)=>idx!==i&&_);
     const availableOpts=activeMembers.map(m=>{
       const isOtherSelected=otherSelected.includes(String(m.id));
       return`<option value="${m.id}" ${isOtherSelected?'disabled style="color:#ccc"':''} ${String(m.id)===selVal?'selected':''}>${m.name}${m.lastname?' '+m.lastname:''} (${m.nick}) — ${m.role}${isOtherSelected?' ✓':''}</option>`;
     }).join('');
+    /* คำนวณ % ทศนิยม 2 ตำแหน่ง */
+    const equalPct=(100/n).toFixed(2);
     let pctField;
     if(gigState.splitMode==='pct'){
-      pctField=`<input class="fi" id="gpct-${i}" type="number" min="0" max="100" placeholder="%" style="width:70px;flex-shrink:0" oninput="updateSummary()">`;
+      pctField=`<input class="fi" id="gpct-${i}" type="number" min="0" max="100" step="0.01" placeholder="%" style="width:70px;flex-shrink:0" oninput="updateSummary()">`;
     } else if(gigState.splitMode==='amt'){
       pctField=`<div id="gpct-${i}" style="width:90px;flex-shrink:0;text-align:right;font-size:12px;font-weight:700;color:var(--red);line-height:36px">฿0</div>`;
     } else {
-      pctField=`<div style="width:70px;flex-shrink:0;text-align:center;font-size:12px;font-weight:600;color:var(--red);line-height:36px" id="gpct-${i}">${Math.round(100/n)}%</div>`;
+      pctField=`<div style="width:70px;flex-shrink:0;text-align:center;font-size:12px;font-weight:600;color:var(--red);line-height:36px" id="gpct-${i}">${equalPct}%</div>`;
     }
+    const bd=existingBd[i]||{};
     html+=`<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="width:22px;height:22px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
@@ -4279,13 +4293,13 @@ function renderMemberRows(){
         ${pctField}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ค่าตัว (฿)</div><input class="fi" id="gbd-fee-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
-        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">นั่งรถ (฿)</div><input class="fi" id="gbd-car-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
-        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">น้ำมัน (฿)</div><input class="fi" id="gbd-oil-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
-        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ต่อเวลา (฿)</div><input class="fi" id="gbd-ot-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
-        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">อื่นๆ (฿)</div><input class="fi" id="gbd-other-${i}" type="number" min="0" placeholder="0" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ค่าตัว (฿)</div><input class="fi" id="gbd-fee-${i}" type="number" min="0" placeholder="0" value="${bd.fee}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">นั่งรถ (฿)</div><input class="fi" id="gbd-car-${i}" type="number" min="0" placeholder="0" value="${bd.car}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">น้ำมัน (฿)</div><input class="fi" id="gbd-oil-${i}" type="number" min="0" placeholder="0" value="${bd.oil}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ต่อเวลา (฿)</div><input class="fi" id="gbd-ot-${i}" type="number" min="0" placeholder="0" value="${bd.ot}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
+        <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">อื่นๆ (฿)</div><input class="fi" id="gbd-other-${i}" type="number" min="0" placeholder="0" value="${bd.other}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
       </div>
-      <input class="fi" id="gbd-note-${i}" type="text" placeholder="หมายเหตุ อื่นๆ" style="font-size:11px;height:28px;width:100%;margin-top:4px">
+      <input class="fi" id="gbd-note-${i}" type="text" placeholder="หมายเหตุ อื่นๆ" value="${bd.note}" style="font-size:11px;height:28px;width:100%;margin-top:4px">
       <div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600">
         <span style="color:var(--ink3)">รวมได้รับ</span>
         <span id="gbd-total-${i}" style="color:var(--red)">฿0</span>
@@ -4293,6 +4307,11 @@ function renderMemberRows(){
     </div>`;
   }
   wrap.innerHTML=html;
+  /* recalc breakdown ที่มีข้อมูลเดิม */
+  for(let i=0;i<n;i++){
+    const bd=existingBd[i];
+    if(bd&&(bd.fee||bd.car||bd.oil||bd.ot||bd.other)) calcBreakdown(i);
+  }
   updateSummary();
 }
 
@@ -4344,8 +4363,14 @@ function updateSummary(){
     const mem=S.members.find(x=>x.id==memId);
     let pct,amount;
     if(gigState.splitMode==='equal'){
-      pct=Math.round(100/n);
-      amount=Math.round(netBase*(pct/100));
+      pct=parseFloat((100/n).toFixed(2));
+      /* คนสุดท้ายได้ส่วนที่เหลือ ป้องกัน rounding error */
+      if(i===n-1){
+        const sumPrev=rows.reduce((s,r)=>s+r.amount,0);
+        amount=netBase-sumPrev;
+      } else {
+        amount=Math.round(netBase*(pct/100));
+      }
       /* auto-fill ค่าตัว */
       const feeEl=document.getElementById(`gbd-fee-${i}`);
       if(feeEl&&(!feeEl.value||parseFloat(feeEl.value)===0||feeEl.dataset.autoFilled==='1')){
@@ -4380,7 +4405,7 @@ function updateSummary(){
     statusLabel=`<span style="color:var(--green);font-weight:600">100% ✓</span>`;
   } else if(gigState.splitMode==='pct'){
     const over=totalPct>100;
-    statusLabel=`<span style="color:${over?'var(--red)':'var(--green)'};font-weight:600">${Math.round(totalPct)}% ${over?'⚠ เกิน':'✓'}</span>`;
+    statusLabel=`<span style="color:${over?'var(--red)':'var(--green)'};font-weight:600">${totalPct.toFixed(2)}% ${over?'⚠ เกิน':'✓'}</span>`;
   } else {
     const over=totalAmt>netBase;
     statusLabel=`<span style="color:${over?'var(--red)':'var(--green)'};font-weight:600">฿${f(totalAmt)} / ฿${f(netBase)} ${over?'⚠ เกิน':'✓'}</span>`;
