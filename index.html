@@ -2746,8 +2746,10 @@ async function syncMember(mem) {
       const d=await r.json();
       if(!r.ok){console.error('❌ syncMember insert:',r.status,d);return;}
       const li=S.members.findIndex(x=>x.id===mem.id);
-      if(li>=0&&d[0]) S.members[li].id=d[0].id;
-      console.log('✅ syncMember insert:',d[0]?.id);
+      if(li>=0&&d[0]){
+        S.members[li].id=d[0].id;
+        console.log('✅ syncMember insert uuid:',d[0].id);
+      }
     } else {
       const r=await fetch(`${SUPABASE_URL}/rest/v1/members?id=eq.${mem.id}`,{method:'PATCH',headers:sbHeaders(),body:JSON.stringify(row)});
       if(!r.ok){const d=await r.json();console.error('❌ syncMember update:',r.status,d);}
@@ -4537,6 +4539,7 @@ function cancelGig(id){
   if(g.status==='cancelled'){toast('งานนี้ถูกยกเลิกแล้ว');return;}
   if(!confirm('ต้องการยกเลิกงาน "'+g.name+'" ใช่ไหม?\nงานจะยังคงอยู่ในระบบ แต่ status จะเปลี่ยนเป็น "ยกเลิก"'))return;
   g.status='cancelled';g.cancelledAt=new Date().toISOString().split('T')[0];
+  if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
   rg();rd();updateGigTabCounts();toast('ยกเลิกงานแล้ว');
 }
 
@@ -5079,28 +5082,49 @@ const SlipStore = (() => {
 })();
 
 /* ── Compress image via Canvas ──
-   maxW/maxH = max dimension px
-   quality   = JPEG quality 0-1
-   target ~50-80KB for slip thumbnails */
-async function compressImage(file, maxW=1200, maxH=1600, quality=0.72) {
+   Strategy: resize → ลด quality ซ้ำจนได้ขนาดเป้าหมาย
+   สลิปต้องการแค่อ่านเลขได้ ไม่ต้องคุณภาพสูง */
+async function compressImage(file, maxW=900, maxH=1200, targetKB=45) {
   return new Promise((res, rej) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
       let {width: w, height: h} = img;
-      /* Scale down if needed */
+
+      /* Step 1: scale ให้ไม่เกิน maxW/maxH */
       if (w > maxW || h > maxH) {
         const r = Math.min(maxW / w, maxH / h);
-        w = Math.round(w * r);
-        h = Math.round(h * r);
+        w = Math.round(w * r); h = Math.round(h * r);
       }
+
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', quality);
-      const kb = Math.round(dataUrl.length * 0.75 / 1024);
-      console.log(`Slip compressed: ${w}×${h} ~${kb}KB`);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      /* Step 2: iterate quality ลงจนได้ขนาดเป้า */
+      let quality = 0.65;
+      let dataUrl = canvas.toDataURL('image/webp', quality);
+      let kb = Math.round(dataUrl.length * 0.75 / 1024);
+
+      /* ลด quality ลงเรื่อยๆ จนถึง target หรือ min 0.3 */
+      while (kb > targetKB && quality > 0.3) {
+        quality = Math.max(0.3, quality - 0.1);
+        dataUrl = canvas.toDataURL('image/webp', quality);
+        kb = Math.round(dataUrl.length * 0.75 / 1024);
+      }
+
+      /* Step 3: ถ้ายังเกิน target ให้ scale canvas ลงอีก 20% */
+      if (kb > targetKB * 1.5 && w > 400) {
+        w = Math.round(w * 0.75); h = Math.round(h * 0.75);
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        dataUrl = canvas.toDataURL('image/webp', 0.5);
+        kb = Math.round(dataUrl.length * 0.75 / 1024);
+      }
+
+      console.log(`Slip compressed: ${w}×${h} ~${kb}KB (webp q=${quality.toFixed(2)})`);
       res(dataUrl);
     };
     img.onerror = rej;
@@ -5743,12 +5767,19 @@ function sm(){
     S.members[i]=bumpVersion({...S.members[i],name:n,lastname:last,nick:k||n[0],role:r,joinDate:jd,status:st,photo:S._photoData!==undefined?S._photoData:S.members[i].photo});
     toast('บันทึกแล้ว ✓');
     if(CLOUD_ENABLED()) syncMember(S.members[i]).catch(console.error);
+    cx('mmem');rmem();
   } else {
-    S.members.push(bumpVersion({id:Date.now(),name:n,lastname:last,nick:k||n[0],role:r,joinDate:jd,status:st,photo:S._photoData||null}));
+    const newMem=bumpVersion({id:Date.now(),name:n,lastname:last,nick:k||n[0],role:r,joinDate:jd,status:st,photo:S._photoData||null});
+    S.members.push(newMem);
     toast('เพิ่มสมาชิกสำเร็จ ✓');
-    if(CLOUD_ENABLED()) syncMember(S.members[S.members.length-1]).catch(console.error);
+    cx('mmem');rmem();
+    /* await sync เพื่อให้ id เปลี่ยนเป็น UUID ก่อน แก้ไขครั้งถัดไปจะถูกต้อง */
+    if(CLOUD_ENABLED()){
+      syncMember(S.members[S.members.length-1]).then(()=>{
+        rmem(); /* re-render หลัง id อัพเดทแล้ว */
+      }).catch(console.error);
+    }
   }
-  cx('mmem');rmem();
 }
 async function previewPhoto(inp){
   if(!inp.files[0])return;
@@ -8456,7 +8487,7 @@ async function doExportSlipZip(){
     }
     if(imgData){
       const b64=imgData.includes(',')?imgData.split(',')[1]:imgData;
-      const ext=imgData.includes('png')?'png':'jpg';
+      const ext=imgData.includes('webp')?'webp':imgData.includes('png')?'png':'jpg';
       zip.folder(task.type).file(task.name.replace('.jpg','.'+ext),b64,{base64:true});
       found.push(task.name);
       console.log(`[slip] added: ${task.name}`);
