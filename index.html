@@ -8632,7 +8632,7 @@ ${text}
 กฎสำคัญ:
 1. bandFee = ค่าวงรวม, musicians[].fee = ค่าตัวแต่ละคน (คนละอย่างกัน)
 2. source และ type ต้อง copy ตัวอักษรจากรายการที่ให้ ห้ามแต่งเอง
-3. expenseRows = ค่าใช้จ่ายของวง เช่น ค่าทีมเสียง ค่าเช่าอุปกรณ์ — ใส่เฉพาะเมื่อ prompt ระบุชัดว่าเป็น "ค่าใช้จ่ายในงาน" เท่านั้น
+3. expenseRows — ใส่ได้เฉพาะเมื่อ prompt มีคำว่า "ค่าใช้จ่ายในงาน" เท่านั้น ถ้าไม่มีคำนี้ใน prompt ให้ expenseRows = [] เสมอ ห้ามเดาหรือสรุปเอง
 4. ค่าน้ำมัน/ค่ารถของสมาชิกให้ใส่ใน musicians[].oil และ musicians[].travel เสมอ ห้ามใส่ใน expenseRows
 5. ถ้าไม่รู้ว่าค่าน้ำมัน/รถเป็นของสมาชิกคนไหน ให้แบ่งเท่ากันทุกคน
 6. ตัวเลขทุกตัวเป็น number ไม่ใช่ string
@@ -8655,6 +8655,10 @@ ${text}
     const jsonMatch=raw.match(/\{[\s\S]*\}/);
     if(!jsonMatch) throw new Error('ไม่พบ JSON ใน response');
     const parsed=JSON.parse(jsonMatch[0]);
+
+    /* ถ้า prompt ไม่มีคำว่า "ค่าใช้จ่ายในงาน" → ล้าง expenseRows ทิ้งเลย */
+    const hasExpenseKeyword=text.includes('ค่าใช้จ่ายในงาน');
+    if(!hasExpenseKeyword) parsed.expenseRows=[];
 
     /* Fill form fields */
     if(parsed.name) document.getElementById('gn').value=parsed.name;
