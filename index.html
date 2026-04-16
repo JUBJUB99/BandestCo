@@ -347,7 +347,8 @@ tbody tr:hover{background:var(--rl)}
 
 /* ── VIEW-ONLY MODE (member role) ── */
 /* ล็อกทุก input/textarea/select/button ที่ไม่ใช่ view action */
-body.view-only input:not([type=checkbox]):not(#recv-search):not(#pay-search):not(#income-filter-month):not(#income-filter-year):not(#income-filter-source):not(#income-filter-type):not(.gig-cb):not(#recv-show-history):not(#pay-show-history){
+body.view-only input:not([type=checkbox]):not(#recv-search):not(#pay-search):not(#income-filter-month):not(#income-filter-year):not(#income-filter-source):not(#income-filter-type):not(.gig-cb):not(#recv-show-history):not(#pay-show-history),
+body.view-only select:not(#recv-filter-month):not(#recv-sort):not(#pay-filter-month):not(#pay-sort){
   pointer-events:none!important;
   background:var(--bg)!important;
   color:var(--ink3)!important;
@@ -467,6 +468,11 @@ body.view-only .pay-check{
 .pay-check{width:18px;height:18px;accent-color:var(--red);cursor:pointer;flex-shrink:0}
 .slip-preview{width:80px;height:80px;border-radius:10px;object-fit:cover;border:1px solid var(--bd);cursor:pointer}
 .slip-preview-empty{width:80px;height:80px;border-radius:10px;border:2px dashed var(--rb);display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;gap:4px;color:var(--red);font-size:10px;background:var(--rl)}
+.slip-drop-zone{border:2px dashed var(--bd2);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg)}
+.slip-drop-zone:hover,.slip-drop-zone.dragover{border-color:var(--red);background:var(--rl)}
+.slip-drop-zone .dz-icon{font-size:24px;margin-bottom:4px}
+.slip-drop-zone .dz-label{font-size:12px;color:var(--ink2);font-weight:500}
+.slip-drop-zone .dz-sub{font-size:10px;color:var(--ink3);margin-top:2px}
 .pay-mem-card{background:var(--wh);border:1.5px solid var(--bd);border-radius:12px;overflow:hidden;transition:all .15s}
 .pay-mem-card.checked{border-color:var(--red);background:var(--rl)}
 .pay-mem-card.paid-done{border-color:var(--green);background:var(--gbg)}
@@ -1241,7 +1247,18 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
           <input type="checkbox" id="recv-show-history" onchange="renderRecvPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
           ดูประวัติย้อนหลัง
         </label>
-        <input id="recv-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:160px;height:32px;padding:4px 12px;font-size:12px" oninput="renderRecvPageList()">
+        <select id="recv-filter-month" class="chart-sel" style="padding:4px 8px;font-size:12px;height:32px" onchange="renderRecvPageList()">
+          <option value="">ทุกเดือน</option>
+          <option value="01">ม.ค.</option><option value="02">ก.พ.</option><option value="03">มี.ค.</option>
+          <option value="04">เม.ย.</option><option value="05">พ.ค.</option><option value="06">มิ.ย.</option>
+          <option value="07">ก.ค.</option><option value="08">ส.ค.</option><option value="09">ก.ย.</option>
+          <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+        </select>
+        <select id="recv-sort" class="chart-sel" style="padding:4px 8px;font-size:12px;height:32px" onchange="renderRecvPageList()">
+          <option value="date-desc">วันงาน: ใหม่→เก่า</option>
+          <option value="date-asc">วันงาน: เก่า→ใหม่</option>
+        </select>
+        <input id="recv-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:140px;height:32px;padding:4px 12px;font-size:12px" oninput="renderRecvPageList()">
         <span id="recv-page-count" style="font-size:11px;color:var(--ink3);white-space:nowrap"></span>
       </div>
     </div>
@@ -1268,7 +1285,18 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
           <input type="checkbox" id="pay-show-history" onchange="renderPayPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
           ดูประวัติย้อนหลัง
         </label>
-        <input id="pay-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:160px;height:32px;padding:4px 12px;font-size:12px" oninput="renderPayPageList()">
+        <select id="pay-filter-month" class="chart-sel" style="padding:4px 8px;font-size:12px;height:32px" onchange="renderPayPageList()">
+          <option value="">ทุกเดือน</option>
+          <option value="01">ม.ค.</option><option value="02">ก.พ.</option><option value="03">มี.ค.</option>
+          <option value="04">เม.ย.</option><option value="05">พ.ค.</option><option value="06">มิ.ย.</option>
+          <option value="07">ก.ค.</option><option value="08">ส.ค.</option><option value="09">ก.ย.</option>
+          <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+        </select>
+        <select id="pay-sort" class="chart-sel" style="padding:4px 8px;font-size:12px;height:32px" onchange="renderPayPageList()">
+          <option value="date-desc">วันงาน: ใหม่→เก่า</option>
+          <option value="date-asc">วันงาน: เก่า→ใหม่</option>
+        </select>
+        <input id="pay-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:140px;height:32px;padding:4px 12px;font-size:12px" oninput="renderPayPageList()">
         <span id="pay-page-count" style="font-size:11px;color:var(--ink3);white-space:nowrap"></span>
       </div>
     </div>
@@ -2461,14 +2489,22 @@ Line: @somchai_jaidee
     </div>
     <div class="fg">
       <label class="fl">แนบสลิป</label>
-      <div style="display:flex;align-items:center;gap:12px">
-        <div id="slip-thumb" class="slip-preview-empty" onclick="document.getElementById('slip-file').click()">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          อัปโหลด
+      <div id="recv-drop-zone" class="slip-drop-zone" onclick="document.getElementById('slip-file').click()"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="event.preventDefault();this.classList.remove('dragover');handleRecvSlipDrop(event.dataTransfer.files[0])">
+        <div id="recv-slip-preview-wrap" style="display:none;margin-bottom:8px;position:relative;display:none">
+          <img id="recv-slip-preview-img" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:cover">
+          <button type="button" onclick="event.stopPropagation();clearRecvSlip()"
+            style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
         </div>
-        <input type="file" id="slip-file" accept="image/*" style="display:none" onchange="previewSlip(this)">
-        <div style="font-size:11px;color:var(--ink3)">รองรับ JPG, PNG<br>คลิกที่รูปเพื่อเปลี่ยน</div>
+        <div id="recv-slip-dz-content">
+          <div class="dz-icon">📎</div>
+          <div class="dz-label">ลากสลิปมาวางที่นี่ หรือกดเพื่อเลือกรูป</div>
+          <div class="dz-sub">รองรับ JPG, PNG</div>
+        </div>
       </div>
+      <input type="file" id="slip-file" accept="image/*" style="display:none" onchange="previewSlip(this)">
     </div>
     <div class="fg"><label class="fl">หมายเหตุ (ถ้ามี)</label><input class="fi" id="recv-note" placeholder="เช่น มัดจำงวดแรก 50%"></div>
     <div class="ma"><button class="btn btn-o" onclick="cx('modal-recv')">ปิด</button><button class="btn btn-r" id="modal-recv-save-btn" onclick="saveRecv()">บันทึกการรับเงิน</button></div>
@@ -5424,6 +5460,8 @@ function goToRecvPage(){
   pg.classList.add('active');pg.style.removeProperty('display');
   const el=document.getElementById('recv-search');if(el)el.value='';
   const rh=document.getElementById('recv-show-history');if(rh)rh.checked=false;
+  const rm=document.getElementById('recv-filter-month');if(rm)rm.value='';
+  const rs=document.getElementById('recv-sort');if(rs)rs.value='date-desc';
   renderRecvPageList();
 }
 
@@ -5435,6 +5473,8 @@ function goToPayPage(){
   pg.classList.add('active');pg.style.removeProperty('display');
   const el=document.getElementById('pay-search');if(el)el.value='';
   const ph=document.getElementById('pay-show-history');if(ph)ph.checked=false;
+  const pm=document.getElementById('pay-filter-month');if(pm)pm.value='';
+  const ps=document.getElementById('pay-sort');if(ps)ps.value='date-desc';
   renderPayPageList();
 }
 
@@ -5450,22 +5490,27 @@ function backToGigs(){
 
 function renderRecvPageList(){
   const q=(document.getElementById('recv-search')?.value||'').trim().toLowerCase();
+  const filterMonth=document.getElementById('recv-filter-month')?.value||'';
+  const sortDir=document.getElementById('recv-sort')?.value||'date-desc';
   const isAdmin=currentUser?.role==='admin';
   const showHistory=document.getElementById('recv-show-history')?.checked||false;
   const _showHistoryRecv=showHistory;
   let list=S.gigs.filter(g=>{
     if(g.status==='cancelled') return false;
     const paidTotal=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
-    const remaining=g.fee>0?g.fee-paidTotal:0;
+    const remaining=Math.max(0, g.fee>0?g.fee-paidTotal:0);
     if(showHistory){
-      /* ดูประวัติ: แสดงทุกงานที่เคยมีการรับเงิน รวมถึงที่ paid แล้ว */
-      return g.status==='paid'||(g.payments||[]).length>0;
+      return g.status==='paid'||(g.payments||[]).length>0||remaining===0;
     } else {
-      /* หน้าปกติ: งานที่ยังมีคงเหลือ (ไม่ว่า status อะไรก็ตาม ยกเว้น cancelled) */
       if(g.status==='paid') return false;
-      return remaining>0||g.status==='confirmed';
+      if(g.fee>0&&remaining<=0) return false; /* คงเหลือ 0 และมีรายได้จริง → ออก */
+      return true; /* fee=0 (ยังไม่ใส่รายได้) หรือ remaining>0 → แสดงปกติ */
     }
-  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  });
+  if(filterMonth) list=list.filter(g=>g.date&&g.date.slice(5,7)===filterMonth);
+  list.sort((a,b)=>sortDir==='date-asc'
+    ?(a.date||'').localeCompare(b.date||'')
+    :(b.date||'').localeCompare(a.date||''));
   if(q) list=list.filter(g=>(g.name+g.venue+(g.clientName||'')).toLowerCase().includes(q));
   const cnt=document.getElementById('recv-page-count');
   const empty=document.getElementById('recv-page-empty');
@@ -5486,7 +5531,7 @@ function renderRecvPageList(){
     const clPhone=cl?.phone||(g.clientPhone||'');
     const pays=g.payments||[];
     const paidTotal=pays.reduce((s,p)=>s+p.amount,0);
-    const remain=g.fee-paidTotal;
+    const remain=Math.max(0, g.fee-paidTotal);
     const pct=g.fee?Math.round(paidTotal/g.fee*100):0;
     return`<div style="background:var(--wh);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;box-shadow:var(--sh-sm)">
       <!-- head -->
@@ -5552,6 +5597,8 @@ function renderRecvPageList(){
 
 function renderPayPageList(){
   const q=(document.getElementById('pay-search')?.value||'').trim().toLowerCase();
+  const filterMonth=document.getElementById('pay-filter-month')?.value||'';
+  const sortDir=document.getElementById('pay-sort')?.value||'date-desc';
   const isAdminPay=currentUser?.role==='admin';
   const showPayHistory=document.getElementById('pay-show-history')?.checked||false;
   let list=S.gigs.filter(g=>{
@@ -5561,13 +5608,15 @@ function renderPayPageList(){
     const paid=g.memberPayments||{};
     const paidCount=mus.filter(mu=>{const p=paid[mu.memberId];return p&&(p===true||(typeof p==='object'&&p.paid));}).length;
     if(showPayHistory){
-      /* ดูประวัติ: แสดงงานที่จ่ายครบแล้ว */
       return paidCount===mus.length;
     } else {
-      /* คงค้าง: งานที่ยังจ่ายไม่ครบ */
       return paidCount<mus.length;
     }
-  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  });
+  if(filterMonth) list=list.filter(g=>g.date&&g.date.slice(5,7)===filterMonth);
+  list.sort((a,b)=>sortDir==='date-asc'
+    ?(a.date||'').localeCompare(b.date||'')
+    :(b.date||'').localeCompare(a.date||''));
   if(q) list=list.filter(g=>g.name.toLowerCase().includes(q));
   const cnt=document.getElementById('pay-page-count');
   const empty=document.getElementById('pay-page-empty');
@@ -5656,7 +5705,7 @@ function openRecv(gigId){
   document.getElementById('recv-gig-id').value=gigId;
   document.getElementById('recv-modal-title').textContent='รับเงิน — '+g.name;
   const pays=g.payments||[];const paidTotal=pays.reduce((s,p)=>s+p.amount,0);
-  const clientIncome=g.fee; /* รายได้จากลูกค้า (ก่อนหักค่าใช้จ่าย) */
+  const clientIncome=g.fee;
   const remain=clientIncome-paidTotal;
   document.getElementById('recv-gig-info').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px">
@@ -5668,7 +5717,7 @@ function openRecv(gigId){
   setDateSelects('recv-date',new Date().toISOString().split('T')[0]);
   document.getElementById('recv-note').value='';
   document.getElementById('recv-status-preview').style.display='none';
-  const th=document.getElementById('slip-thumb');th.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>อัปโหลด';th.style.cssText='';th.className='slip-preview-empty';th.onclick=()=>document.getElementById('slip-file').click();
+  clearRecvSlip(); /* reset drag zone */
   setRecvType(remain<=0?'full':'deposit');
   document.getElementById('modal-recv').classList.add('open');
   /* แสดง/ซ่อนปุ่มบันทึกตาม role */
@@ -5691,14 +5740,29 @@ function updateRecvStatus(){
   const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
   const amount=parseFloat(document.getElementById('recv-amount').value)||0;
   const pays=g.payments||[];const paidBefore=pays.reduce((s,p)=>s+p.amount,0);
+  const remaining=Math.max(0,g.fee-paidBefore);
   const totalAfter=paidBefore+amount;
+  const prev=document.getElementById('recv-status-preview');
+  const saveBtn=document.getElementById('modal-recv-save-btn');
+  const amtEl=document.getElementById('recv-amount');
+  /* เกิน remaining → warning + block save */
+  if(amount>remaining&&g.fee>0){
+    prev.style.display='block';
+    prev.style.background='#FCEBEB';prev.style.color='var(--red)';
+    document.getElementById('recv-status-text').textContent=`⚠️ ยอดเกิน — คงเหลือสูงสุด ฿${f(remaining)}`;
+    if(amtEl) amtEl.style.outline='2px solid var(--red)';
+    if(saveBtn) saveBtn.disabled=true;
+    return;
+  }
+  if(amtEl) amtEl.style.outline='';
+  if(saveBtn) saveBtn.disabled=false;
   const t=gigState._recvType||'deposit';
   let newStatus='deposit',msg='';
   const clientIncome2=g.fee;
   if(t==='full'||totalAfter>=clientIncome2){newStatus='paid';msg=`✓ สถานะจะเปลี่ยนเป็น "จ่ายเต็ม" (รับครบ ฿${f(clientIncome2)})`;}
   else{newStatus='deposit';msg=`↻ สถานะจะเปลี่ยนเป็น "จ่ายมัดจำ" (รับแล้ว ฿${f(totalAfter)} / ${clientIncome2?Math.round(totalAfter/clientIncome2*100):0}%)`;}
   gigState._recvNewStatus=newStatus;
-  const prev=document.getElementById('recv-status-preview');prev.style.display='block';
+  prev.style.display='block';
   prev.style.background=newStatus==='paid'?'var(--gbg)':'var(--rl)';
   prev.style.color=newStatus==='paid'?'var(--gtxt)':'var(--red)';
   document.getElementById('recv-status-text').textContent=msg;
@@ -5834,17 +5898,34 @@ async function viewSlipByKey(key, fallbackSrc) {
   else toast('ไม่พบรูปสลิป');
 }
 
-async function previewSlip(inp){
-  if(!inp.files[0])return;
+function clearRecvSlip(){
+  recvSlipData=null;
+  const prev=document.getElementById('recv-slip-preview-wrap');
+  const dzc=document.getElementById('recv-slip-dz-content');
+  if(prev) prev.style.display='none';
+  if(dzc) dzc.style.display='block';
+  const fi=document.getElementById('slip-file');if(fi)fi.value='';
+}
+async function _processRecvSlipFile(file){
+  if(!file||!file.type.startsWith('image/'))return toast('รองรับเฉพาะไฟล์รูปภาพ');
   try{
-    const compressed=await compressImage(inp.files[0]);
+    const compressed=await compressImage(file);
     const key=newSlipKey();
     await SlipStore.save(key,compressed);
-    recvSlipData=key; /* store KEY not base64 */
-    const th=document.getElementById('slip-thumb');
-    th.innerHTML=`<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
-    th.className='slip-preview';th.onclick=()=>viewSlip(compressed);
+    recvSlipData=key;
+    /* แสดง preview ใน drop zone */
+    const prev=document.getElementById('recv-slip-preview-wrap');
+    const img=document.getElementById('recv-slip-preview-img');
+    const dzc=document.getElementById('recv-slip-dz-content');
+    if(img) img.src=compressed;
+    if(prev) prev.style.display='block';
+    if(dzc) dzc.style.display='none';
   }catch(e){toast('บีบอัดรูปไม่สำเร็จ');console.error(e);}
+}
+function handleRecvSlipDrop(file){_processRecvSlipFile(file);}
+async function previewSlip(inp){
+  if(!inp.files[0])return;
+  await _processRecvSlipFile(inp.files[0]);
 }
 
 /* Render slip img tag — handles both key and legacy base64 */
@@ -5898,23 +5979,41 @@ async function viewSlip(src){
 }
 function saveRecv(){
   if(!requireAdmin('บันทึกรับเงิน'))return;
-  const gigId=document.getElementById('recv-gig-id').value; /* UUID string */
+  const gigId=document.getElementById('recv-gig-id').value;
   const amount=parseFloat(document.getElementById('recv-amount').value)||0;
   if(!amount){toast('กรุณาระบุจำนวนเงิน');return;}
   const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g){toast('ไม่พบข้อมูลงาน');return;}
+  /* ── validate ไม่ให้เกิน remaining ── */
+  const alreadyPaid=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+  const recvRemaining=Math.max(0, g.fee-alreadyPaid);
+  if(amount>recvRemaining){
+    const el=document.getElementById('recv-amount');
+    if(el){el.style.outline='2px solid var(--red)';el.focus();setTimeout(()=>{el.style.outline='';},2500);}
+    toast(`⚠️ ยอดเกิน — คงเหลือสูงสุด ฿${f(recvRemaining)}`);
+    return;
+  }
   if(!g.payments)g.payments=[];
   const newPay={date:document.getElementById('recv-date').value||new Date().toISOString().split('T')[0],amount,type:gigState._recvType||'deposit',note:document.getElementById('recv-note').value,slip:recvSlipData||null};
   g.payments.push(newPay);
-  g.status=gigState._recvNewStatus||g.status;
-  /* ── auto-update status เป็น paid ถ้ารับเงินครบแล้ว ── */
+  /* คำนวณยอดรวมก่อน ถ้าครบให้ set paid ทันที ไม่ใช้ _recvNewStatus */
   const totalPaid=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
-  if(totalPaid>=g.fee && g.fee>0 && g.status!=='cancelled'){
+  const remaining=Math.max(0, g.fee>0?g.fee-totalPaid:0);
+  const isFullyPaid=g.fee>0&&remaining===0&&g.status!=='cancelled';
+  if(isFullyPaid){
     g.status='paid';
-    if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
+  } else {
+    if(gigState._recvNewStatus) g.status=gigState._recvNewStatus;
   }
-  cx('modal-recv');renderRecvList();rg();rd();updateGigTabCounts();toast('บันทึกการรับเงินแล้ว');
+  if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
   if(CLOUD_ENABLED()) syncPayment(g.id, newPay).catch(console.error);
-  /* LINE notify */
+  cx('modal-recv');
+  rg();rd();updateGigTabCounts();
+  if(isFullyPaid){
+    toast('✅ รับเงินครบแล้ว');
+  } else {
+    toast('บันทึกการรับเงินแล้ว');
+  }
+  renderRecvPageList();
 }
 
 /* ══════════════════════════════════════
@@ -6026,14 +6125,18 @@ function openPay(gigId){
             <input class="fi" id="pay-note-${mid}" type="text" placeholder="เช่น โอนแล้ว" value="${typeof payData==='object'&&payData.note?payData.note:''}" style="font-size:12px;height:32px">
           </div>
         </div>`:''}
-        <!-- slip area: multi-slip -->
+        <!-- slip area: multi-slip with drag & drop -->
         <div id="pay-slip-area-${mid}" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px">
           ${(()=>{
             const slips=Array.isArray(payData?.slips)&&payData.slips.length?payData.slips:existSlip?[existSlip]:[];
             return slips.map(s=>`<img src="" data-slip-key="${s}" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--bd2)" onclick="viewSlip('${s}')">`).join('');
           })()}
-          <div class="add-slip-btn" onclick="triggerPaySlip('${mid}')"
-            style="width:52px;height:52px;border:1.5px dashed var(--bd2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);font-size:9px;gap:2px;background:var(--bg)">
+          <div class="add-slip-btn"
+            onclick="triggerPaySlip('${mid}')"
+            ondragover="event.preventDefault();this.style.borderColor='var(--red)';this.style.background='var(--rl)'"
+            ondragleave="this.style.borderColor='';this.style.background=''"
+            ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handlePaySlipDrop('${mid}',event.dataTransfer.files[0])"
+            style="width:52px;height:52px;border:1.5px dashed var(--bd2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);font-size:9px;gap:2px;background:var(--bg);transition:all .15s">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             สลิป
           </div>
@@ -6110,6 +6213,26 @@ function paySlipClick(el){
   triggerPaySlip(mid);
 }
 function triggerPaySlip(mid){document.getElementById('pay-slip-file-'+mid)?.click();}
+async function handlePaySlipDrop(mid,file){
+  if(!file||!file.type.startsWith('image/'))return toast('รองรับเฉพาะไฟล์รูปภาพ');
+  try{
+    const compressed=await compressImage(file);
+    const key=newSlipKey();
+    await SlipStore.save(key,compressed);
+    if(!paySlips[mid]) paySlips[mid]=[];
+    if(typeof paySlips[mid]==='string') paySlips[mid]=[paySlips[mid]];
+    paySlips[mid].push(key);
+    const area=document.getElementById('pay-slip-area-'+mid);
+    if(area){
+      const addBtn=area.querySelector('.add-slip-btn');
+      const img=document.createElement('img');
+      img.src=compressed;img.dataset.slipKey=key;
+      img.style.cssText='width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--bd2)';
+      img.onclick=()=>viewSlip(key);
+      area.insertBefore(img,addBtn);
+    }
+  }catch(e){toast('อัปโหลดรูปไม่สำเร็จ');console.error(e);}
+}
 
 async function previewPaySlip(mid,inp){
   if(!inp.files[0])return;
