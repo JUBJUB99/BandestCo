@@ -4160,7 +4160,21 @@ function rmem(){
           ? `<img id="${photoId}" src="" style="width:100%;height:100%;object-fit:cover;display:none">`
           : `<img src="${mem.photo}" style="width:100%;height:100%;object-fit:cover;display:block">`)
       : `<span style="font-size:44px;font-weight:600;color:var(--red)">${mem.nick}</span>`;
-    if(isKey) setTimeout(()=>{SlipStore.load(mem.photo).then(d=>{const e=document.getElementById(photoId);if(e&&d){e.src=d;e.style.display='block';}});},30);
+    if(isKey) setTimeout(async()=>{
+      const el=document.getElementById(photoId);if(!el)return;
+      /* 1. ลอง IndexedDB ก่อน */
+      let data=await SlipStore.load(mem.photo).catch(()=>null);
+      /* 2. fallback → Supabase Storage bucket "photos" */
+      if(!data&&SUPABASE_URL&&_sbBandId){
+        const pubUrl=`${SUPABASE_URL}/storage/v1/object/public/photos/${_sbBandId}/${mem.photo}`;
+        try{const probe=await fetch(pubUrl,{method:'HEAD'});if(probe.ok) data=pubUrl;}catch(e){}
+      }
+      /* 3. fallback → signed URL */
+      if(!data&&SUPABASE_URL&&_sbBandId){
+        data=await sbGetSignedUrl('photos',mem.photo).catch(()=>null);
+      }
+      if(data&&el){el.src=data;el.style.display='block';}
+    },30);
     const isActive=mem.status==='active';
     const sdotColor=isActive?'var(--green)':'var(--ink3)';
     const stxt=isActive?'Active':'Inactive';
@@ -6580,9 +6594,17 @@ function editMem(id){
   if(mem.photo){
     /* load from IndexedDB if key, else use legacy base64 */
     if(mem.photo.startsWith('photo_')||mem.photo.startsWith('slip_')){
-      SlipStore.load(mem.photo).then(data=>{
+      (async()=>{
+        let data=await SlipStore.load(mem.photo).catch(()=>null);
+        if(!data&&SUPABASE_URL&&_sbBandId){
+          const pubUrl=`${SUPABASE_URL}/storage/v1/object/public/photos/${_sbBandId}/${mem.photo}`;
+          try{const probe=await fetch(pubUrl,{method:'HEAD'});if(probe.ok) data=pubUrl;}catch(e){}
+        }
+        if(!data&&SUPABASE_URL&&_sbBandId){
+          data=await sbGetSignedUrl('photos',mem.photo).catch(()=>null);
+        }
         if(data){prev.src=data;prev.style.display='block';document.getElementById('mmem-initials').style.display='none';}
-      });
+      })();
     } else {
       prev.src=mem.photo;prev.style.display='block';
       document.getElementById('mmem-initials').style.display='none';
@@ -7448,7 +7470,17 @@ function openMemberPhotoLightbox(memberId){
     const isKey=mem.photo.startsWith('photo_')||mem.photo.startsWith('slip_');
     if(isKey){
       img.src='';
-      SlipStore.load(mem.photo).then(d=>{if(d)img.src=d;});
+      (async()=>{
+        let data=await SlipStore.load(mem.photo).catch(()=>null);
+        if(!data&&SUPABASE_URL&&_sbBandId){
+          const pubUrl=`${SUPABASE_URL}/storage/v1/object/public/photos/${_sbBandId}/${mem.photo}`;
+          try{const probe=await fetch(pubUrl,{method:'HEAD'});if(probe.ok) data=pubUrl;}catch(e){}
+        }
+        if(!data&&SUPABASE_URL&&_sbBandId){
+          data=await sbGetSignedUrl('photos',mem.photo).catch(()=>null);
+        }
+        if(data) img.src=data;
+      })();
     } else {
       img.src=mem.photo;
     }
