@@ -2735,10 +2735,15 @@ async function sbDoRefreshToken(){
     if(r.ok&&d.access_token){
       _sbToken=d.access_token;
       if(d.refresh_token) _sbRefreshToken=d.refresh_token;
-      /* update sessionStorage */
+      /* update sessionStorage — รีเซ็ต ts ทุกครั้งที่ refresh สำเร็จ */
       try{
         const sess=JSON.parse(sessionStorage.getItem('bco_session')||'null');
-        if(sess){sess.token=_sbToken;sess.ts=Date.now();sessionStorage.setItem('bco_session',JSON.stringify(sess));}
+        if(sess){
+          sess.token=_sbToken;
+          sess.refreshToken=_sbRefreshToken||sess.refreshToken;
+          sess.ts=Date.now(); /* reset timer */
+          sessionStorage.setItem('bco_session',JSON.stringify(sess));
+        }
       }catch(e){}
       startTokenRefreshTimer(d.expires_in||3600);
     } else {
@@ -7007,7 +7012,7 @@ function esc(str){
 
 /* Session timeout: 8 hours */
 let _sessionStart=0;
-const SESSION_TIMEOUT_MS=8*60*60*1000;
+const SESSION_TIMEOUT_MS=24*60*60*1000; /* 24 ชั่วโมง */
 function checkSessionTimeout(){
   if(!currentUser)return;
   if(Date.now()-_sessionStart>SESSION_TIMEOUT_MS){
@@ -7030,7 +7035,7 @@ function switchLoginTab(id,el){
 function loginSuccess(user){
   currentUser=user;
   _sessionStart=Date.now();
-  try{sessionStorage.setItem('bco_session',JSON.stringify({user,token:_sbToken,bandId:_sbBandId,ts:Date.now()}));}catch(e){}
+  try{sessionStorage.setItem('bco_session',JSON.stringify({user,token:_sbToken,refreshToken:_sbRefreshToken||null,bandId:_sbBandId,ts:Date.now()}));}catch(e){}
   applyAuthUI();
   const ls=document.getElementById('login-screen');
   ls.classList.add('hidden');
@@ -7053,7 +7058,7 @@ async function afterCloudLogin(user){
   currentUser=user;
   _sessionStart=Date.now();
   /* บันทึก session ไว้สำหรับ refresh */
-  try{sessionStorage.setItem('bco_session',JSON.stringify({user,token:_sbToken,bandId:_sbBandId,ts:Date.now()}));}catch(e){}
+  try{sessionStorage.setItem('bco_session',JSON.stringify({user,token:_sbToken,refreshToken:_sbRefreshToken||null,bandId:_sbBandId,ts:Date.now()}));}catch(e){}
   const ls=document.getElementById('login-screen');
   ls.classList.add('hidden');
   setTimeout(()=>{ls.style.display='none';},300);
@@ -9986,15 +9991,18 @@ async function doExportExcel(){
       if(!raw) return;
       const sess=JSON.parse(raw);
       /* session หมดอายุหลัง 8 ชั่วโมง */
-      if(!sess||!sess.token||Date.now()-sess.ts>8*3600*1000){
+      if(!sess||!sess.token||Date.now()-sess.ts>24*3600*1000){
         sessionStorage.removeItem('bco_session');return;
       }
-      /* restore token + bandId */
-      _sbToken=sess.token; _sbBandId=sess.bandId;
+      /* restore tokens */
+      _sbToken=sess.token;
+      _sbBandId=sess.bandId;
+      if(sess.refreshToken) _sbRefreshToken=sess.refreshToken;
       currentUser=sess.user;
-      /* คำนวณ remaining time จาก ts */
+      /* คำนวณ token remaining time — JWT หมดทุก 1 ชม. */
       const elapsed=Math.floor((Date.now()-sess.ts)/1000);
-      startTokenRefreshTimer(Math.max(3600-elapsed, 60));
+      const remaining=Math.max(3600-elapsed,60);
+      startTokenRefreshTimer(remaining);
       /* verify token ยังใช้ได้ */
       const ok=await fetch(`${SUPABASE_URL}/auth/v1/user`,{
         headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+_sbToken}
