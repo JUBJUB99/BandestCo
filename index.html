@@ -1740,6 +1740,7 @@ Google Map: https://maps.app.goo.gl/xxxxx
 แหล่งที่มา: Facebook
 ลูกค้า: คุณสมชาย ใจดี
 เบอร์: 0812345678 / 0898765432
+Line: @somchai_jaidee
 ธนาคาร: กสิกรไทย
 เลขบัญชี: 123-4-56789-0
 รายได้:
@@ -2166,6 +2167,10 @@ Google Map: https://maps.app.goo.gl/xxxxx
             </div>
             <div class="fg" style="margin-bottom:0"><label class="fl">ธนาคาร</label><input class="fi" id="gcbank-name" style="font-size:12px;color:var(--ink)" placeholder="—"></div>
             <div class="fg" style="margin-bottom:0;grid-column:2/-1"><label class="fl">เลขบัญชี</label><input class="fi" id="gcbank-no" style="font-size:12px;color:var(--ink)" placeholder="—"></div>
+            <div class="fg" style="margin-bottom:0;grid-column:1/-1">
+              <label class="fl">ช่องทางการติดต่ออื่น</label>
+              <input class="fi" id="gccontact" style="font-size:12px;color:var(--ink)" placeholder="เช่น Line: @bandname, IG: @name, Facebook: ชื่อ">
+            </div>
           </div>
         </div>
         <div id="client-new-block" style="display:none">
@@ -2183,6 +2188,10 @@ Google Map: https://maps.app.goo.gl/xxxxx
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
             <div class="fg" style="margin-bottom:0"><input class="fi" id="gcbank-name-new" placeholder="ธนาคาร" style="font-size:12px"></div>
             <div class="fg" style="margin-bottom:0"><input class="fi" id="gcbank-no-new" placeholder="เลขบัญชี" style="font-size:12px"></div>
+          </div>
+          <div class="fg" style="margin-bottom:0;margin-top:6px">
+            <label class="fl">ช่องทางการติดต่ออื่น</label>
+            <input class="fi" id="gccontact-new" placeholder="เช่น Line: @bandname, IG: @name, Facebook: ชื่อ" style="font-size:12px">
           </div>
         </div>
       </div>
@@ -2381,6 +2390,7 @@ Google Map: https://maps.app.goo.gl/xxxxx
       <div class="fg"><label class="fl">ธนาคาร</label><input class="fi" id="cl-bank-name" placeholder="เช่น กสิกรไทย, SCB"></div>
       <div class="fg"><label class="fl">เลขบัญชี</label><input class="fi" id="cl-bank-no" placeholder="xxx-x-xxxxx-x"></div>
     </div>
+    <div class="fg"><label class="fl">ช่องทางการติดต่ออื่น</label><input class="fi" id="cl-contact" placeholder="เช่น Line: @name, IG: @name, Facebook: ชื่อ"></div>
     <div class="ma"><button class="btn btn-o" onclick="cx('mclient')">ยกเลิก</button><button class="btn btn-r" onclick="saveClient()">บันทึก</button></div>
   </div>
 </div>
@@ -2752,7 +2762,7 @@ async function loadFromCloud() {
 
     /* Map to S object shape */
     S.members  = (members  ||[]).map(mapMember);
-    S.clients  = (clients  ||[]).map(m=>({id:m.id,name:m.name,phone:m.phone||'',bankName:m.bank_name||'',bankNo:m.bank_no||''}))
+    S.clients  = (clients  ||[]).map(m=>({id:m.id,name:m.name,phone:m.phone||'',bankName:m.bank_name||'',bankNo:m.bank_no||'',contact:m.contact||''}))
       /* dedup: เก็บแค่ชื่อแรกที่เจอ */
       .filter((c,i,arr)=>arr.findIndex(x=>x.name===c.name&&x.phone===c.phone)===i);
     S.sources  = (sources  ||[]).map(m=>m.name);
@@ -4063,8 +4073,13 @@ function calPopupGoToGig(){
 }
 function closCalPopup(e){if(e.target===document.getElementById('cal-popup'))document.getElementById('cal-popup').classList.remove('open');}
 function rmem(){
-  const n=new Date(),m=n.getMonth(),y=n.getFullYear(),gc=mg(m,y).length;
+  const n=new Date(),m=n.getMonth(),y=n.getFullYear();
+  const thisMonthGigs=mg(m,y);
   document.getElementById('mem-grid').innerHTML=S.members.map(mem=>{
+    /* นับงานเฉพาะที่ member คนนี้ถูก assign เดือนนี้ */
+    const gc=thisMonthGigs.filter(g=>
+      g.musicians&&g.musicians.some(mu=>String(mu.memberId)===String(mem.id))
+    ).length;
     const isKey=mem.photo&&(mem.photo.startsWith('photo_')||mem.photo.startsWith('slip_'));
     const photoId='mp_'+mem.id;
     const photoHtml=mem.photo
@@ -4425,15 +4440,19 @@ function renderMemberRows(){
     note:document.getElementById(`gbd-note-${i}`)?.value||''
   }));
   const n=gigState.count;
-  const activeMembers=S.members.filter(m=>m.status==='active');
+  /* เรียง active members ตาม role A-Z แล้วตาม name */
+  const activeMembers=S.members.filter(m=>m.status==='active')
+    .sort((a,b)=>(a.role||'').localeCompare(b.role||'','th')|| (a.name||'').localeCompare(b.name||'','th'));
   let html='';
   for(let i=0;i<n;i++){
-    /* คง selection เดิมถ้า index ยังอยู่ */
     const selVal=existingIds[i]||'';
     const otherSelected=existingIds.filter((_,idx)=>idx!==i&&_);
-    const availableOpts=activeMembers.map(m=>{
-      const isOtherSelected=otherSelected.includes(String(m.id));
-      return`<option value="${m.id}" ${isOtherSelected?'disabled style="color:#ccc"':''} ${String(m.id)===selVal?'selected':''}>${m.name}${m.lastname?' '+m.lastname:''} (${m.nick}) — ${m.role}${isOtherSelected?' ✓':''}</option>`;
+    const selMem=activeMembers.find(m=>String(m.id)===selVal);
+    const selLabel=selMem?`${selMem.name}${selMem.lastname?' '+selMem.lastname:''} (${selMem.nick}) — ${selMem.role}`:'';
+    /* options สำหรับ datalist */
+    const dlOpts=activeMembers.map(m=>{
+      const disabled=otherSelected.includes(String(m.id));
+      return disabled?'':`<option value="${m.name}${m.lastname?' '+m.lastname:''} (${m.nick}) — ${m.role}" data-id="${m.id}">`;
     }).join('');
     /* คำนวณ % ทศนิยม 2 ตำแหน่ง */
     const equalPct=(100/n).toFixed(2);
@@ -4449,9 +4468,13 @@ function renderMemberRows(){
     html+=`<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="width:22px;height:22px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
-        <select class="fi" id="gmem-${i}" style="flex:1" onchange="onMemberRowChange(${i})">
-          <option value="">— เลือกสมาชิก —</option>${availableOpts}
-        </select>
+        <div style="flex:1;position:relative" id="gmem-wrap-${i}">
+          <input class="fi" id="gmem-txt-${i}" placeholder="— พิมพ์หรือเลือกสมาชิก —"
+            value="${selLabel}" autocomplete="off" style="width:100%;font-size:12px;cursor:pointer"
+            onfocus="openMemberDrop(${i})" oninput="filterMemberDrop(${i})" onblur="setTimeout(()=>closeMemberDrop(${i}),180)">
+          <input type="hidden" id="gmem-${i}" value="${selVal}">
+          <div id="gmem-drop-${i}" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;max-height:200px;overflow-y:auto;margin-top:2px"></div>
+        </div>
         ${pctField}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
@@ -4461,7 +4484,7 @@ function renderMemberRows(){
         <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ต่อเวลา (฿)</div><input class="fi" id="gbd-ot-${i}" type="number" min="0" placeholder="0" value="${bd.ot}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
         <div><div style="font-size:9px;color:var(--ink3);margin-bottom:2px">อื่นๆ (฿)</div><input class="fi" id="gbd-other-${i}" type="number" min="0" placeholder="0" value="${bd.other}" style="font-size:11px;height:30px" oninput="calcBreakdown(${i})"></div>
       </div>
-      <input class="fi" id="gbd-note-${i}" type="text" placeholder="หมายเหตุ อื่นๆ" value="${bd.note}" style="font-size:11px;height:28px;width:100%;margin-top:4px">
+      <input class="fi" id="gbd-note-${i}" type="text" placeholder="หมายเหตุ อื่นๆ" value="${bd.note||''}" style="font-size:11px;height:28px;width:100%;margin-top:4px">
       <div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600">
         <span style="color:var(--ink3)">รวมได้รับ</span>
         <span id="gbd-total-${i}" style="color:var(--red)">฿0</span>
@@ -4496,20 +4519,74 @@ function calcBreakdown(i){
   updateSummary();
 }
 
-function onMemberRowChange(changedIdx){
-  /* Re-render all rows so disabled options update across dropdowns */
+function _getMemberDropItems(idx){
   const n=gigState.count;
   const selections=Array.from({length:n},(_,i)=>document.getElementById('gmem-'+i)?.value||'');
-  const activeMembers=S.members.filter(m=>m.status==='active');
+  const otherSelected=selections.filter((_,i)=>i!==idx&&_);
+  return S.members.filter(m=>m.status==='active')
+    .sort((a,b)=>(a.role||'').localeCompare(b.role||'','th')||(a.name||'').localeCompare(b.name||'','th'))
+    .map(m=>({
+      id:String(m.id),
+      label:`${m.name}${m.lastname?' '+m.lastname:''} (${m.nick}) — ${m.role}`,
+      disabled:otherSelected.includes(String(m.id))
+    }));
+}
+function _renderMemberDrop(idx, filter=''){
+  const drop=document.getElementById(`gmem-drop-${idx}`);if(!drop)return;
+  const items=_getMemberDropItems(idx);
+  const q=filter.toLowerCase();
+  const filtered=items.filter(it=>!q||it.label.toLowerCase().includes(q));
+  if(!filtered.length){drop.innerHTML=`<div style="padding:8px 12px;font-size:12px;color:var(--ink3)">ไม่พบสมาชิก</div>`;return;}
+  drop.innerHTML=filtered.map(it=>`
+    <div data-id="${it.id}" data-label="${it.label}"
+      style="padding:8px 12px;font-size:12px;cursor:${it.disabled?'not-allowed':'pointer'};
+        color:${it.disabled?'var(--ink3)':'var(--ink)'};
+        background:${it.disabled?'var(--bg)':'transparent'};
+        display:flex;align-items:center;gap:6px"
+      ${it.disabled?'':`onmousedown="selectMemberDrop(${idx},'${it.id}','${it.label.replace(/'/g,"\\'")}')"`}>
+      ${it.disabled?'<span style="font-size:10px">✓</span>':''}
+      ${it.label}
+      ${it.disabled?'<span style="font-size:10px;margin-left:auto;color:var(--ink3)">(เลือกแล้ว)</span>':''}
+    </div>`).join('');
+}
+function openMemberDrop(idx){
+  const drop=document.getElementById(`gmem-drop-${idx}`);if(!drop)return;
+  _renderMemberDrop(idx,'');
+  drop.style.display='block';
+}
+function filterMemberDrop(idx){
+  const txt=document.getElementById(`gmem-txt-${idx}`)?.value||'';
+  /* ถ้า text ไม่ตรงกับ member ที่เลือกอยู่ → clear selection */
+  const hidden=document.getElementById(`gmem-${idx}`);
+  if(hidden) hidden.value='';
+  _renderMemberDrop(idx,txt);
+  const drop=document.getElementById(`gmem-drop-${idx}`);
+  if(drop) drop.style.display='block';
+}
+function closeMemberDrop(idx){
+  const drop=document.getElementById(`gmem-drop-${idx}`);
+  if(drop) drop.style.display='none';
+  /* ถ้า text ไม่ match member ที่ select → clear */
+  const hidden=document.getElementById(`gmem-${idx}`);
+  const txt=document.getElementById(`gmem-txt-${idx}`)?.value||'';
+  if(hidden&&!hidden.value&&txt){
+    document.getElementById(`gmem-txt-${idx}`).value='';
+  }
+}
+function selectMemberDrop(idx, memberId, label){
+  document.getElementById(`gmem-txt-${idx}`).value=label;
+  document.getElementById(`gmem-${idx}`).value=memberId;
+  closeMemberDrop(idx);
+  onMemberRowChange(idx);
+}
+function onMemberInputChange(idx){ filterMemberDrop(idx); }
+function onMemberRowChange(changedIdx){
+  const n=gigState.count;
+  /* re-render dropdown ที่เปิดอยู่ทุก row */
   for(let i=0;i<n;i++){
-    if(i===changedIdx)continue;
-    const sel=document.getElementById('gmem-'+i);if(!sel)continue;
-    const curVal=sel.value;
-    const otherSelected=selections.filter((_,idx)=>idx!==i&&_);
-    sel.innerHTML='<option value="">— เลือกสมาชิก —</option>'+activeMembers.map(m=>{
-      const isOther=otherSelected.includes(String(m.id));
-      return`<option value="${m.id}" ${isOther?'disabled style="color:#ccc"':''} ${String(m.id)===curVal?'selected':''}>${m.name}${m.lastname?' '+m.lastname:''} (${m.nick}) — ${m.role}${isOther?' ✓':''}</option>`;
-    }).join('');
+    if(i===changedIdx) continue;
+    const drop=document.getElementById(`gmem-drop-${i}`);
+    if(drop&&drop.style.display!=='none') _renderMemberDrop(i,'');
   }
   updateSummary();
 }
@@ -4641,7 +4718,7 @@ function openGig(){
   const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
   if(saveBtn)saveBtn.style.display='';
   document.getElementById('mgig-t').textContent='เพิ่มงานใหม่';
-  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','gf-discount','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['gn','gtstart','gtend','gv','gmap','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gccontact','gcphone-new','gcbank-name-new','gcbank-no-new','gccontact-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-other','gf-other-note','gf-discount','gprov'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   const geRows=document.getElementById('ge-rows');if(geRows)geRows.innerHTML='';
   setPhoneTags('');renderPhoneTagsNew([]);
   const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=false;
@@ -4715,7 +4792,7 @@ function clearGigDraft(){
   const db=document.getElementById('draft-banner');if(db)db.style.display='none';
   const dd=document.getElementById('draft-dot');if(dd)dd.style.display='none';
   /* clear all form fields */
-  ['gn','gtstart','gtend','gv','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gcphone-new','gcbank-name-new','gcbank-no-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-sound-car','gf-other','gf-other-note','gf-discount'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});;
+  ['gn','gtstart','gtend','gv','gf','gcount','gnote','gcphone','gcbank-name','gcbank-no','gccontact','gcphone-new','gcbank-name-new','gcbank-no-new','gccontact-new','gcname-new','gclient-search','gf-band','gf-travel-oil','gf-travel-car','gf-after','gf-sound','gf-sound-oil','gf-sound-car','gf-other','gf-other-note','gf-discount'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});;
   const geRowsClr=document.getElementById('ge-rows');if(geRowsClr)geRowsClr.innerHTML='';
   const gdClr=document.getElementById('gd');if(gdClr)gdClr.value='';
   document.getElementById('gf-total-display').textContent='฿0';
@@ -4776,6 +4853,7 @@ function editGig(id){
       setPhoneTags(cl.phone||'');
       document.getElementById('gcbank-name').value=cl.bankName||'';
       document.getElementById('gcbank-no').value=cl.bankNo||'';
+      const gcc=document.getElementById('gccontact');if(gcc)gcc.value=cl.contact||'';
     }
   } else {
     setCtype('new');
@@ -4783,6 +4861,7 @@ function editGig(id){
     renderPhoneTagsNew((g.clientPhone||'').split(',').filter(Boolean));syncPhoneNewHidden();
     document.getElementById('gcbank-name-new').value=g.clientBankName||'';
     document.getElementById('gcbank-no-new').value=g.clientBankNo||'';
+    const ccNew=document.getElementById('gccontact-new');if(ccNew)ccNew.value=g.clientContact||'';
   }
   if(g.musicians&&g.musicians.length){
     document.getElementById('gcount').value=g.musicians.length;
@@ -4936,7 +5015,7 @@ function sg(){
   const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
   const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||'',discount:gv('gf-discount')};
   const expenses={expenseRows:getExpenseRows(),soundMemberId:null,soundFee:0,adsFee:0,adsChannel:'',otherFee:0,otherNote:''};
-  const data={name:n,date:d,expenses,recDate:document.getElementById('grec').value,timeStart:document.getElementById('gtstart').value,timeEnd:document.getElementById('gtend').value,fee:fe,income,venue:document.getElementById('gv').value.trim(),mapLink:document.getElementById('gmap')?.value.trim()||'',province:document.getElementById('gprov').value.trim(),type:document.getElementById('gtype').value,status:document.getElementById('gst').value,bandSize:document.getElementById('gbandsize').value,source:document.getElementById('gsource').value,note:document.getElementById('gnote').value.trim(),clientId,clientName,clientPhone,clientBankName:document.getElementById('gcbank-name-new')?.value.trim()||'',clientBankNo:document.getElementById('gcbank-no-new')?.value.trim()||'',musicians:gigState.count>0?getGigMembers():[],splitMode:gigState.splitMode,whtEnabled:document.getElementById('gig-wht')?.checked||false,whtRate:gigState.whtRate||0,whtAmt:gigState.whtAmt||0,whtNet:gigState.whtNet||0};
+  const data={name:n,date:d,expenses,recDate:document.getElementById('grec').value,timeStart:document.getElementById('gtstart').value,timeEnd:document.getElementById('gtend').value,fee:fe,income,venue:document.getElementById('gv').value.trim(),mapLink:document.getElementById('gmap')?.value.trim()||'',province:document.getElementById('gprov').value.trim(),type:document.getElementById('gtype').value,status:document.getElementById('gst').value,bandSize:document.getElementById('gbandsize').value,source:document.getElementById('gsource').value,note:document.getElementById('gnote').value.trim(),clientId,clientName,clientPhone,clientBankName:document.getElementById('gcbank-name-new')?.value.trim()||'',clientBankNo:document.getElementById('gcbank-no-new')?.value.trim()||'',clientContact:document.getElementById('gccontact-new')?.value.trim()||document.getElementById('gccontact')?.value.trim()||'',musicians:gigState.count>0?getGigMembers():[],splitMode:gigState.splitMode,whtEnabled:document.getElementById('gig-wht')?.checked||false,whtRate:gigState.whtRate||0,whtAmt:gigState.whtAmt||0,whtNet:gigState.whtNet||0};
   if(S.eid){
     const i=S.gigs.findIndex(g=>g.id===S.eid);
     if(i<0){toast('ไม่พบข้อมูลงาน');return;}
@@ -6015,6 +6094,7 @@ function selectClient(id){
   setPhoneTags(cl.phone||'');
   document.getElementById('gcbank-name').value=cl.bankName||'';
   document.getElementById('gcbank-no').value=cl.bankNo||'';
+  const gcc=document.getElementById('gccontact');if(gcc)gcc.value=cl.contact||'';
   document.getElementById('cmb-client').classList.remove('open');
 }
 
@@ -6239,9 +6319,10 @@ function renderClientMaster(){
         <button style="background:none;border:1px solid var(--bd2);color:var(--blue);cursor:pointer;font-size:10px;border-radius:5px;padding:2px 8px;font-family:var(--f)"
           onclick="toggleClientEdit('${cl.id}')">✏️ แก้ไข</button>
       </div>
-      <div id="clm-view-${cl.id}" style="display:flex;gap:12px;font-size:11px;color:var(--ink3)">
+      <div id="clm-view-${cl.id}" style="display:flex;gap:12px;font-size:11px;color:var(--ink3);flex-wrap:wrap">
         <span>📞 ${cl.phone||'—'}</span>
         <span>🏦 ${cl.bankName||'—'} ${cl.bankNo||''}</span>
+        ${cl.contact?`<span>💬 ${cl.contact}</span>`:''}
       </div>
       <div id="clm-edit-${cl.id}" style="display:none;margin-top:8px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
@@ -6252,6 +6333,8 @@ function renderClientMaster(){
           <div><label style="font-size:10px;color:var(--ink3);display:block;margin-bottom:2px">เลขบัญชี</label>
             <input class="fi" id="clm-no-${cl.id}" value="${cl.bankNo||''}" style="font-size:11px;height:30px;padding:4px 8px"></div>
         </div>
+        <div style="margin-top:6px"><label style="font-size:10px;color:var(--ink3);display:block;margin-bottom:2px">ช่องทางการติดต่ออื่น</label>
+          <input class="fi" id="clm-contact-${cl.id}" value="${cl.contact||''}" placeholder="Line: @name, IG: @name..." style="font-size:11px;height:30px;padding:4px 8px;width:100%"></div>
         <div style="display:flex;gap:6px;margin-top:8px">
           <button class="btn btn-r btn-sm" onclick="saveClientEdit('${cl.id}')">บันทึก</button>
           <button class="btn btn-o btn-sm" onclick="toggleClientEdit('${cl.id}')">ยกเลิก</button>
@@ -6275,21 +6358,22 @@ function saveClientEdit(id){
   cl.phone=document.getElementById('clm-phone-'+id)?.value.trim()||'';
   cl.bankName=document.getElementById('clm-bank-'+id)?.value.trim()||'';
   cl.bankNo=document.getElementById('clm-no-'+id)?.value.trim()||'';
+  cl.contact=document.getElementById('clm-contact-'+id)?.value.trim()||'';
   renderClientMaster();
   toast(`อัปเดต "${cl.name}" แล้ว`);
   if(CLOUD_ENABLED()) fetch(`${SUPABASE_URL}/rest/v1/clients?id=eq.${cl.id}`,{method:'PATCH',headers:sbHeaders(),
-    body:JSON.stringify({phone:cl.phone||null,bank_name:cl.bankName||null,bank_no:cl.bankNo||null})
+    body:JSON.stringify({phone:cl.phone||null,bank_name:cl.bankName||null,bank_no:cl.bankNo||null,contact:cl.contact||null})
   }).catch(console.error);
 }
-function openAddClient(){if(!requireAdmin('เพิ่มลูกค้า'))return;['cl-name','cl-phone','cl-bank-name','cl-bank-no'].forEach(i=>document.getElementById(i).value='');document.getElementById('mclient').classList.add('open');}
+function openAddClient(){if(!requireAdmin('เพิ่มลูกค้า'))return;['cl-name','cl-phone','cl-bank-name','cl-bank-no','cl-contact'].forEach(i=>document.getElementById(i).value='');document.getElementById('mclient').classList.add('open');}
 function saveClient(){
   if(!requireAdmin('บันทึกลูกค้า'))return;
   const n=document.getElementById('cl-name').value.trim();if(!n){toast('กรุณากรอกชื่อ');return;}
-  const newClient={id:Date.now(),name:n,phone:document.getElementById('cl-phone').value.trim(),bankName:document.getElementById('cl-bank-name').value.trim(),bankNo:document.getElementById('cl-bank-no').value.trim()};
+  const newClient={id:Date.now(),name:n,phone:document.getElementById('cl-phone').value.trim(),bankName:document.getElementById('cl-bank-name').value.trim(),bankNo:document.getElementById('cl-bank-no').value.trim(),contact:document.getElementById('cl-contact').value.trim()};
   S.clients.push(newClient);
   if(CLOUD_ENABLED()){
     fetch(`${SUPABASE_URL}/rest/v1/clients`,{method:'POST',headers:sbHeaders(),
-      body:JSON.stringify({band_id:_sbBandId,name:newClient.name,phone:newClient.phone||null,bank_name:newClient.bankName||null,bank_no:newClient.bankNo||null})
+      body:JSON.stringify({band_id:_sbBandId,name:newClient.name,phone:newClient.phone||null,bank_name:newClient.bankName||null,bank_no:newClient.bankNo||null,contact:newClient.contact||null})
     }).then(r=>r.json()).then(d=>{
       if(d&&d[0]){const i=S.clients.findIndex(x=>x.id===newClient.id);if(i>=0)S.clients[i].id=d[0].id;console.log('✅ client insert:',d[0].id);}
     }).catch(console.error);
@@ -6933,16 +7017,23 @@ async function doLoginMember(){
 
     /* member ใช้ custom auth — ดึงจาก users table แล้วเทียบ hash */
     const passHash=await hashPassword(pass,uname);
+    console.log('🔐 [MemberLogin] username:', uname);
+    console.log('🔐 [MemberLogin] passHash:', passHash);
     const users=await fetch(
       `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(uname)}&limit=1`,
       {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}}
     ).then(r=>r.json()).catch(()=>null);
 
     if(btn){btn.textContent='เข้าสู่ระบบ — สมาชิกวง';btn.disabled=false;}
+    console.log('🔐 [MemberLogin] users result:', users);
 
     if(!users||!users[0]){showLoginErr('login-err-member','ไม่พบบัญชีนี้ในระบบ');return;}
 
     const u=users[0];
+    console.log('🔐 [MemberLogin] db password_hash:', u.password_hash);
+    console.log('🔐 [MemberLogin] db password (plain):', u.password);
+    console.log('🔐 [MemberLogin] hash match:', u.password_hash===passHash);
+    console.log('🔐 [MemberLogin] plain match:', u.password===pass);
     /* เทียบ password hash */
     const hashMatch=u.password_hash&&u.password_hash===passHash;
     const plainMatch=u.password&&u.password===pass; /* backward compat */
@@ -8751,6 +8842,7 @@ function exportContractPDF(gigId){
     <div class="section-title">② ข้อมูลผู้ว่าจ้าง</div>
     <div class="row"><span class="lbl">ชื่อผู้ว่าจ้าง</span><span class="val">${clName}</span></div>
     <div class="row"><span class="lbl">เบอร์ติดต่อ</span><span class="val">${clPhone}</span></div>
+    ${g.clientContact?`<div class="row"><span class="lbl">ช่องทางอื่น</span><span class="val">${g.clientContact}</span></div>`:''}
     ${cl&&cl.bankName?`<div class="row"><span class="lbl">ธนาคาร</span><span class="val">${cl.bankName} ${cl.bankNo||''}</span></div>`:''}
   </div>
   <div class="section">
@@ -8834,7 +8926,7 @@ async function doAIFill(){
 ${text}
 
 ข้อมูลอ้างอิงในระบบ:
-- สมาชิกวง (ชื่อจริง|ชื่อเล่น): ${memberList}
+- สมาชิกวง (ชื่อจริง|ชื่อเล่น|ตำแหน่ง): ${memberList}
 - แหล่งที่มา: ${sourceList}
 - ประเภทงาน: ${jobTypeList}
 - ลูกค้าเดิม: ${clientList}
@@ -8848,7 +8940,7 @@ ${text}
   "venue": "ชื่อสถานที่หรือโรงแรม",
   "province": "จังหวัดเต็ม เช่น กรุงเทพมหานคร ไม่ใช่ กทม.",
   "mapLink": "URL maps.google.com หรือ maps.app.goo.gl หรือ null",
-  "bandsize": จำนวนชิ้นดนตรีเป็น number หรือ null,
+  "bandsize": จำนวนชิ้นดนตรีเป็น number — ถ้าไม่ระบุให้ดูจากจำนวนสมาชิกที่ระบุ หรือ null,
   "source": "คัดลอกจากรายการแหล่งที่มา exact เป๊ะ หรือ null",
   "type": "คัดลอกจากรายการประเภทงาน exact เป๊ะ หรือ null",
   "bandFee": ค่าตัวรวมทั้งวง (ไม่ใช่รายคน),
@@ -8858,22 +8950,28 @@ ${text}
   "otherIncome": รายได้อื่นๆ,
   "otherIncomeNote": "รายละเอียดรายได้อื่นๆ",
   "discount": ส่วนลดท้ายบิล,
+  "whtEnabled": true ถ้ามีคำว่า หักภาษี/ภาษีหัก ณ ที่จ่าย/WHT ไม่งั้น false,
+  "whtRate": 3 หรือ 5 ตามที่ระบุ ถ้าไม่ระบุให้เป็น 3,
   "expenseRows": [{"fee": number, "note": "รายละเอียด"}],
-  "clientName": "ชื่อลูกค้า ถ้าใกล้เคียงชื่อในระบบให้ใช้ชื่อในระบบ",
+  "clientName": "ชื่อลูกค้า ถ้าใกล้เคียงชื่อในระบบให้ใช้ชื่อในระบบ exact",
   "clientPhone": "เบอร์คั่นด้วย comma ถ้าหลายเบอร์ ตัวเลขล้วนไม่มีขีด",
   "clientBankName": "ชื่อธนาคาร หรือ null",
   "clientBankNo": "เลขบัญชี หรือ null",
-  "note": "หมายเหตุ ไม่รวม map link",
-  "musicians": [{"nick": "ชื่อเล่นหรือชื่อจาก memberList", "fee": ค่าตัวรายคน, "travel": ค่ารถ, "oil": ค่าน้ำมัน, "overtime": ค่าต่อเวลา, "other": ค่าอื่น, "otherNote": "หมายเหตุ"}]
+  "clientContact": "Line/IG/Facebook/ช่องทางอื่นๆ ที่ไม่ใช่เบอร์โทร หรือ null",
+  "note": "หมายเหตุ ไม่รวม map link และไม่รวมข้อมูลที่ใส่ field อื่นแล้ว",
+  "musicians": [{"nick": "ชื่อเล่นหรือชื่อที่ match กับ memberList", "fee": ค่าตัวรายคน, "travel": ค่ารถ, "oil": ค่าน้ำมัน, "overtime": ค่าต่อเวลา, "other": ค่าอื่น, "otherNote": "หมายเหตุ"}]
 }
 กฎสำคัญ:
 1. bandFee = ค่าวงรวม, musicians[].fee = ค่าตัวแต่ละคน (คนละอย่างกัน)
-2. source และ type ต้อง copy ตัวอักษรจากรายการที่ให้ ห้ามแต่งเอง
-3. expenseRows — ใส่ได้เฉพาะเมื่อ prompt มีคำว่า "ค่าใช้จ่ายในงาน" เท่านั้น ถ้าไม่มีคำนี้ใน prompt ให้ expenseRows = [] เสมอ ห้ามเดาหรือสรุปเอง
-4. ค่าน้ำมัน/ค่ารถของสมาชิกให้ใส่ใน musicians[].oil และ musicians[].travel เสมอ ห้ามใส่ใน expenseRows
-5. ถ้าไม่รู้ว่าค่าน้ำมัน/รถเป็นของสมาชิกคนไหน ให้แบ่งเท่ากันทุกคน
+2. source และ type ต้อง copy ตัวอักษรจากรายการที่ให้ exact ห้ามแต่งเอง
+3. expenseRows — ใส่เฉพาะเมื่อ prompt มีคำว่า "ค่าใช้จ่ายในงาน" เท่านั้น ถ้าไม่มีให้เป็น []
+4. ค่าน้ำมัน/ค่ารถของสมาชิกใส่ใน musicians[].oil และ musicians[].travel เสมอ
+5. ถ้าไม่รู้ว่าค่าน้ำมัน/รถเป็นของใคร ให้แบ่งเท่ากันทุกคนใน musicians
 6. ตัวเลขทุกตัวเป็น number ไม่ใช่ string
-7. musicians = [] ถ้าไม่มีข้อมูล`;
+7. musicians = [] ถ้าไม่มีข้อมูล
+8. Line ID / IG / Facebook ให้ใส่ใน clientContact ไม่ใช่ note
+9. ชื่อลูกค้า — ถ้าตรงหรือใกล้เคียงชื่อในระบบให้ใช้ชื่อในระบบเป๊ะๆ เพื่อ match ได้ถูก
+10. bandsize — ถ้าระบุสมาชิก 4 คน แต่ไม่บอก bandsize ให้ใส่ 4`;
 
   try{
     const resp=await fetch('https://agentbandest.csadayuyu.workers.dev',{
@@ -8923,6 +9021,7 @@ ${text}
         setCtype('old');gigState.selectedClientId=match.id;
         document.getElementById('gclient-search').value=match.name;
         setPhoneTags(match.phone||'');
+        const gcc=document.getElementById('gccontact');if(gcc)gcc.value=match.contact||'';
       } else {
         setCtype('new');
         document.getElementById('gcname-new').value=parsed.clientName;
@@ -8931,7 +9030,17 @@ ${text}
           const phones=phoneStr.split(/[,\/]/).map(s=>s.replace(/\D/g,'').trim()).filter(s=>s.length>=9);
           if(phones.length){renderPhoneTagsNew(phones);syncPhoneNewHidden();}
         }
+        if(parsed.clientContact){const gcc=document.getElementById('gccontact-new');if(gcc)gcc.value=parsed.clientContact;}
+        if(parsed.clientBankName){const bn=document.getElementById('gcbank-name-new');if(bn)bn.value=parsed.clientBankName;}
+        if(parsed.clientBankNo){const bno=document.getElementById('gcbank-no-new');if(bno)bno.value=String(parsed.clientBankNo);}
       }
+    }
+    /* WHT */
+    if(parsed.whtEnabled){
+      const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=true;
+      const rate=parsed.whtRate===5?'wht-rate-5':'wht-rate-3';
+      const rr=document.getElementById(rate);if(rr)rr.checked=true;
+      calcWHT();
     }
     /* Musicians — match ชื่อเล่นกับสมาชิกจริง */
     if(parsed.musicians&&Array.isArray(parsed.musicians)&&parsed.musicians.length>0){
@@ -9058,10 +9167,10 @@ function _reApplyAIFill(p){
       setPhoneTags(match.phone||'');
       const bn=document.getElementById('gcbank-name');const bno=document.getElementById('gcbank-no');
       if(bn)bn.value=match.bankName||'';if(bno)bno.value=match.bankNo||'';
+      const gcc=document.getElementById('gccontact');if(gcc)gcc.value=match.contact||'';
     } else {
       setCtype('new');
       document.getElementById('gcname-new').value=p.clientName;
-      /* phone — guard ให้แน่ใจว่าเป็น string */
       const phoneStr=typeof p.clientPhone==='string'?p.clientPhone:String(p.clientPhone||'');
       if(phoneStr){
         const phones=phoneStr.split(/[,\/]/).map(s=>s.replace(/\D/g,'').trim()).filter(s=>s.length>=9);
@@ -9069,7 +9178,14 @@ function _reApplyAIFill(p){
       }
       if(p.clientBankName){const bn=document.getElementById('gcbank-name-new');if(bn)bn.value=p.clientBankName;}
       if(p.clientBankNo){const bno=document.getElementById('gcbank-no-new');if(bno)bno.value=String(p.clientBankNo);}
+      if(p.clientContact){const gcc=document.getElementById('gccontact-new');if(gcc)gcc.value=p.clientContact;}
     }
+  }
+  /* ── WHT ── */
+  if(p.whtEnabled){
+    const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=true;
+    const rr=document.getElementById(p.whtRate===5?'wht-rate-5':'wht-rate-3');if(rr)rr.checked=true;
+    calcWHT();
   }
   /* ── หมายเหตุ ── */
   if(p.note) document.getElementById('gnote').value=p.note;
