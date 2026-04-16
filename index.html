@@ -4885,12 +4885,18 @@ function editGig(id){
     /* ต้องรอให้ setSplit → renderMemberRows render DOM ก่อน แล้วค่อย set values */
     setTimeout(()=>{
       g.musicians.forEach((mu,i)=>{
-        const sel=document.getElementById('gmem-'+i);
-        if(!sel||!mu.memberId)return;
+        const hidden=document.getElementById('gmem-'+i);
+        if(!hidden||!mu.memberId)return;
         const midStr=String(mu.memberId);
         const matchMem=S.members.find(m=>String(m.id)===midStr);
         const targetId=matchMem?String(matchMem.id):midStr;
-        sel.value=targetId;
+        /* set hidden value */
+        hidden.value=targetId;
+        /* set text input label */
+        const txtEl=document.getElementById(`gmem-txt-${i}`);
+        if(txtEl&&matchMem){
+          txtEl.value=`${matchMem.name}${matchMem.lastname?' '+matchMem.lastname:''} (${matchMem.nick}) — ${matchMem.role}`;
+        }
         /* restore breakdown ก่อน เพราะ calcBreakdown จะ sync ยอดรวม */
         if(mu.breakdown){
           const bd=mu.breakdown;
@@ -9157,10 +9163,13 @@ ${text}
         const wrap=document.getElementById('gig-members-wrap');
         if(wrap) wrap.style.display='block';
         if(typeof renderMemberRows==='function') renderMemberRows();
-        /* fill dropdown + pct หลัง render */
+        /* fill hidden + txt label หลัง render */
         matchedMusicians.forEach((mu,i)=>{
-          const sel=document.getElementById('gmem-'+i);
-          if(sel) sel.value=String(mu.memberId);
+          const hidden=document.getElementById('gmem-'+i);
+          if(hidden) hidden.value=String(mu.memberId);
+          const mem=S.members.find(m=>String(m.id)===String(mu.memberId));
+          const txtEl=document.getElementById(`gmem-txt-${i}`);
+          if(txtEl&&mem) txtEl.value=`${mem.name}${mem.lastname?' '+mem.lastname:''} (${mem.nick}) — ${mem.role}`;
           const pctEl=document.getElementById('gpct-'+i);
           if(pctEl&&pctEl.tagName==='INPUT') pctEl.value=mu.pct;
         });
@@ -9312,8 +9321,12 @@ function _reApplyAIFill(p){
       if(typeof setSplit==='function') setSplit(gigState.splitMode);
       setTimeout(()=>{
         matchedMusicians.forEach((mu,i)=>{
-          const sel=document.getElementById('gmem-'+i);
-          if(sel) sel.value=String(mu.memberId);
+          const hidden=document.getElementById('gmem-'+i);
+          if(hidden) hidden.value=String(mu.memberId);
+          /* set text label */
+          const mem=S.members.find(m=>String(m.id)===String(mu.memberId));
+          const txtEl=document.getElementById(`gmem-txt-${i}`);
+          if(txtEl&&mem) txtEl.value=`${mem.name}${mem.lastname?' '+mem.lastname:''} (${mem.nick}) — ${mem.role}`;
           if(hasAmt){
             /* กรอก breakdown */
             const setV=(id,v)=>{const el=document.getElementById(id);if(el&&v>0)el.value=v;};
