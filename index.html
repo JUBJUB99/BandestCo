@@ -2906,7 +2906,7 @@ async function syncGig(gig) {
       client_name:gig.clientName||null,
       client_phone:gig.clientPhone||null,
       version_no: gig._v||1,
-      updated_by: currentUser?.username||null
+      updated_by: `${currentUser?.username||'unknown'}#${_tabId}`
     };
     let dbId = isNew ? null : gig.id;
     if(isNew) {
@@ -7041,6 +7041,7 @@ async function afterCloudLogin(user){
 }
 
 let _realtimeWS=null;
+const _tabId=Math.random().toString(36).slice(2,8); /* unique per tab */
 let _realtimeCooldown=false;
 
 function startRealtimeSync(){
@@ -7057,8 +7058,9 @@ function startRealtimeSync(){
         const msg=JSON.parse(e.data);
         if(msg.event==='INSERT'||msg.event==='UPDATE'||msg.event==='DELETE'){
           const byUser=msg.payload?.record?.updated_by||'';
-          const myUser=currentUser?.username||'';
-          if(byUser&&byUser!==myUser&&!_realtimeCooldown){
+          /* byUser format: "username#tabId" — ถ้า tabId ต่างกัน = tab อื่น ควร reload */
+          const myTag=`${currentUser?.username||''}#${_tabId}`;
+          if(byUser&&byUser!==myTag&&!_realtimeCooldown){
             _realtimeCooldown=true;
             setTimeout(()=>{_realtimeCooldown=false;},5000);
             reloadGigsFromCloud(byUser);
@@ -7085,7 +7087,7 @@ async function reloadGigsFromCloud(byUser){
         :{id:g.id,name:g.name,date:g.date,fee:parseFloat(g.fee),status:g.status,
           _v:g.version_no||1,_updatedBy:g.updated_by,musicians:[],memberPayments:{}};
     });
-    toast(`🔄 ${byUser} อัพเดทข้อมูลงาน — รีเฟรชแล้ว`);
+    toast(`🔄 ${(byUser||'').split('#')[0]||'ผู้ใช้อื่น'} อัพเดทข้อมูลงาน — รีเฟรชแล้ว`);
     const ap=document.querySelector('.page.active')?.id?.replace('page-','');
     if(ap==='gigs') rg();
     else if(ap==='dashboard') rd();
@@ -7636,7 +7638,7 @@ function requireAdmin(action=''){
 function bumpVersion(rec){
   rec._v=(rec._v||0)+1;
   rec._updatedAt=new Date().toISOString();
-  rec._updatedBy=currentUser?.username||'unknown';
+  rec._updatedBy=`${currentUser?.username||'unknown'}#${_tabId}`;
   return rec;
 }
 
@@ -7644,7 +7646,7 @@ function checkConflict(current, loadedVersion, label='ข้อมูล'){
   const curV=current?._v||0;
   const myV=loadedVersion||0;
   if(curV!==myV){
-    const by=current?._updatedBy||'ผู้ใช้อื่น';
+    const by=(current?._updatedBy||'ผู้ใช้อื่น').split('#')[0];
     const at=current?._updatedAt?new Date(current._updatedAt).toLocaleTimeString('th-TH'):'ไม่ทราบ';
     return `⚠️ ${label} ถูกแก้ไขโดย "${by}" เมื่อ ${at} ก่อนหน้านี้\n\nต้องการบันทึกทับหรือไม่?`;
   }
