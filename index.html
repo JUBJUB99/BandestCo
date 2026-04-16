@@ -6930,21 +6930,28 @@ async function doLoginMember(){
   if(SUPABASE_URL){
     const btn=document.querySelector('[onclick="doLoginMember()"]');
     if(btn){btn.textContent='กำลังเข้าสู่ระบบ...';btn.disabled=true;}
-    /* member ใช้ username@bandestco.app เป็น Supabase email */
-    const sbEmail=uname.includes('@')?uname:(uname+'@bandestco.app');
-    const auth=await sbSignIn(sbEmail,pass);
-    if(btn){btn.textContent='เข้าสู่ระบบ — สมาชิกวง';btn.disabled=false;}
-    if(!auth){showLoginErr('login-err-member','Username หรือรหัสผ่านไม่ถูกต้อง');return;}
-    _sbToken=auth.access_token;
-    /* หา user จาก users table */
+
+    /* member ใช้ custom auth — ดึงจาก users table แล้วเทียบ hash */
+    const passHash=await hashPassword(pass,uname);
     const users=await fetch(
       `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(uname)}&limit=1`,
       {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}}
     ).then(r=>r.json()).catch(()=>null);
+
+    if(btn){btn.textContent='เข้าสู่ระบบ — สมาชิกวง';btn.disabled=false;}
+
     if(!users||!users[0]){showLoginErr('login-err-member','ไม่พบบัญชีนี้ในระบบ');return;}
-    _sbBandId=users[0].band_id;
-    await afterCloudLogin({username:uname,role:'member',displayName:users[0].display_name||uname,memberId:users[0].member_id||null});
-    /* remember me */
+
+    const u=users[0];
+    /* เทียบ password hash */
+    const hashMatch=u.password_hash&&u.password_hash===passHash;
+    const plainMatch=u.password&&u.password===pass; /* backward compat */
+    if(!hashMatch&&!plainMatch){showLoginErr('login-err-member','Username หรือรหัสผ่านไม่ถูกต้อง');return;}
+
+    /* login ด้วย leader token ของวง (ใช้ anon key สำหรับ member) */
+    _sbToken=SUPABASE_ANON;
+    _sbBandId=u.band_id;
+    await afterCloudLogin({username:uname,role:u.role||'member',displayName:u.display_name||uname,memberId:u.member_id||null});
     if(document.getElementById('remember-member')?.checked) saveRememberMe('member',uname,pass);
     else clearRememberMe('member');
     return;
