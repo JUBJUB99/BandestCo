@@ -1119,10 +1119,12 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
           <option value="">ทุกปี</option>
         </select>
         <select id="gig-filter-status" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
+          <option value="active">ซ่อนงานยกเลิก</option>
           <option value="">ทุกสถานะ</option>
           <option value="confirmed">ยืนยัน</option>
           <option value="deposit">จ่ายมัดจำ</option>
           <option value="paid">จ่ายเต็ม</option>
+          <option value="cancelled">ยกเลิกเท่านั้น</option>
         </select>
         <select id="gig-sort" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
           <option value="new">บันทึก: ใหม่→เก่า</option>
@@ -1177,7 +1179,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
                 <th style="width:160px">ลูกค้า</th>
                 <th style="width:90px">แหล่งที่มา</th>
                 <th style="width:110px">ค่าตัวสุทธิ</th>
-                <th style="width:90px">สมาชิก</th>
+                <th style="width:130px">สมาชิก</th>
                 <th style="width:110px">สถานะรับเงิน</th>
                 <th style="width:115px">สถานะจ่ายค่าตัว</th>
                 <th style="width:100px">🎁 ทิป</th>
@@ -1213,6 +1215,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
             <input type="hidden" id="tip-gig-id">
             <div id="tip-gig-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--wh);border:1.5px solid var(--bd2);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:280px;overflow-y:auto;margin-top:4px"></div>
           </div>
+          <button onclick="renderTipTab()" style="height:36px;padding:0 14px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--ink3);font-size:12px;cursor:pointer;font-family:var(--f);white-space:nowrap;flex-shrink:0">✕ ล้าง / ดูประวัติ</button>
         </div>
         <div id="tip-content" style="flex:1;overflow:auto;padding:20px">
           <div style="text-align:center;color:var(--ink3);padding:40px">เลือกงานเพื่อบันทึกทิป</div>
@@ -2174,7 +2177,10 @@ Line: @somchai_jaidee
           </div>
         </div>
         <div id="client-new-block" style="display:none">
-          <div class="fg" style="margin-bottom:6px"><input class="fi" id="gcname-new" placeholder="ชื่อผู้ว่าจ้าง *" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:6px">
+            <input class="fi" id="gcname-new" placeholder="ชื่อผู้ว่าจ้าง *" style="font-size:12px" oninput="checkDupClientName(this.value)">
+            <div id="gcname-dup-hint" style="display:none;font-size:11px;color:#BA7517;margin-top:3px;padding:4px 8px;background:#FAEEDA;border-radius:4px"></div>
+          </div>
           <div class="fg" style="margin-bottom:6px">
             <label class="fl">เบอร์</label>
             <div id="gcphone-new-tags" style="display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px 8px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);align-items:center;cursor:text" onclick="document.getElementById('gcphone-new-inp').focus()">
@@ -3557,7 +3563,8 @@ function rg(){
     return sortDir==='old'?(a.jobNo||0)-(b.jobNo||0):(b.jobNo||0)-(a.jobNo||0);
   });
   if(search) list=list.filter(g=>(g.name+g.venue+g.province+(g.source||'')+(g.clientName||'')).toLowerCase().includes(search));
-  if(filterSt) list=list.filter(g=>g.status===filterSt);
+  if(filterSt==='active') list=list.filter(g=>g.status!=='cancelled');
+  else if(filterSt) list=list.filter(g=>g.status===filterSt);
   document.getElementById('gigs-b').innerHTML=list.map(g=>{
     const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
     const clName=cl?cl.name:(g.clientName||'—');
@@ -3593,7 +3600,15 @@ function rg(){
         <div class="tamt" style="font-size:13px">฿${f(netVal)}</div>
         ${g.fee!==netVal?`<div style="font-size:9px;color:var(--ink3)">ก่อนหัก ฿${f(g.fee)}</div>`:''}
       </td>
-      <td>${(()=>{const hasM=g.musicians&&g.musicians.length>0;return hasM?'<span class="badge bg" style="font-size:10px;background:#D1FAE5;color:#065F46"><span class="bd2" style="background:#065F46"></span>Assigned</span>':'<span class="badge bs" style="font-size:10px;background:#FEF3C7;color:#92400E"><span class="bd2" style="background:#92400E"></span>No Assign</span>';})()} </td>
+      <td>${(()=>{
+        const mus=g.musicians||[];
+        if(!mus.length) return '<span style="font-size:11px;color:var(--ink3)">—</span>';
+        const nicks=mus.map(mu=>{
+          const mem=S.members.find(x=>String(x.id)===String(mu.memberId));
+          return mem?`<span style="display:inline-block;background:var(--rp);color:var(--red);border-radius:4px;padding:1px 5px;font-size:10px;font-weight:500;margin:1px">${mem.nick}</span>`:'';
+        }).filter(Boolean).join('');
+        return `<div style="display:flex;flex-wrap:wrap;gap:1px">${nicks}</div>`;
+      })()} </td>
       <td>${bx(g.status)}</td>
       <td>${g.status!=='cancelled'?gigPayBadge(g):'—'}</td>
       <td>${g.status!=='cancelled'?gigTipBadge(g):'—'}</td>
@@ -4914,19 +4929,23 @@ function editGig(id){
   },50);
   document.getElementById('mgig').classList.add('open');
 
-  /* ── lock modal ถ้างาน paid ── */
+  /* ── lock modal ถ้างาน paid หรือ cancelled ── */
   const isPaidLock=g.status==='paid';
+  const isCancelledLock=g.status==='cancelled';
+  const isLocked=isPaidLock||isCancelledLock;
   const mgigEl=document.getElementById('mgig');
-  if(isPaidLock){
+  if(isLocked){
     mgigEl.classList.add('gig-locked');
-    document.getElementById('mgig-t').textContent='ดูข้อมูลงาน (จ่ายเต็มแล้ว)';
+    document.getElementById('mgig-t').textContent=isCancelledLock
+      ?'ดูข้อมูลงาน (ยกเลิกแล้ว)'
+      :'ดูข้อมูลงาน (จ่ายเต็มแล้ว)';
     /* ซ่อนปุ่มบันทึก */
     const saveBtn=mgigEl.querySelector('[onclick="sg()"]');
     if(saveBtn)saveBtn.style.display='none';
     /* disable ทุก input/select/textarea/button ใน modal ยกเว้นปุ่มยกเลิก */
     setTimeout(()=>{
       mgigEl.querySelectorAll('input,select,textarea,button').forEach(el=>{
-        if(el.getAttribute('onclick')==='cx(\'mgig\')') return; /* ปุ่มยกเลิก */
+        if(el.getAttribute('onclick')==='cx(\'mgig\')') return;
         el.disabled=true;
         el.style.pointerEvents='none';
         el.style.opacity='.55';
@@ -4993,6 +5012,21 @@ function sg(){
       const el=document.getElementById('gcname-new');
       if(el){el.style.outline='2px solid var(--red)';el.focus();setTimeout(()=>{el.style.outline='';},2000);}
       return;
+    }
+    /* validate ชื่อซ้ำกับ Master */
+    const dupClient=S.clients.find(c=>c.name.trim().toLowerCase()===clientName.toLowerCase());
+    if(dupClient){
+      const el=document.getElementById('gcname-new');
+      if(el){el.style.outline='2px solid #E8A900';setTimeout(()=>{el.style.outline='';},3000);}
+      const useExist=confirm(`⚠️ มีลูกค้าชื่อ "${dupClient.name}" อยู่ในระบบแล้ว\n\nกด OK เพื่อใช้ลูกค้าเดิม\nกด Cancel เพื่อสร้างใหม่`);
+      if(useExist){
+        setCtype('old');
+        gigState.selectedClientId=dupClient.id;
+        document.getElementById('gclient-search').value=dupClient.name;
+        setPhoneTags(dupClient.phone||'');
+        const gcc=document.getElementById('gccontact');if(gcc)gcc.value=dupClient.contact||'';
+        clientId=dupClient.id;clientName=dupClient.name;clientPhone=dupClient.phone||'';
+      }
     }
     const cbName=document.getElementById('gcbank-name-new')?.value.trim()||'';
     const cbNo=document.getElementById('gcbank-no-new')?.value.trim()||'';
@@ -5068,17 +5102,51 @@ let _tipSplitMode='equal';
 function renderTipTab(){
   document.getElementById('tip-gig-search').value='';
   document.getElementById('tip-gig-id').value='';
-  document.getElementById('tip-content').innerHTML='<div style="text-align:center;color:var(--ink3);padding:40px">ค้นหาหรือเลือกงานด้านบน</div>';
   closeTipDropdown();
+  /* รวบรวมประวัติทิปล่าสุด */
+  const tipHistory=[];
+  S.gigs.forEach(g=>{
+    if(!g.musicians||g.status==='cancelled') return;
+    g.musicians.forEach(mu=>{
+      const tip=mu.breakdown?.tip||0;
+      if(tip<=0) return;
+      const mem=S.members.find(x=>String(x.id)===String(mu.memberId));
+      tipHistory.push({gigName:g.name,gigDate:g.date,memName:mem?`${mem.name} (${mem.nick})`:'?',role:mem?.role||'',tip,gigId:g.id});
+    });
+  });
+  /* เรียงล่าสุดก่อน */
+  tipHistory.sort((a,b)=>b.gigDate.localeCompare(a.gigDate));
+  const histHtml=tipHistory.length
+    ? `<div style="margin-top:20px">
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">🎁 ประวัติการจ่ายทิปล่าสุด</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${tipHistory.slice(0,20).map(h=>`
+            <div style="display:flex;align-items:center;gap:10px;background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;cursor:pointer" onclick="selectTipGigById('${h.gigId}')">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.gigName}</div>
+                <div style="font-size:10px;color:var(--ink3);margin-top:2px">${fd(h.gigDate)} · ${h.memName} · ${h.role}</div>
+              </div>
+              <div style="font-size:14px;font-weight:700;color:var(--green);white-space:nowrap">+฿${f(h.tip)}</div>
+            </div>`).join('')}
+        </div>
+      </div>`
+    : `<div style="text-align:center;color:var(--ink3);padding:40px">ยังไม่มีประวัติการจ่ายทิป</div>`;
+  document.getElementById('tip-content').innerHTML=`
+    <div style="text-align:center;color:var(--ink3);padding:20px 0 8px">ค้นหาหรือเลือกงานด้านบน</div>
+    ${histHtml}`;
 }
 
 function filterTipGigs(){
   const q=(document.getElementById('tip-gig-search')?.value||'').toLowerCase();
   const dd=document.getElementById('tip-gig-dropdown');
-  const gigsWithMus=S.gigs.filter(g=>
-    g.status!=='cancelled'&&g.musicians&&g.musicians.length&&
-    (!q||g.name.toLowerCase().includes(q)||fd(g.date).includes(q))
-  ).slice(0,10);
+  const gigsWithMus=S.gigs.filter(g=>{
+    if(g.status==='cancelled'||!g.musicians||!g.musicians.length) return false;
+    /* ซ่อนงานที่จ่ายทิปครบทุกคนแล้ว */
+    const hasTip=g.musicians.some(mu=>(mu.breakdown?.tip||0)>0);
+    if(hasTip) return false;
+    if(q&&!g.name.toLowerCase().includes(q)&&!fd(g.date).includes(q)) return false;
+    return true;
+  }).slice(0,10);
   if(!gigsWithMus.length){
     dd.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--ink3)">ไม่พบงาน</div>';
     dd.style.display='block';return;
@@ -6368,7 +6436,16 @@ function saveClientEdit(id){
 function openAddClient(){if(!requireAdmin('เพิ่มลูกค้า'))return;['cl-name','cl-phone','cl-bank-name','cl-bank-no','cl-contact'].forEach(i=>document.getElementById(i).value='');document.getElementById('mclient').classList.add('open');}
 function saveClient(){
   if(!requireAdmin('บันทึกลูกค้า'))return;
-  const n=document.getElementById('cl-name').value.trim();if(!n){toast('กรุณากรอกชื่อ');return;}
+  const n=document.getElementById('cl-name').value.trim();
+  if(!n){toast('กรุณากรอกชื่อ');return;}
+  /* validate ชื่อซ้ำ */
+  const dup=S.clients.find(c=>c.name.trim().toLowerCase()===n.toLowerCase());
+  if(dup){
+    const el=document.getElementById('cl-name');
+    if(el){el.style.outline='2px solid #E8A900';setTimeout(()=>{el.style.outline='';},3000);}
+    toast(`⚠️ มีลูกค้าชื่อ "${dup.name}" อยู่ในระบบแล้ว กรุณาใช้ชื่ออื่น`);
+    return;
+  }
   const newClient={id:Date.now(),name:n,phone:document.getElementById('cl-phone').value.trim(),bankName:document.getElementById('cl-bank-name').value.trim(),bankNo:document.getElementById('cl-bank-no').value.trim(),contact:document.getElementById('cl-contact').value.trim()};
   S.clients.push(newClient);
   if(CLOUD_ENABLED()){
@@ -7261,6 +7338,18 @@ function copyAITemplate(){
   toast('✅ ใส่ template แล้ว — แก้ไขข้อมูลให้ตรงแล้วกด วิเคราะห์และกรอก');
 }
 
+function checkDupClientName(val){
+  const hint=document.getElementById('gcname-dup-hint');if(!hint)return;
+  const q=(val||'').trim().toLowerCase();
+  if(!q){hint.style.display='none';return;}
+  const dup=S.clients.find(c=>c.name.trim().toLowerCase()===q);
+  if(dup){
+    hint.textContent=`⚠️ มีลูกค้า "${dup.name}" อยู่ในระบบแล้ว — ใช้แท็บ "เดิม" เพื่อเลือกแทน`;
+    hint.style.display='block';
+  } else {
+    hint.style.display='none';
+  }
+}
 function openForgotPassword(){
   const emailEl=document.getElementById('forgot-email');
   if(emailEl) emailEl.value=document.getElementById('login-user-leader')?.value||'';
