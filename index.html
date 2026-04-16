@@ -2550,7 +2550,13 @@ Line: @somchai_jaidee
     <div class="modal-t" id="pay-modal-title">จ่ายเงินสมาชิก</div>
     <input type="hidden" id="pay-gig-id">
     <div style="background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:12px" id="pay-gig-info"></div>
-    <div style="font-size:11px;color:var(--ink3);margin-bottom:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase">เลือกสมาชิกที่ต้องการจ่าย</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--ink3);font-weight:500;letter-spacing:.04em;text-transform:uppercase">เลือกสมาชิกที่ต้องการจ่าย</div>
+      <button id="pay-select-all-btn" type="button" onclick="toggleSelectAllPay()"
+        style="padding:4px 12px;border:1px solid var(--red);border-radius:20px;background:transparent;color:var(--red);font-size:11px;cursor:pointer;font-family:var(--f);font-weight:500;white-space:nowrap">
+        ✓ ติ๊กทั้งหมด
+      </button>
+    </div>
     <div id="pay-member-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
     <div style="background:var(--rl);border:1.5px solid var(--red);border-radius:var(--r);padding:12px 16px;font-size:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
       <span style="color:var(--ink2);font-weight:500">ยอดที่จะจ่ายรวม</span>
@@ -6219,10 +6225,11 @@ function openPay(gigId){
       </div>
     </div>`;
   }).join('');
-  updatePayTotal();
-  /* แสดง/ซ่อนปุ่มบันทึกตาม role */
+  /* แสดง/ซ่อนปุ่มบันทึกและ select-all ตาม role */
   const saveBtn=document.getElementById('modal-pay-save-btn');
   if(saveBtn) saveBtn.style.display=readOnly?'none':'';
+  const selAllBtn=document.getElementById('pay-select-all-btn');
+  if(selAllBtn) selAllBtn.style.display=readOnly?'none':'';
   /* member/history mode: disable checkboxes และ note */
   setTimeout(()=>{
     document.querySelectorAll('.pay-check').forEach(cb=>{
@@ -6234,6 +6241,26 @@ function openPay(gigId){
       inp.disabled=readOnly;
       inp.style.background=readOnly?'var(--bg)':'';
     });
+    /* reset checkbox คนที่ยังไม่จ่าย = unchecked, สีตาม render ที่ถูกต้องแล้ว */
+    if(!readOnly){
+      document.querySelectorAll('.pay-check').forEach(cb=>{
+        const mid=cb.dataset.mid;
+        const amtEl=document.getElementById('pay-amt-'+mid);
+        const v=parseFloat(amtEl?.value)||0;
+        /* ถ้า v=0 = ยังไม่จ่าย → uncheck + สีแดง */
+        if(v<=0){
+          cb.checked=false;
+          const card=document.getElementById('pay-card-'+mid);
+          if(card){card.style.background='#FEF2F2';card.style.borderColor='#FECACA';}
+          const stD=card?.querySelector('.pay-status-display');
+          if(stD){stD.style.color='#DC2626';stD.textContent='รอจ่าย';}
+          const amtD=card?.querySelector('.pay-amt-display');
+          if(amtD){amtD.style.color='#DC2626';}
+        }
+      });
+    }
+    updatePaySelectAllBtn();
+    updatePayTotal();
   },50);
   document.getElementById('modal-pay').classList.add('open');
   /* โหลดรูปสลิปจาก IndexedDB แบบ async หลัง render */
@@ -6260,15 +6287,14 @@ function payCheckClick(cb){
   if(!card||card.dataset.ro==='1') return;
   const mid=card.dataset.mid;
   const cut=parseFloat(card.dataset.cut)||0;
+  const amtEl=document.getElementById('pay-amt-'+mid);
   if(cb.checked){
-    const amtEl=document.getElementById('pay-amt-'+mid);
-    if(amtEl) amtEl.value=cut; /* fill ยอดเต็มเสมอ */
-    onPayAmtInput(mid,cut);
+    if(amtEl&&!parseFloat(amtEl.value)) amtEl.value=cut;
   } else {
-    const amtEl=document.getElementById('pay-amt-'+mid);
     if(amtEl) amtEl.value='';
-    onPayAmtInput(mid,cut);
   }
+  onPayAmtInput(mid,cut); /* จัดการ color + total */
+  updatePaySelectAllBtn();
 }
 function togglePayRow(mid,cut,forceVal){
   mid=String(mid); /* ensure string */
@@ -6330,16 +6356,55 @@ async function previewPaySlip(mid,inp){
   }catch(e){toast('บีบอัดรูปไม่สำเร็จ');console.error(e);}
 }
 
+function updatePaySelectAllBtn(){
+  const cbs=[...document.querySelectorAll('.pay-check:not(:disabled)')];
+  const allChecked=cbs.length>0&&cbs.every(cb=>cb.checked);
+  const noneChecked=cbs.every(cb=>!cb.checked);
+  const btn=document.getElementById('pay-select-all-btn');
+  if(!btn)return;
+  if(allChecked){
+    btn.textContent='✕ ยกเลิกทั้งหมด';
+    btn.style.background='var(--red)';btn.style.color='#fff';
+  } else {
+    btn.textContent='✓ ติ๊กทั้งหมด';
+    btn.style.background='transparent';btn.style.color='var(--red)';
+  }
+}
+function toggleSelectAllPay(){
+  const cbs=[...document.querySelectorAll('.pay-check:not(:disabled)')];
+  const allChecked=cbs.every(cb=>cb.checked);
+  const newState=!allChecked;
+  cbs.forEach(cb=>{
+    if(cb.checked===newState) return;
+    cb.checked=newState;
+    /* trigger color update ผ่าน onPayAmtInput */
+    const mid=cb.dataset.mid;
+    const cut=parseFloat(cb.dataset.cut)||0;
+    const amtEl=document.getElementById('pay-amt-'+mid);
+    if(newState){
+      if(amtEl&&!parseFloat(amtEl.value)) amtEl.value=cut;
+    } else {
+      if(amtEl) amtEl.value='';
+    }
+    onPayAmtInput(mid,cut);
+  });
+  updatePaySelectAllBtn();
+  updatePayTotal();
+}
 function updatePayTotal(){
   const cbs=document.querySelectorAll('.pay-check');
   let total=0;
   cbs.forEach(cb=>{
+    const mid=cb.dataset.mid;
+    const cut=parseFloat(cb.dataset.cut)||0;
+    const amtEl=document.getElementById('pay-amt-'+mid);
+    const v=parseFloat(amtEl?.value)||0;
     if(cb.checked){
-      total+=parseInt(cb.dataset.cut)||0;
-      const card=document.getElementById('pay-card-'+cb.dataset.mid);
+      total+=v>0?v:cut; /* ถ้า amt=0 นับ cut เต็ม */
+      const card=document.getElementById('pay-card-'+mid);
       if(card&&!card.classList.contains('paid-done'))card.classList.add('checked');
     } else {
-      const card=document.getElementById('pay-card-'+cb.dataset.mid);
+      const card=document.getElementById('pay-card-'+mid);
       if(card){card.classList.remove('checked');card.classList.remove('paid-done');}
     }
   });
@@ -6351,16 +6416,21 @@ function onPayAmtInput(mid, cut){
   const cb=document.querySelector(`.pay-check[data-mid="${mid}"]`);
   if(!amtEl||!cb) return;
   const v=parseFloat(amtEl.value)||0;
-  cb.checked=v>0;
+  /* อัพเดท color ตาม amount — ไม่บังคับเปลี่ยน checkbox state */
   const card=document.getElementById('pay-card-'+mid);
   if(card){
-    const isFull=v>=cut,isPartial=v>0&&v<cut;
+    /* ถ้าติ๊กอยู่แต่ amt=0 → ใช้ cut เต็ม (ยังถือว่าจะจ่ายเต็ม) */
+    const effective=cb.checked?(v>0?v:cut):v;
+    const isFull=cb.checked&&(v<=0||v>=cut);
+    const isPartial=cb.checked&&v>0&&v<cut;
+    const isNone=!cb.checked;
     card.style.background=isFull?'#F0FDF4':isPartial?'#FFFBEB':'#FEF2F2';
     card.style.borderColor=isFull?'#86EFAC':isPartial?'#FCD34D':'#FECACA';
     const amtD=card.querySelector('.pay-amt-display');
     const stD=card.querySelector('.pay-status-display');
-    if(amtD){amtD.style.color=isFull?'#16A34A':isPartial?'#D97706':'#DC2626';amtD.textContent=`฿${f(v||cut)}`;}
-    if(stD){stD.style.color=isFull?'#16A34A':isPartial?'#D97706':'#DC2626';stD.textContent=isFull?'✓ จ่ายแล้ว':isPartial?`บางส่วน ฿${f(v)}`:'รอจ่าย';}
+    const col=isFull?'#16A34A':isPartial?'#D97706':'#DC2626';
+    if(amtD){amtD.style.color=col;amtD.textContent=`฿${f(isFull&&v<=0?cut:v||cut)}`;}
+    if(stD){stD.style.color=col;stD.textContent=isFull?'✓ จ่ายแล้ว':isPartial?`บางส่วน ฿${f(v)}`:'รอจ่าย';}
   }
   updatePayTotal();
 }
