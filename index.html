@@ -2852,7 +2852,7 @@ async function loadFromCloud() {
         source:g.source_name||'', type:g.type_name||'',
         clientId:g.client_id||null, clientName:g.client_name||'', clientPhone:g.client_phone||'',
         musicians:mus, payments, memberPayments, income, expenses,
-        _v:g._v||1, _updatedAt:g.updated_at, _updatedBy:g.updated_by
+        _v:g.version_no||g._v||1, _updatedAt:g.updated_at, _updatedBy:g.updated_by
       };
     });
 
@@ -2904,7 +2904,9 @@ async function syncGig(gig) {
       type_name:  gig.type||null,
       client_id:  isUUID(gig.clientId)?gig.clientId:null, /* only UUID */
       client_name:gig.clientName||null,
-      client_phone:gig.clientPhone||null
+      client_phone:gig.clientPhone||null,
+      version_no: gig._v||1,
+      updated_by: currentUser?.username||null
     };
     let dbId = isNew ? null : gig.id;
     if(isNew) {
@@ -7034,6 +7036,60 @@ async function afterCloudLogin(user){
     if(fab) fab.style.display='flex';
   }
   rd();
+  /* ── Supabase Realtime: auto-sync เมื่อ user อื่นแก้ไข ── */
+  if(CLOUD_ENABLED()) startRealtimeSync();
+}
+
+let _realtimeWS=null;
+let _realtimeCooldown=false;
+
+function startRealtimeSync(){
+  if(_realtimeWS&&_realtimeWS.readyState<=1) return; /* already open/connecting */
+  const wsUrl=SUPABASE_URL.replace('https://','wss://').replace('http://','ws://');
+  try{
+    const ws=new WebSocket(`${wsUrl}/realtime/v1/websocket?apikey=${SUPABASE_ANON}&vsn=1.0.0`);
+    _realtimeWS=ws;
+    ws.onopen=()=>{
+      ws.send(JSON.stringify({topic:`realtime:public:gigs:band_id=eq.${_sbBandId}`,event:'phx_join',payload:{},ref:'1'}));
+    };
+    ws.onmessage=e=>{
+      try{
+        const msg=JSON.parse(e.data);
+        if(msg.event==='INSERT'||msg.event==='UPDATE'||msg.event==='DELETE'){
+          const byUser=msg.payload?.record?.updated_by||'';
+          const myUser=currentUser?.username||'';
+          if(byUser&&byUser!==myUser&&!_realtimeCooldown){
+            _realtimeCooldown=true;
+            setTimeout(()=>{_realtimeCooldown=false;},5000);
+            reloadGigsFromCloud(byUser);
+          }
+        }
+        if(msg.event==='heartbeat') ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:msg.ref}));
+      }catch(err){}
+    };
+    ws.onclose=()=>{if(currentUser) setTimeout(startRealtimeSync,5000);};
+    ws.onerror=()=>{ws.close();};
+    setInterval(()=>{if(ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},30000);
+  }catch(err){console.warn('Realtime:',err);}
+}
+
+async function reloadGigsFromCloud(byUser){
+  if(!CLOUD_ENABLED()) return;
+  try{
+    const gigRows=await sbGet('gigs',`band_id=eq.${_sbBandId}&order=date.desc`);
+    if(!gigRows) return;
+    S.gigs=gigRows.map(g=>{
+      const ex=S.gigs.find(x=>String(x.id)===String(g.id));
+      return ex?{...ex,name:g.name,date:g.date,fee:parseFloat(g.fee),status:g.status,
+        _v:g.version_no||1,_updatedBy:g.updated_by,_updatedAt:g.updated_at}
+        :{id:g.id,name:g.name,date:g.date,fee:parseFloat(g.fee),status:g.status,
+          _v:g.version_no||1,_updatedBy:g.updated_by,musicians:[],memberPayments:{}};
+    });
+    toast(`🔄 ${byUser} อัพเดทข้อมูลงาน — รีเฟรชแล้ว`);
+    const ap=document.querySelector('.page.active')?.id?.replace('page-','');
+    if(ap==='gigs') rg();
+    else if(ap==='dashboard') rd();
+  }catch(err){console.warn('reloadGigs:',err);}
 }
 
 function showLoginErr(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
@@ -7470,6 +7526,7 @@ function doLogout(){
   sbSignOut();
   _sbToken=null; _sbBandId=null;
   try{sessionStorage.removeItem('bco_session');sessionStorage.removeItem('bco_last_page');}catch(e){}
+  if(_realtimeWS){try{_realtimeWS.close();}catch(e){}_realtimeWS=null;}
   /* reset S data */
   S.gigs=[];S.members=[];S.clients=[];S.users=[];S.sources=[];S.jobTypes=[];
   S.expenses=[];S.bandInfo={};S.plan=null;S._gigDraft=null;S._jobSeq=0;
