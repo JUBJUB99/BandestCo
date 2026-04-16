@@ -2904,10 +2904,10 @@ async function syncGig(gig) {
       type_name:  gig.type||null,
       client_id:  isUUID(gig.clientId)?gig.clientId:null, /* only UUID */
       client_name:gig.clientName||null,
-      client_phone:gig.clientPhone||null,
-      version_no: gig._v||1,
-      updated_by: `${currentUser?.username||'unknown'}#${_tabId}`
+      client_phone:gig.clientPhone||null
     };
+    /* เพิ่ม version tracking ถ้า column มีอยู่ใน DB */
+    try{ gigRow.version_no=gig._v||1; gigRow.updated_by=`${currentUser?.username||'unknown'}#${_tabId}`; }catch(e){}
     let dbId = isNew ? null : gig.id;
     if(isNew) {
       /* Get next job_no from DB atomically */
@@ -2927,12 +2927,27 @@ async function syncGig(gig) {
       if(li>=0 && dbId){ S.gigs[li].id=dbId; S.gigs[li].jobNo=gigRow.job_no; }
       console.log('✅ syncGig insert:', dbId, 'job_no:', gigRow.job_no);
     } else {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/gigs?id=eq.${dbId}`, {
+      let r = await fetch(`${SUPABASE_URL}/rest/v1/gigs?id=eq.${dbId}`, {
         method:'PATCH', headers:sbHeaders(),
         body:JSON.stringify(gigRow)
       });
-      if(!r.ok){ const d=await r.json(); console.error('❌ syncGig update:', r.status, d); return; }
-      console.log('✅ syncGig update:', dbId);
+      /* ถ้า fail เพราะ column ใหม่ไม่มี → ลอง PATCH โดยไม่มี version_no/updated_by */
+      if(!r.ok){
+        const errD=await r.json();
+        const errMsg=JSON.stringify(errD);
+        if(errMsg.includes('version_no')||errMsg.includes('updated_by')){
+          const {version_no,updated_by,...safeRow}=gigRow;
+          r=await fetch(`${SUPABASE_URL}/rest/v1/gigs?id=eq.${dbId}`,{
+            method:'PATCH',headers:sbHeaders(),body:JSON.stringify(safeRow)
+          });
+          if(!r.ok){const d2=await r.json();console.error('❌ syncGig update (safe):', r.status, d2);return;}
+          console.log('⚠️ syncGig update OK (no version cols — run SQL to enable realtime sync)');
+        } else {
+          console.error('❌ syncGig update:', r.status, errD); return;
+        }
+      } else {
+        console.log('✅ syncGig update:', dbId);
+      }
     }
     if(!dbId) return;
 
@@ -3032,7 +3047,7 @@ async function syncMember(mem) {
       const r=await fetch(`${SUPABASE_URL}/rest/v1/members`,{method:'POST',headers:sbHeaders(),body:JSON.stringify(row)});
       const d=await r.json();
       if(!r.ok){console.error('❌ syncMember insert:',r.status,d);return;}
-      const li=S.members.findIndex(x=>x.id===mem.id);
+      const li=S.members.findIndex(x=>String(x.id)===String(mem.id));
       if(li>=0&&d[0]){
         S.members[li].id=d[0].id;
         console.log('✅ syncMember insert uuid:',d[0].id);
@@ -3058,7 +3073,7 @@ async function syncExpense(exp) {
     const isNew = (typeof exp.id === 'string' && exp.id.startsWith('exp'));
     if(isNew) {
       const res = await sbInsert('band_expenses', row);
-      if(res&&res[0]){const li=S.expenses.findIndex(x=>x.id===exp.id);if(li>=0)S.expenses[li].id=res[0].id;}
+      if(res&&res[0]){const li=S.expenses.findIndex(x=>String(x.id)===String(exp.id));if(li>=0)S.expenses[li].id=res[0].id;}
     } else {
       await sbUpdate('band_expenses', exp.id, row);
     }
@@ -3172,7 +3187,7 @@ const mg=(m,y)=>S.gigs.filter(g=>{const d=new Date(g.date);return d.getMonth()==
 const mi=(mem,m,y)=>{const activeM=S.members.filter(x=>x.status==='active').length||1;return mg(m,y).filter(g=>g.status==='confirmed'||g.status==='deposit'||g.status==='paid').reduce((s,g)=>s+g.fee*(1/activeM),0);};
 const BD={confirmed:['b-confirmed','ยังไม่จ่าย'],deposit:['b-deposit','จ่ายมัดจำ'],paid:['b-paid','จ่ายเต็ม'],cancelled:['b-cancelled','ยกเลิก'],pending:['bs','ยังไม่จ่าย'],active:['bg','Active'],inactive:['bs','Inactive']};
 const gigExpTotal=g=>{const e=g.expenses||{};if(e.expenseRows) return e.expenseRows.reduce((s,r)=>s+(r.fee||0),0);return(e.soundFee||0)+(e.adsFee||0)+(e.otherFee||0);};
-const gigNet=g=>g.fee-gigExpTotal(g);
+const gigNet=g=>Math.max(0,g.fee-gigExpTotal(g));
 const gigPayBadge=g=>{const ps=getGigPayStatus(g);const map={'ยังไม่จ่าย':'b-pay-none','จ่ายบางส่วน':'b-pay-part','จ่ายครบทั้งวง':'b-pay-full'};return`<span class="badge ${map[ps.label]||'bs'}" style="font-size:10px"><span class="bd2"></span>${ps.label}</span>`;};
 const gigTipBadge=g=>{
   const mus=g.musicians||[];
@@ -3568,15 +3583,15 @@ function rg(){
     const years=[...new Set(S.gigs.map(g=>g.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a);
     years.forEach(y=>{if(!Array.from(yrEl.options).find(o=>o.value===y))yrEl.add(new Option(parseInt(y)+543+' ('+y+')',y));});
   }
-  /* populate member dropdown */
+  /* populate member dropdown — refresh ทุกครั้ง */
   const memEl=document.getElementById('gig-filter-member');
-  if(memEl&&memEl.options.length<=1){
+  if(memEl){
+    const curVal=memEl.value;
+    while(memEl.options.length>1) memEl.remove(1);
     S.members.filter(m=>m.status==='active')
       .sort((a,b)=>(a.role||'').localeCompare(b.role||'','th'))
-      .forEach(m=>{
-        if(!Array.from(memEl.options).find(o=>o.value===String(m.id)))
-          memEl.add(new Option(`${m.nick} — ${m.role}`,String(m.id)));
-      });
+      .forEach(m=>memEl.add(new Option(`${m.nick} — ${m.role}`,String(m.id))));
+    memEl.value=curVal; /* คงค่าที่เลือกไว้ */
   }
   /* show draft dot if draft exists */
   const dd=document.getElementById('draft-dot');
@@ -3604,7 +3619,7 @@ function rg(){
   if(filterSt==='active') list=list.filter(g=>g.status!=='cancelled');
   else if(filterSt) list=list.filter(g=>g.status===filterSt);
   document.getElementById('gigs-b').innerHTML=list.map(g=>{
-    const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
+    const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
     const clName=cl?cl.name:(g.clientName||'—');
     const timeStr=(g.timeStart&&g.timeEnd)?`${g.timeStart}–${g.timeEnd}`:g.timeStart||g.timeEnd||'—';
     const netVal=gigNet(g);
@@ -3670,7 +3685,7 @@ function getMemberGigPaid(mem,g){
   const pData=paid[mem.id];
   if(!pData)return 0;
   const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(x=>x.status==='active').map(x=>({memberId:x.id,pct:100/S.members.filter(a=>a.status==='active').length}));
-  const mu=mus.find(x=>x.memberId===mem.id);
+  const mu=mus.find(x=>String(x.memberId)===String(mem.id));
   if(!mu)return 0;
   return Math.round(gigNet(g)*(mu.pct/100));
 }
@@ -3834,7 +3849,7 @@ function ri(){
     if(wrap){wrap.style.overflow='visible';wrap.style.width='100%';}
     document.getElementById('itable-table').style.width='100%';
     document.getElementById('itable').innerHTML=memData.map(mem=>{
-      const isSelected=mem.id===incomeSelectedMid;
+      const isSelected=String(mem.id)===String(incomeSelectedMid);
       return`<tr><td colspan="7" style="padding:0 0 6px">
         <div onclick="selectIncomeMember('${mem.id}')"
           style="background:var(--wh);border-radius:10px;overflow:hidden;cursor:pointer;
@@ -3881,7 +3896,7 @@ function ri(){
     const wrap=document.getElementById('itable-wrap');
     if(wrap) wrap.style.overflow='auto';
     document.getElementById('itable').innerHTML=memData.map(mem=>{
-      const isSelected=mem.id===incomeSelectedMid;
+      const isSelected=String(mem.id)===String(incomeSelectedMid);
       return`<tr style="cursor:pointer;${isSelected?'background:var(--rl);':''}transition:background .12s;border-bottom:1px solid var(--bd)" onclick="selectIncomeMember('${mem.id}')">
         <td style="padding:10px 12px">
           <div style="display:flex;align-items:center;gap:8px">
@@ -4066,8 +4081,8 @@ function renderCalFilterBar(){
 }
 
 function openCalPopup(gigId){
-  const g=S.gigs.find(x=>x.id===gigId);if(!g)return;
-  const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
+  const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
   const clName=cl?cl.name:(g.clientName||'—');
   const clPhone=cl?cl.phone:(g.clientPhone||'—');
   const timeStr=g.timeStart?(g.timeStart+(g.timeEnd?'–'+g.timeEnd:'')):'ไม่ระบุ';
@@ -4196,7 +4211,7 @@ function rp(){
   const clientMap={};
   S.gigs.filter(g=>g.status!=='cancelled').forEach(g=>{
     const clId=g.clientId?('c'+g.clientId):(g.clientName?('n_'+g.clientName):'unknown');
-    const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
+    const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
     const clName=cl?cl.name:(g.clientName||'ไม่ระบุลูกค้า');
     const clPhone=cl?cl.phone:(g.clientPhone||'—');
     if(!clientMap[clId]){clientMap[clId]={id:clId,name:clName,phone:clPhone,gigs:[],totalRevenue:0,totalReceived:0,sources:new Set(),types:new Set()};}
@@ -4481,9 +4496,11 @@ function calcTotalIncome(){
 }
 function renderMemberRows(){
   const wrap=document.getElementById('gig-member-rows');
-  /* เก็บ selection เดิมโดยใช้ memberId (ไม่ใช่ index) */
-  const existingIds=[...wrap.querySelectorAll('select')].map(s=>s.value);
-  /* เก็บ breakdown เดิมแต่ละ row */
+  const n=gigState.count;
+  /* เก็บ selection เดิมจาก hidden inputs */
+  const existingIds=Array.from({length:Math.max(n,wrap.querySelectorAll('[id^="gmem-"]:not([id*="txt"]):not([id*="drop"]):not([id*="wrap"])').length)},
+    (_,i)=>document.getElementById('gmem-'+i)?.value||'');
+  /* เก็บ breakdown เดิม — guard undefined */
   const existingBd=existingIds.map((_,i)=>({
     fee:document.getElementById(`gbd-fee-${i}`)?.value||'',
     car:document.getElementById(`gbd-car-${i}`)?.value||'',
@@ -4492,7 +4509,6 @@ function renderMemberRows(){
     other:document.getElementById(`gbd-other-${i}`)?.value||'',
     note:document.getElementById(`gbd-note-${i}`)?.value||''
   }));
-  const n=gigState.count;
   /* เรียง active members ตาม role A-Z แล้วตาม name */
   const activeMembers=S.members.filter(m=>m.status==='active')
     .sort((a,b)=>(a.role||'').localeCompare(b.role||'','th')|| (a.name||'').localeCompare(b.name||'','th'));
@@ -4517,7 +4533,7 @@ function renderMemberRows(){
     } else {
       pctField=`<div style="width:70px;flex-shrink:0;text-align:center;font-size:12px;font-weight:600;color:var(--red);line-height:36px" id="gpct-${i}">${equalPct}%</div>`;
     }
-    const bd=existingBd[i]||{};
+    const bd=existingBd[i]||{fee:'',car:'',oil:'',ot:'',other:'',note:''};
     html+=`<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="width:22px;height:22px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
@@ -4828,6 +4844,30 @@ function openGig(){
         if(d.clientPhoneNew){renderPhoneTagsNew((d.clientPhoneNew||'').split(',').filter(Boolean));syncPhoneNewHidden();}
       }
     }
+    /* restore musicians */
+    if(d.musicians&&d.musicians.length>0&&d.musicianCount>0){
+      gigState.count=d.musicianCount;
+      gigState.splitMode=d.splitMode||'amt';
+      const gcountEl=document.getElementById('gcount');if(gcountEl)gcountEl.value=gigState.count;
+      document.getElementById('gig-members-wrap').style.display='block';
+      if(typeof setSplit==='function') setSplit(gigState.splitMode);
+      setTimeout(()=>{
+        d.musicians.forEach((mu,i)=>{
+          const hidden=document.getElementById('gmem-'+i);
+          if(hidden&&mu.memberId) hidden.value=mu.memberId;
+          const mem=S.members.find(m=>String(m.id)===String(mu.memberId));
+          const txtEl=document.getElementById('gmem-txt-'+i);
+          if(txtEl&&mem) txtEl.value=`${mem.name}${mem.lastname?' '+mem.lastname:''} (${mem.nick}) — ${mem.role}`;
+          const setV=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+          setV(`gbd-fee-${i}`,mu.fee);setV(`gbd-car-${i}`,mu.car);
+          setV(`gbd-oil-${i}`,mu.oil);setV(`gbd-ot-${i}`,mu.ot);
+          setV(`gbd-other-${i}`,mu.other);
+          const noteEl=document.getElementById(`gbd-note-${i}`);if(noteEl&&mu.note)noteEl.value=mu.note;
+          if(typeof calcBreakdown==='function') calcBreakdown(i);
+        });
+        if(typeof updateSummary==='function') updateSummary();
+      },100);
+    }
     /* show toast hint */
     toast('📋 โหลด draft ล่าสุด — กรอกต่อหรือบันทึกได้เลย');
   }
@@ -4900,7 +4940,7 @@ function editGig(id){
   if(g.clientId){
     setCtype('old');
     gigState.selectedClientId=g.clientId; /* ← fix: set selectedClientId */
-    const cl=S.clients.find(x=>x.id===g.clientId);
+    const cl=S.clients.find(x=>String(x.id)===String(g.clientId));
     if(cl){
       document.getElementById('gclient-search').value=cl.name;
       setPhoneTags(cl.phone||'');
@@ -5011,6 +5051,10 @@ function editGig(id){
 }
 function sg(){
   if(!requireAdmin('บันทึกงาน'))return;
+  /* ป้องกัน double save */
+  const saveBtn=document.querySelector('[onclick="sg()"]');
+  if(saveBtn&&saveBtn.disabled)return;
+  if(saveBtn){saveBtn.disabled=true;setTimeout(()=>{saveBtn.disabled=false;},3000);}
   const n=document.getElementById('gn').value.trim(),d=document.getElementById('gd').value,fe=parseFloat(document.getElementById('gf').value)||0;
   const src=document.getElementById('gsource').value;
   if(!n||!d){toast('กรุณากรอกชื่องานและวันที่');return;}
@@ -5418,7 +5462,7 @@ function renderRecvPageList(){
   if(listEl)listEl.style.display='grid';
 
   listEl.innerHTML=list.map(g=>{
-    const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
+    const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
     const clName=cl?cl.name:(g.clientName||'—');
     const clPhone=cl?.phone||(g.clientPhone||'');
     const pays=g.payments||[];
@@ -7041,6 +7085,7 @@ async function afterCloudLogin(user){
 }
 
 let _realtimeWS=null;
+let _realtimeHBInterval=null;
 const _tabId=Math.random().toString(36).slice(2,8); /* unique per tab */
 let _realtimeCooldown=false;
 
@@ -7069,9 +7114,12 @@ function startRealtimeSync(){
         if(msg.event==='heartbeat') ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:msg.ref}));
       }catch(err){}
     };
-    ws.onclose=()=>{if(currentUser) setTimeout(startRealtimeSync,5000);};
+    ws.onclose=()=>{
+      if(_realtimeHBInterval){clearInterval(_realtimeHBInterval);_realtimeHBInterval=null;}
+      if(currentUser) setTimeout(startRealtimeSync,5000);
+    };
     ws.onerror=()=>{ws.close();};
-    setInterval(()=>{if(ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},30000);
+    _realtimeHBInterval=setInterval(()=>{if(ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},30000);
   }catch(err){console.warn('Realtime:',err);}
 }
 
@@ -7194,23 +7242,16 @@ async function doLoginMember(){
 
     /* member ใช้ custom auth — ดึงจาก users table แล้วเทียบ hash */
     const passHash=await hashPassword(pass,uname);
-    console.log('🔐 [MemberLogin] username:', uname);
-    console.log('🔐 [MemberLogin] passHash:', passHash);
     const users=await fetch(
       `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(uname)}&limit=1`,
       {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}}
     ).then(r=>r.json()).catch(()=>null);
 
     if(btn){btn.textContent='เข้าสู่ระบบ — สมาชิกวง';btn.disabled=false;}
-    console.log('🔐 [MemberLogin] users result:', users);
 
     if(!users||!users[0]){showLoginErr('login-err-member','ไม่พบบัญชีนี้ในระบบ');return;}
 
     const u=users[0];
-    console.log('🔐 [MemberLogin] db password_hash:', u.password_hash);
-    console.log('🔐 [MemberLogin] db password (plain):', u.password);
-    console.log('🔐 [MemberLogin] hash match:', u.password_hash===passHash);
-    console.log('🔐 [MemberLogin] plain match:', u.password===pass);
     /* เทียบ password hash */
     const hashMatch=u.password_hash&&u.password_hash===passHash;
     const plainMatch=u.password&&u.password===pass; /* backward compat */
@@ -8011,6 +8052,18 @@ function saveGigDraft(){
       otherNote:document.getElementById('gf-other-note')?.value||''
     },
     expenseRows:getExpenseRows(),
+    /* musicians */
+    musicianCount:gigState.count,
+    splitMode:gigState.splitMode,
+    musicians:gigState.count>0?Array.from({length:gigState.count},(_,i)=>({
+      memberId:document.getElementById('gmem-'+i)?.value||'',
+      fee:document.getElementById('gbd-fee-'+i)?.value||'',
+      car:document.getElementById('gbd-car-'+i)?.value||'',
+      oil:document.getElementById('gbd-oil-'+i)?.value||'',
+      ot:document.getElementById('gbd-ot-'+i)?.value||'',
+      other:document.getElementById('gbd-other-'+i)?.value||'',
+      note:document.getElementById('gbd-note-'+i)?.value||''
+    })):[],
     /* client */
     ctype:gigState.ctype||'old',
     clientId:gigState.selectedClientId||null,
@@ -8978,9 +9031,9 @@ function validateRegPass2(){
 }
 
 function exportContractPDF(gigId){
-  const g=S.gigs.find(x=>x.id===gigId);
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
   if(!g){toast('ไม่พบข้อมูลงาน');return;}
-  const cl=g.clientId?S.clients.find(x=>x.id===g.clientId):null;
+  const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
   const clName=cl?cl.name:(g.clientName||'—');
   const clPhone=cl?cl.phone:(g.clientPhone||'—');
   const band=S.bandInfo?.name||'BandestCo';
