@@ -587,6 +587,7 @@ body.view-only .pay-check{
 
 /* gigs table */
 #gigs-table thead th{position:sticky;top:0;z-index:10;background:var(--bg);box-shadow:0 1px 0 var(--bd)}
+#gigs-table thead th[onclick]:hover{background:var(--rl);color:var(--red)}
 #page-gigs{flex-direction:column;overflow:hidden}
 #page-gigs.active{display:flex;height:100vh}
 #page-gigs:not(.active){display:none!important;height:0}
@@ -1223,14 +1224,15 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
           <option value="2026">2026</option><option value="2025">2025</option><option value="2027">2027</option>
         </select>
         <button class="tb-btn" onclick="renderAll()" title="รีเฟรช">&#8635;</button>
-        <button class="tb-btn" onclick="openQuickSearch()" title="ค้นหา (Ctrl+K)" style="position:relative">
+        <!-- v95: Quick search ใช้ Ctrl+K, notification & dark mode ซ่อนจาก topbar -->
+        <button class="tb-btn" onclick="openQuickSearch()" title="ค้นหา (Ctrl+K)" style="display:none">
           <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 12l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
-        <button class="tb-btn" onclick="toggleNotifPanel()" title="แจ้งเตือน" style="position:relative" id="notif-bell-btn">
+        <button class="tb-btn" onclick="toggleNotifPanel()" title="แจ้งเตือน" style="display:none" id="notif-bell-btn">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6a4 4 0 018 0c0 4 2 5 2 5H2s2-1 2-5zM6 13a2 2 0 004 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="notif-badge" id="notif-badge" style="display:none">0</span>
         </button>
-        <button class="dm-toggle" id="dm-toggle" onclick="toggleDarkMode()" title="Dark Mode">
+        <button class="dm-toggle" id="dm-toggle" onclick="toggleDarkMode()" title="Dark Mode" style="display:none">
           <div class="dm-toggle-knob" id="dm-knob">☀</div>
         </button>
       </div>
@@ -1343,7 +1345,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
         <select id="gig-filter-member" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
           <option value="">ทุกสมาชิก</option>
         </select>
-        <select id="gig-sort" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="rg()">
+        <select id="gig-sort" class="chart-sel" style="padding:5px 8px;font-size:12px;height:30px" onchange="_gigSortCol=null;document.querySelectorAll('[id^=gs-]').forEach(e=>e.textContent='');rg()">
           <option value="new">บันทึก: ใหม่→เก่า</option>
           <option value="old">บันทึก: เก่า→ใหม่</option>
           <option value="date-new">วันงาน: ใหม่→เก่า</option>
@@ -1388,19 +1390,19 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
                 <th style="width:36px;padding:0 0 0 14px">
                   <input type="checkbox" id="gig-select-all" onchange="toggleSelectAllGigs(this.checked)" style="accent-color:var(--red);cursor:pointer">
                 </th>
-                <th style="width:90px">ORDER ID</th>
-                <th style="width:200px">ชื่องาน</th>
-                <th style="width:105px">วันที่จัดงาน</th>
+                <th style="width:90px;cursor:pointer;user-select:none" onclick="sortGigCol('jobNo')">ORDER ID <span id="gs-jobNo" style="font-size:9px;opacity:.5"></span></th>
+                <th style="width:200px;cursor:pointer;user-select:none" onclick="sortGigCol('name')">ชื่องาน <span id="gs-name" style="font-size:9px;opacity:.5"></span></th>
+                <th style="width:105px;cursor:pointer;user-select:none" onclick="sortGigCol('date')">วันที่จัดงาน <span id="gs-date" style="font-size:9px;opacity:.5"></span></th>
                 <th style="width:130px">เวลา</th>
-                <th style="width:170px">สถานที่</th>
-                <th style="width:160px">ลูกค้า</th>
-                <th style="width:90px">แหล่งที่มา</th>
-                <th style="width:110px">ค่าตัวสุทธิ</th>
+                <th style="width:170px;cursor:pointer;user-select:none" onclick="sortGigCol('venue')">สถานที่ <span id="gs-venue" style="font-size:9px;opacity:.5"></span></th>
+                <th style="width:160px;cursor:pointer;user-select:none" onclick="sortGigCol('client')">ลูกค้า <span id="gs-client" style="font-size:9px;opacity:.5"></span></th>
+                <th style="width:90px;cursor:pointer;user-select:none" onclick="sortGigCol('source')">แหล่งที่มา <span id="gs-source" style="font-size:9px;opacity:.5"></span></th>
+                <th style="width:110px;cursor:pointer;user-select:none" onclick="sortGigCol('fee')">ค่าตัวสุทธิ <span id="gs-fee" style="font-size:9px;opacity:.5"></span></th>
                 <th style="width:130px">สมาชิก</th>
-                <th style="width:110px">สถานะรับเงิน</th>
+                <th style="width:110px;cursor:pointer;user-select:none" onclick="sortGigCol('status')">สถานะรับเงิน <span id="gs-status" style="font-size:9px;opacity:.5"></span></th>
                 <th style="width:115px">สถานะจ่ายค่าตัว</th>
                 <th style="width:100px">🎁 ทิป</th>
-                <th style="width:80px">ประเภทงาน</th>
+                <th style="width:80px;cursor:pointer;user-select:none" onclick="sortGigCol('type')">ประเภทงาน <span id="gs-type" style="font-size:9px;opacity:.5"></span></th>
               </tr>
             </thead>
             <tbody id="gigs-b"></tbody>
@@ -1561,14 +1563,15 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
       <div class="tc" style="margin-bottom:16px">
         <div id="itable-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="itable-table" style="width:100%;border-collapse:collapse;table-layout:fixed">
           <thead><tr>
-            <th style="text-align:left;width:200px">สมาชิก</th>
-            <th style="background:#F8FAFC;text-align:center;white-space:nowrap;width:80px">รวมงาน</th>
-            <th style="background:#F0FDF4;color:#166534;text-align:center;white-space:nowrap;width:90px">จ่ายแล้ว</th>
-            <th style="background:#FEF2F2;color:#B91C1C;text-align:center;white-space:nowrap;width:90px">ค้างจ่าย</th>
-            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap;text-align:right;width:130px">📋 คาดการณ์</th>
-            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap;text-align:right;width:130px">💰 รับแล้ว</th>
-            <th style="background:#FFF7ED;color:#92400E;white-space:nowrap;text-align:right;width:90px">🎁 ทิป</th>
-            <th style="background:#F0FDF4;color:#166534;white-space:nowrap;text-align:right;font-weight:700;width:130px">✅ รายได้รวม</th>
+            <th style="text-align:left;width:190px">สมาชิก</th>
+            <th style="background:#F8FAFC;text-align:center;white-space:nowrap;width:70px">รวมงาน</th>
+            <th style="background:#F0FDF4;color:#166534;text-align:center;white-space:nowrap;width:75px">จ่ายแล้ว</th>
+            <th style="background:#FEF2F2;color:#B91C1C;text-align:center;white-space:nowrap;width:75px">ค้างจ่าย</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap;text-align:right;width:110px">📋 คาดการณ์</th>
+            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap;text-align:right;width:110px">💰 รับแล้ว</th>
+            <th style="background:#FFF7ED;color:#92400E;white-space:nowrap;text-align:right;width:80px">🎁 ทิป</th>
+            <th style="background:#F0FDF4;color:#166534;white-space:nowrap;text-align:right;font-weight:700;width:110px">✅ รายได้รวม</th>
+            <th style="background:#FDF4FF;color:#7C3AED;white-space:nowrap;text-align:right;font-weight:700;width:120px">💎 รวมทั้งหมด</th>
           </tr></thead>
           <tbody id="itable"></tbody>
         </table></div>
@@ -1995,11 +1998,11 @@ Line: @somchai_jaidee
 เลขบัญชี: 123-4-56789-0
 รายได้:
 - ค่าตัว: 20000
-- เดินทาง-น้ำมัน: 500
-- เดินทาง-รถ: 1000
+- ค่าเดินทาง: 500
+- ค่านั่งรถ: 1000
 - After Party: 3000
-- ค่าเสียง: 5000
-- เสียง-เดินทาง: 500
+- ค่าระบบเสียง: 5000
+- ค่าเดินทางระบบเสียง: 500
 - ส่วนลด: 1000
 ค่าใช้จ่ายในงาน:
 - ค่าทีมเสียง: 3000
@@ -2514,13 +2517,13 @@ Line: @somchai_jaidee
         <div style="font-size:10px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">💰 รายได้จากลูกค้า</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
           <div class="fg" style="margin-bottom:0"><label class="fl">ค่าตัว (฿)</label><input class="fi income-f" id="gf-band" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
-          <div class="fg" style="margin-bottom:0"><label class="fl">เดินทาง-น้ำมัน (฿)</label><input class="fi income-f" id="gf-travel-oil" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
-          <div class="fg" style="margin-bottom:0"><label class="fl">เดินทาง-รถ (฿)</label><input class="fi income-f" id="gf-travel-car" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">ค่าเดินทาง (฿)</label><input class="fi income-f" id="gf-travel-oil" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">ค่านั่งรถ (฿)</label><input class="fi income-f" id="gf-travel-car" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">After Party (฿)</label><input class="fi income-f" id="gf-after" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
-          <div class="fg" style="margin-bottom:0"><label class="fl">ค่าเสียง (฿)</label><input class="fi income-f" id="gf-sound" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
-          <div class="fg" style="margin-bottom:0"><label class="fl">เสียง-เดินทาง (฿)</label><input class="fi income-f" id="gf-sound-oil" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">ค่าระบบเสียง (฿)</label><input class="fi income-f" id="gf-sound" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">ค่าเดินทางระบบเสียง (฿)</label><input class="fi income-f" id="gf-sound-oil" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
+          <div class="fg" style="margin-bottom:0"><label class="fl">ค่านั่งรถระบบเสียง (฿)</label><input class="fi income-f" id="gf-sound-car" type="number" placeholder="0" oninput="calcTotalIncome()" style="font-size:12px"></div>
         </div>
-        <input type="hidden" id="gf-sound-car">
         <input type="hidden" id="gf-other" value="0">
         <input type="hidden" id="gf-other-note">
         <input type="hidden" id="gf">
@@ -2540,7 +2543,7 @@ Line: @somchai_jaidee
               <input type="checkbox" id="gig-wht" onchange="calcWHT()" style="accent-color:var(--red);width:15px;height:15px;cursor:pointer">
               มีภาษีหัก ณ ที่จ่าย
             </label>
-            <div id="gig-wht-rate-opts" style="display:flex;gap:10px;margin-left:4px">
+            <div id="gig-wht-rate-opts" style="display:none;gap:10px;margin-left:4px">
               <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;color:var(--ink2);user-select:none">
                 <input type="radio" name="wht-rate" id="wht-rate-3" value="3" checked onchange="calcWHT()" style="accent-color:#6C5CE7;cursor:pointer">
                 3%
@@ -3961,6 +3964,23 @@ function rc(){
   document.getElementById('ctotal').textContent='฿'+f(tot);
   document.getElementById('ccount').textContent=`รับเงินจริง · ${cnt} งาน`;
 }
+/* ── Column sort for gig table ── */
+let _gigSortCol=null; /* null = default sort by sortDir dropdown */
+let _gigSortAsc=true;
+function sortGigCol(col){
+  if(_gigSortCol===col){
+    _gigSortAsc=!_gigSortAsc; /* toggle direction */
+  } else {
+    _gigSortCol=col;
+    _gigSortAsc=true;
+  }
+  /* update arrow indicators */
+  document.querySelectorAll('[id^="gs-"]').forEach(el=>el.textContent='');
+  const indicator=document.getElementById('gs-'+col);
+  if(indicator) indicator.textContent=_gigSortAsc?'▲':'▼';
+  rg();
+}
+
 function rg(){
   const search=(document.getElementById('gig-search')?.value||'').toLowerCase();
   const filterSt=document.getElementById('gig-filter-status')?.value||'';
@@ -4000,13 +4020,37 @@ function rg(){
   /* filter สมาชิก */
   if(filterMember) list=list.filter(g=>g.musicians&&g.musicians.some(mu=>String(mu.memberId)===filterMember));
   /* sort */
-  list.sort((a,b)=>{
-    if(sortDir==='date-new'||sortDir==='date-old'){
-      const da=a.date||'';const db=b.date||'';
-      return sortDir==='date-new'?db.localeCompare(da):da.localeCompare(db);
-    }
-    return sortDir==='old'?(a.jobNo||0)-(b.jobNo||0):(b.jobNo||0)-(a.jobNo||0);
-  });
+  if(_gigSortCol){
+    /* ★ v95: column header sort */
+    const dir=_gigSortAsc?1:-1;
+    list.sort((a,b)=>{
+      let va,vb;
+      switch(_gigSortCol){
+        case 'jobNo': va=a.jobNo||0;vb=b.jobNo||0;return (va-vb)*dir;
+        case 'name': va=(a.name||'').toLowerCase();vb=(b.name||'').toLowerCase();return va.localeCompare(vb,'th')*dir;
+        case 'date': va=a.date||'';vb=b.date||'';return va.localeCompare(vb)*dir;
+        case 'venue': va=(a.venue||'').toLowerCase();vb=(b.venue||'').toLowerCase();return va.localeCompare(vb,'th')*dir;
+        case 'client':
+          const ca=findGigClient(a);const cb=findGigClient(b);
+          va=(ca?ca.name:a.clientName||'').toLowerCase();
+          vb=(cb?cb.name:b.clientName||'').toLowerCase();
+          return va.localeCompare(vb,'th')*dir;
+        case 'source': va=(a.source||'').toLowerCase();vb=(b.source||'').toLowerCase();return va.localeCompare(vb,'th')*dir;
+        case 'fee': va=gigNet(a);vb=gigNet(b);return (va-vb)*dir;
+        case 'status': va=a.status||'';vb=b.status||'';return va.localeCompare(vb)*dir;
+        case 'type': va=(a.type||'').toLowerCase();vb=(b.type||'').toLowerCase();return va.localeCompare(vb,'th')*dir;
+        default: return 0;
+      }
+    });
+  } else {
+    list.sort((a,b)=>{
+      if(sortDir==='date-new'||sortDir==='date-old'){
+        const da=a.date||'';const db=b.date||'';
+        return sortDir==='date-new'?db.localeCompare(da):da.localeCompare(db);
+      }
+      return sortDir==='old'?(a.jobNo||0)-(b.jobNo||0):(b.jobNo||0)-(a.jobNo||0);
+    });
+  }
   if(search) list=list.filter(g=>(g.name+g.venue+g.province+(g.source||'')+(g.clientName||'')).toLowerCase().includes(search));
   if(filterSt==='active') list=list.filter(g=>g.status!=='cancelled');
   else if(filterSt) list=list.filter(g=>g.status===filterSt);
@@ -4147,50 +4191,6 @@ function ri(){
     return g.musicians&&g.musicians.length>0&&g.musicians.some(x=>String(x.memberId)===String(mem.id));
   };
 
-  /* ── KPI ── */
-  /* ★ v95 fix: รายได้รวม = ค่าตัวงาน (fee) เฉพาะงาน status=paid — ไม่ใช้ยอด payments */
-  let totalRealIncome=0,paidGigSet=new Set();
-  let totalForecastIncome=0,unpaidGigSet=new Set();
-  allGigs.forEach(g=>{
-    if(g.status==='cancelled') return;
-    if(g.status==='paid'){
-      totalRealIncome+=g.fee||0;
-      paidGigSet.add(g.id);
-    } else {
-      /* forecast = งานที่ assign แต่ยังไม่ paid */
-      if(g.musicians&&g.musicians.length) unpaidGigSet.add(g.id);
-    }
-  });
-  /* forecast income = ค่าตัวงาน (fee) ของงานที่ยังไม่ paid */
-  allGigs.forEach(g=>{
-    if(g.status==='cancelled'||g.status==='paid') return;
-    if(g.musicians&&g.musicians.length){
-      totalForecastIncome+=g.fee||0;
-    }
-  });
-
-  const kpiEl=document.getElementById('income-kpi');
-  if(kpiEl) kpiEl.innerHTML=`
-    <div class="kpi cr">
-      <div class="kpi-lbl">รายได้รวม (Paid)</div>
-      <div class="kpi-val r">฿${f(totalRealIncome)}</div>
-      <div class="kpi-sub">ค่าตัวงานที่กดรับเงินครบแล้ว · ${periodLabel}</div>
-    </div>
-    <div class="kpi cb">
-      <div class="kpi-lbl">รายได้คาดการณ์ (Unpaid)</div>
-      <div class="kpi-val" style="color:var(--blue)">฿${f(totalForecastIncome)}</div>
-      <div class="kpi-sub">ค่าตัวงานที่ยังไม่กดรับเงินครบ</div>
-    </div>
-    <div class="kpi cg">
-      <div class="kpi-lbl">จำนวนงาน (Paid)</div>
-      <div class="kpi-val g">${paidGigSet.size}</div>
-      <div class="kpi-sub">งานที่รับเงินครบแล้ว</div>
-    </div>
-    <div class="kpi ca">
-      <div class="kpi-lbl">จำนวนงาน (Unpaid)</div>
-      <div class="kpi-val" style="color:var(--amber)">${unpaidGigSet.size}</div>
-      <div class="kpi-sub">Assign แล้ว ยังรอรับเงิน</div>
-    </div>`;
 
   /* ── member table — member role เห็นแค่ตัวเอง ── */
   const isMemberRole=currentUser?.role==='member';
@@ -4230,10 +4230,41 @@ function ri(){
     });
     const totalIncome=bdIncome+tipIncome;
     const totalGigCount=paidGigCount+unpaidGigCount;
-    return{...mem,bdIncome,tipIncome,totalIncome,forecastIncome,paidGigCount,unpaidGigCount,totalGigCount};
+    const grandTotal=totalIncome+forecastIncome;
+    return{...mem,bdIncome,tipIncome,totalIncome,forecastIncome,paidGigCount,unpaidGigCount,totalGigCount,grandTotal};
   }).sort((a,b)=>(b.totalIncome+b.forecastIncome)-(a.totalIncome+a.forecastIncome));
 
   if(!incomeSelectedMid) incomeSelectedMid=(memData.find(m=>m.realIncome>0||m.forecastIncome>0)||memData[0])?.id||null;
+
+  /* ── KPI — แสดงรวมทั้งหมดทุกสมาชิกเสมอ ── */
+  let kpiRealIncome=0, kpiForecastIncome=0, kpiPaidCount=0, kpiUnpaidCount=0;
+  allGigs.forEach(g=>{
+    if(g.status==='cancelled') return;
+    if(g.status==='paid'){ kpiRealIncome+=g.fee||0; kpiPaidCount++; }
+    else if(g.musicians&&g.musicians.length){ kpiForecastIncome+=g.fee||0; kpiUnpaidCount++; }
+  });
+  const kpiEl=document.getElementById('income-kpi');
+  if(kpiEl) kpiEl.innerHTML=`
+    <div class="kpi cr">
+      <div class="kpi-lbl">รายได้รวม (Paid)</div>
+      <div class="kpi-val r">฿${f(kpiRealIncome)}</div>
+      <div class="kpi-sub">ค่าตัวงานที่กดรับเงินครบแล้ว · ${periodLabel}</div>
+    </div>
+    <div class="kpi cb">
+      <div class="kpi-lbl">รายได้คาดการณ์ (Unpaid)</div>
+      <div class="kpi-val" style="color:var(--blue)">฿${f(kpiForecastIncome)}</div>
+      <div class="kpi-sub">ค่าตัวงานที่ยังไม่กดรับเงินครบ</div>
+    </div>
+    <div class="kpi cg">
+      <div class="kpi-lbl">จำนวนงาน (Paid)</div>
+      <div class="kpi-val g">${kpiPaidCount}</div>
+      <div class="kpi-sub">งานที่รับเงินครบแล้ว</div>
+    </div>
+    <div class="kpi ca">
+      <div class="kpi-lbl">จำนวนงาน (Unpaid)</div>
+      <div class="kpi-val" style="color:var(--amber)">${kpiUnpaidCount}</div>
+      <div class="kpi-sub">Assign แล้ว ยังรอรับเงิน</div>
+    </div>`;
 
   /* render เป็น card เสมอบน mobile — ไม่เช็ค width */
   const isMob=window.innerWidth<=900;
@@ -4243,7 +4274,7 @@ function ri(){
     document.getElementById('itable-table').style.width='100%';
     document.getElementById('itable').innerHTML=memData.map(mem=>{
       const isSelected=String(mem.id)===String(incomeSelectedMid);
-      return`<tr><td colspan="8" style="padding:0 0 6px">
+      return`<tr><td colspan="9" style="padding:0 0 6px">
         <div onclick="selectIncomeMember('${mem.id}')"
           style="background:var(--wh);border-radius:10px;overflow:hidden;cursor:pointer;
             box-shadow:${isSelected?'0 0 0 2px var(--red)':'0 0 0 1px var(--bd2)'}">
@@ -4276,7 +4307,7 @@ function ri(){
             </div>
           </div>
           <!-- Stats row 2: เงิน -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--bd)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid var(--bd)">
             <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd)">
               <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">รับแล้ว</div>
               <div style="font-weight:700;font-size:12px;color:#DC2626">${mem.bdIncome>0?'฿'+f(mem.bdIncome):'฿0'}</div>
@@ -4285,9 +4316,13 @@ function ri(){
               <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ทิป</div>
               <div style="font-weight:600;font-size:12px;color:#B45309">${mem.tipIncome>0?'฿'+f(mem.tipIncome):'—'}</div>
             </div>
-            <div style="padding:7px 4px;text-align:center;background:#F0FDF4">
+            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
               <div style="font-size:9px;color:#166534;font-weight:600;margin-bottom:2px">รายได้รวม</div>
               <div style="font-weight:800;font-size:13px;color:#15803D">฿${f(mem.totalIncome)}</div>
+            </div>
+            <div style="padding:7px 4px;text-align:center;background:#FDF4FF">
+              <div style="font-size:9px;color:#7C3AED;font-weight:600;margin-bottom:2px">รวมทั้งหมด</div>
+              <div style="font-weight:800;font-size:13px;color:#7C3AED">฿${f(mem.grandTotal)}</div>
             </div>
           </div>
         </div>
@@ -4331,6 +4366,9 @@ function ri(){
         <td style="background:#F0FDF4;text-align:right;padding:10px 14px;white-space:nowrap;border-left:2px solid #BBF7D0">
           <div style="font-weight:800;color:#166534;font-size:15px">฿${f(mem.totalIncome)}</div>
         </td>
+        <td style="background:#FDF4FF;text-align:right;padding:10px 14px;white-space:nowrap;border-left:2px solid #E9D5FF">
+          <div style="font-weight:800;color:#7C3AED;font-size:15px">฿${f(mem.grandTotal)}</div>
+        </td>
       </tr>`;
     }).join('');
   } /* end desktop */
@@ -4349,11 +4387,17 @@ function renderIncomeDetail(m,y,gg){
   const lbl=document.getElementById('idetail-label');
   if(lbl) lbl.textContent=`รายละเอียดต่องาน — ${mem.name} (${mem.nick})`;
 
-  document.getElementById('idetail').innerHTML=gg.filter(g=>g.status==='paid').map(g=>{
-    if(!g.musicians||!g.musicians.length) return '';
+  /* ★ v95 fix: แสดงทั้งงาน paid + unpaid (คาดการณ์) — แยกสีให้ชัด */
+  const assignedGigs=gg.filter(g=>{
+    if(g.status==='cancelled') return false;
+    if(!g.musicians||!g.musicians.length) return false;
+    return g.musicians.some(x=>String(x.memberId)===String(mem.id));
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  document.getElementById('idetail').innerHTML=assignedGigs.map(g=>{
     const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
     if(!mu) return '';
-    const myIncome=Math.round(gigNet(g)*(mu.pct/100));
+    const isPaidGig=g.status==='paid';
     const isPaid=!!(g.memberPayments||{})[mem.id];
     const payData=(g.memberPayments||{})[mem.id];
     const hasSlip=payData&&typeof payData==='object'&&payData.slip;
@@ -4367,23 +4411,28 @@ function renderIncomeDetail(m,y,gg){
       {label:bd.otherNote||'อื่นๆ',val:bd.other}
     ].filter(x=>x.val>0):[];
     const tipAmt=bd?.tip||0;
+    /* ถ้าไม่มี breakdown ใช้ getMemCut fallback สำหรับงาน unpaid */
+    const fallbackCut=!isPaidGig&&bdItems.length===0?getMemberCut(g,mem):0;
     const bdHtml=bdItems.length
       ?bdItems.map(x=>`<div style="display:flex;justify-content:space-between;gap:12px;font-size:10px;padding:1px 0"><span style="color:var(--ink3)">${x.label}</span><span style="font-weight:600;color:var(--ink2)">฿${f(x.val)}</span></div>`).join('')
-      :`<span style="font-size:10px;color:var(--ink3)">—</span>`;
+      :(fallbackCut>0?`<div style="font-size:10px;color:#2563EB;font-style:italic">คาดการณ์ ฿${f(fallbackCut)}</div>`:`<span style="font-size:10px;color:var(--ink3)">—</span>`);
     const tipHtml=tipAmt>0?`<span style="font-size:11px;font-weight:700;color:#92400E">฿${f(tipAmt)}</span>`:'<span style="font-size:10px;color:var(--ink3)">—</span>';
     const bdTotal=bdItems.reduce((s,x)=>s+x.val,0);
-    const totalHtml=`<span style="font-size:11px;font-weight:700;color:#166534">฿${f(bdTotal+tipAmt)}</span>`;
-    return`<tr>
+    const displayTotal=bdTotal+tipAmt+(fallbackCut>0&&bdTotal===0?fallbackCut:0);
+    const totalHtml=`<span style="font-size:11px;font-weight:700;color:${isPaidGig?'#166534':'#2563EB'}">฿${f(displayTotal)}</span>`;
+    /* row style: งาน unpaid พื้นสีฟ้าอ่อน */
+    const rowBg=isPaidGig?'':'background:#F8FAFF;';
+    return`<tr style="${rowBg}">
       <td class="tid" style="width:100px">${oid(g)}</td>
       <td style="font-weight:500;width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.name}</td>
       <td style="width:100px;white-space:nowrap">${fd(g.date)}</td>
-      <td style="background:#FEF9F9;width:160px">${bdHtml}</td>
-      <td style="background:#FFF7ED;text-align:center;width:90px">${tipHtml}</td>
-      <td style="background:#F0FDF4;text-align:center;width:100px">${totalHtml}</td>
-      <td style="font-weight:600;color:${isPaid?'var(--green)':'var(--ink3)'};width:100px">${isPaid?`<span style="display:flex;align-items:center;gap:4px">✓ จ่ายแล้ว${hasSlip?`${slipImg(payData.slip,20)}`:''}</span>`:'รอจ่าย'}</td>
+      <td style="background:${isPaidGig?'#FEF9F9':'#EFF6FF'};width:160px">${bdHtml}</td>
+      <td style="background:${isPaidGig?'#FFF7ED':'#EFF6FF'};text-align:center;width:90px">${tipHtml}</td>
+      <td style="background:${isPaidGig?'#F0FDF4':'#EFF6FF'};text-align:center;width:100px">${totalHtml}</td>
+      <td style="font-weight:600;color:${isPaid?'var(--green)':'var(--ink3)'};width:100px">${isPaidGig?(isPaid?`<span style="display:flex;align-items:center;gap:4px">✓ จ่ายแล้ว${hasSlip?`${slipImg(payData.slip,20)}`:''}</span>`:'รอจ่าย'):`<span style="color:#2563EB;font-size:11px">📋 คาดการณ์</span>`}</td>
       <td style="width:80px">${bx(g.status)}</td>
     </tr>`;
-  }).filter(Boolean).join('')||`<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--ink3)">ไม่มีงานที่รับเงินครบในช่วงนี้</td></tr>`;
+  }).filter(Boolean).join('')||`<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--ink3)">ไม่มีงานในช่วงนี้</td></tr>`;
 }
 
 function sim(m,el){S.im=m;incomeSelectedMid=null;document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');ri();}
@@ -4826,14 +4875,14 @@ function onCountChange(){
 function onFeeChange(){ if(gigState.count>0) updateSummary(); }
 
 const INCOME_FIELDS=[
-  {id:'gf-band',    label:'ค่าตัว',                group:'band'},
-  {id:'gf-travel-oil', label:'ค่าเดินทาง (น้ำมัน)',  group:'band'},
-  {id:'gf-travel-car', label:'ค่าเดินทาง (นั่งรถ)',  group:'band'},
-  {id:'gf-after',   label:'ค่า After Party',       group:'after'},
-  {id:'gf-sound',   label:'ค่าระบบเสียง',           group:'sound'},
-  {id:'gf-sound-oil',label:'ค่าเดินทางเสียง (น้ำมัน)',group:'sound'},
-  {id:'gf-sound-car',label:'ค่าเดินทางเสียง (นั่งรถ)',group:'sound'},
-  {id:'gf-other',   label:'รายได้อื่น ๆ',           group:'other'},
+  {id:'gf-band',    label:'ค่าตัว',                   group:'band'},
+  {id:'gf-travel-oil', label:'ค่าเดินทาง',            group:'band'},
+  {id:'gf-travel-car', label:'ค่านั่งรถ',             group:'band'},
+  {id:'gf-after',   label:'ค่า After Party',          group:'after'},
+  {id:'gf-sound',   label:'ค่าระบบเสียง',              group:'sound'},
+  {id:'gf-sound-oil',label:'ค่าเดินทางระบบเสียง',      group:'sound'},
+  {id:'gf-sound-car',label:'ค่านั่งรถระบบเสียง',       group:'sound'},
+  {id:'gf-other',   label:'รายได้อื่น ๆ',              group:'other'},
 ];
 function addExpenseRow(fee='', note=''){
   const wrap=document.getElementById('ge-rows');
@@ -4876,6 +4925,9 @@ function calcExpenses(){
 function calcWHT(){
   const checked=document.getElementById('gig-wht')?.checked||false;
   const total=parseFloat(document.getElementById('gf')?.value)||0;
+  /* ★ v95 fix: แสดง/ซ่อน 3%/5% ตาม checkbox */
+  const rateOpts=document.getElementById('gig-wht-rate-opts');
+  if(rateOpts) rateOpts.style.display=checked?'flex':'none';
   /* อ่าน rate จาก radio — fallback S.bandInfo.whtRate */
   const selectedRate=document.querySelector('input[name="wht-rate"]:checked')?.value;
   const rate=parseFloat(selectedRate||S.bandInfo?.whtRate||3);
@@ -10175,107 +10227,12 @@ ${text}
     const hasExpenseKeyword=hasPdf||text.includes('ค่าใช้จ่ายในงาน');
     if(!hasExpenseKeyword) parsed.expenseRows=[];
 
-    /* Fill form fields */
-    if(parsed.name) document.getElementById('gn').value=parsed.name;
-    if(parsed.date) document.getElementById('gd').value=parsed.date;
-    /* time: text input โดยตรง */
-    if(parsed.timeStart){const ts=document.getElementById('gtstart');if(ts)ts.value=parsed.timeStart;}
-    if(parsed.timeEnd){const te=document.getElementById('gtend');if(te)te.value=parsed.timeEnd;}
-    if(parsed.venue) document.getElementById('gv').value=parsed.venue;
-    if(parsed.province) document.getElementById('gprov').value=parsed.province;
-    const feeVal=parsed.bandFee||parsed.fee||0;
-    if(feeVal>0){document.getElementById('gf-band').value=feeVal;calcTotalIncome();}
-    if(parsed.source){
-      const gs=document.getElementById('gsource');
-      if(gs){const srcL=parsed.source.toLowerCase();const opt=Array.from(gs.options||[]).find(o=>o.value.toLowerCase()===srcL);if(opt)gs.value=opt.value;}
-    }
-    if(parsed.type){
-      const gt=document.getElementById('gtype');
-      if(gt){const typL=parsed.type.toLowerCase();const opt=Array.from(gt.options||[]).find(o=>o.value.toLowerCase()===typL);if(opt)gt.value=opt.value;}
-    }
-    if(parsed.note) document.getElementById('gnote').value=parsed.note;
-    /* Client — หา match จาก clients */
-    if(parsed.clientName){
-      const match=S.clients.find(c=>c.name.includes(parsed.clientName)||parsed.clientName.includes(c.name));
-      if(match){
-        setCtype('old');gigState.selectedClientId=match.id;
-        document.getElementById('gclient-search').value=match.name;
-        setPhoneTags(match.phone||'');
-        const gcc=document.getElementById('gccontact');if(gcc)gcc.value=match.contact||'';
-      } else {
-        setCtype('new');
-        document.getElementById('gcname-new').value=parsed.clientName;
-        const phoneStr=typeof parsed.clientPhone==='string'?parsed.clientPhone:String(parsed.clientPhone||'');
-        if(phoneStr){
-          const phones=phoneStr.split(/[,\/]/).map(s=>s.replace(/\D/g,'').trim()).filter(s=>s.length>=9);
-          if(phones.length){renderPhoneTagsNew(phones);syncPhoneNewHidden();}
-        }
-        if(parsed.clientContact){const gcc=document.getElementById('gccontact-new');if(gcc)gcc.value=parsed.clientContact;}
-        if(parsed.clientBankName){const bn=document.getElementById('gcbank-name-new');if(bn)bn.value=parsed.clientBankName;}
-        if(parsed.clientBankNo){const bno=document.getElementById('gcbank-no-new');if(bno)bno.value=String(parsed.clientBankNo);}
-      }
-    }
-    /* WHT */
-    if(parsed.whtEnabled){
-      const whtCb=document.getElementById('gig-wht');if(whtCb)whtCb.checked=true;
-      const rate=parsed.whtRate===5?'wht-rate-5':'wht-rate-3';
-      const rr=document.getElementById(rate);if(rr)rr.checked=true;
-      calcWHT();
-    }
-    /* Musicians — match ชื่อเล่นกับสมาชิกจริง */
-    if(parsed.musicians&&Array.isArray(parsed.musicians)&&parsed.musicians.length>0){
-      const activeMembers=S.members.filter(m=>m.status==='active');
-      const totalFee=parsed.musicians.reduce((s,m)=>s+(m?.fee||0),0);
-      const matchedMusicians=[];
-      parsed.musicians.forEach(mu=>{
-        if(!mu||!mu.nick) return; /* skip ถ้าไม่มี nick */
-        const nickLow=(mu.nick||'').toLowerCase().trim();
-        /* ★ v95 fix: matching priority — exact match ก่อน, partial match ทีหลัง
-           ป้องกัน "โม" match เป็น "นีโม่" */
-        const match=activeMembers.find(m=>
-          m.nick&&m.nick.toLowerCase()===nickLow /* exact nick */
-        ) || activeMembers.find(m=>
-          m.name&&m.name.toLowerCase()===nickLow /* exact name */
-        ) || activeMembers.find(m=>
-          m.nick&&nickLow.length>=2&&m.nick.toLowerCase().startsWith(nickLow) /* nick starts with */
-        ) || activeMembers.find(m=>
-          m.nick&&nickLow.length>=3&&m.nick.toLowerCase().includes(nickLow)&&m.nick.length<=nickLow.length+2 /* nick contains but similar length */
-        );
-        if(match){
-          const pct=totalFee>0?Math.round(((mu.fee||0)/totalFee)*100):Math.round(100/parsed.musicians.length);
-          matchedMusicians.push({memberId:match.id,pct});
-        }
-      });
-      if(matchedMusicians.length>0){
-        gigState.count=matchedMusicians.length;
-        gigState.splitMode='pct';
-        const gcountEl=document.getElementById('gcount');
-        if(gcountEl) gcountEl.value=gigState.count;
-        const wrap=document.getElementById('gig-members-wrap');
-        if(wrap) wrap.style.display='block';
-        if(typeof renderMemberRows==='function') renderMemberRows();
-        /* fill hidden + txt label หลัง render */
-        matchedMusicians.forEach((mu,i)=>{
-          const hidden=document.getElementById('gmem-'+i);
-          if(hidden) hidden.value=String(mu.memberId);
-          const mem=S.members.find(m=>String(m.id)===String(mu.memberId));
-          const txtEl=document.getElementById(`gmem-txt-${i}`);
-          if(txtEl&&mem) txtEl.value=`${mem.name}${mem.lastname?' '+mem.lastname:''} (${mem.nick}) — ${mem.role}`;
-          const pctEl=document.getElementById('gpct-'+i);
-          if(pctEl&&pctEl.tagName==='INPUT') pctEl.value=mu.pct;
-        });
-        if(typeof updateSummary==='function') updateSummary();
-      }
-    }
-
     resultEl.textContent='✅ กรอกข้อมูลแล้ว กรุณาตรวจสอบและกดบันทึก';
     resultEl.style.color='var(--green)';
     setTimeout(()=>{
       cx('modal-ai-fill');
-      /* เปิด modal เพิ่มงาน แล้วให้คนกดบันทึกเอง */
       if(!document.getElementById('mgig').classList.contains('open')){
         openGig();
-        /* re-fill หลัง openGig clear fields */
         setTimeout(()=>_reApplyAIFill(parsed),80);
       } else {
         _reApplyAIFill(parsed);
@@ -10329,13 +10286,21 @@ function _reApplyAIFill(p){
   if(p.source){const gs=document.getElementById('gsource');if(gs){const srcL=p.source.toLowerCase();const opt=Array.from(gs.options).find(o=>o.value.toLowerCase()===srcL);if(opt)gs.value=opt.value;}}
   if(p.type){const gt=document.getElementById('gtype');if(gt){const typL=p.type.toLowerCase();const opt=Array.from(gt.options).find(o=>o.value.toLowerCase()===typL);if(opt)gt.value=opt.value;}}
   /* ── รายได้ ── */
-  const feeVal=p.bandFee||p.fee||0;
+  /* ★ v95 fix: otherIncome รวมเข้า gf-band เพราะ gf-other เป็น hidden แก้ไขไม่ได้ */
+  const feeVal=(p.bandFee||p.fee||0)+(p.otherIncome||0);
   if(feeVal>0) document.getElementById('gf-band').value=feeVal;
   if(p.afterParty>0) document.getElementById('gf-after').value=p.afterParty;
   if(p.soundFee>0) document.getElementById('gf-sound').value=p.soundFee;
   if(p.soundTravel>0) document.getElementById('gf-sound-oil').value=p.soundTravel;
-  if(p.otherIncome>0) document.getElementById('gf-other').value=p.otherIncome;
-  if(p.otherIncomeNote) document.getElementById('gf-other-note').value=p.otherIncomeNote;
+  /* otherIncome ถูกรวมเข้า gf-band แล้ว — ไม่ใส่ gf-other */
+  if(p.otherIncomeNote){
+    /* ใส่ note ใน หมายเหตุ ถ้ามี */
+    const noteEl=document.getElementById('gnote');
+    if(noteEl&&p.otherIncomeNote){
+      const existing=noteEl.value;
+      noteEl.value=existing?(existing+'\n'+p.otherIncomeNote):p.otherIncomeNote;
+    }
+  }
   if(p.discount>0){const d=document.getElementById('gf-discount');if(d)d.value=p.discount;}
   if(typeof calcTotalIncome==='function') calcTotalIncome();
   /* ── ค่าใช้จ่าย ── */
