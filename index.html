@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BandestCo v95 — Band Management</title>
+<title>BandestCo V1.0.0 — Band Management</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1025,7 +1025,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
   <div class="login-card" style="width:420px">
     <div class="login-logo">
       <div class="login-logo-name">BandestCo</div>
-      <div class="login-logo-sub">Band Management <span style="background:rgba(192,57,43,.12);color:var(--red);padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700">v95</span></div>
+      <div class="login-logo-sub">Band Management <span style="background:rgba(192,57,43,.12);color:var(--red);padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700">V1.0.0</span></div>
     </div>
     <!-- Tabs -->
     <div class="ltabs">
@@ -1126,7 +1126,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
         <div class="sb-logo-name">BandestCo</div>
-        <div class="sb-logo-sub">Band Management <span class="v-badge">v95</span></div>
+        <div class="sb-logo-sub">Band Management <span class="v-badge">V1.0.0</span></div>
       </div>
       <!-- ปุ่มซ่อน sidebar — แสดงเฉพาะ mobile -->
       <button id="sb-close-btn" onclick="toggleMobSidebar()"
@@ -2759,23 +2759,17 @@ Line: @somchai_jaidee
       <span id="recv-status-text"></span>
     </div>
     <div class="fg">
-      <label class="fl">แนบสลิป</label>
+      <label class="fl">แนบสลิป (เพิ่มได้หลายรูป)</label>
+      <div id="recv-slips-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
       <div id="recv-drop-zone" class="slip-drop-zone" onclick="document.getElementById('slip-file').click()"
         ondragover="event.preventDefault();this.classList.add('dragover')"
         ondragleave="this.classList.remove('dragover')"
-        ondrop="event.preventDefault();this.classList.remove('dragover');handleRecvSlipDrop(event.dataTransfer.files[0])">
-        <div id="recv-slip-preview-wrap" style="display:none;margin-bottom:8px;position:relative;display:none">
-          <img id="recv-slip-preview-img" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:cover">
-          <button type="button" onclick="event.stopPropagation();clearRecvSlip()"
-            style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
-        </div>
-        <div id="recv-slip-dz-content">
-          <div class="dz-icon">📎</div>
-          <div class="dz-label">ลากสลิปมาวางที่นี่ หรือกดเพื่อเลือกรูป</div>
-          <div class="dz-sub">รองรับ JPG, PNG</div>
-        </div>
+        ondrop="event.preventDefault();this.classList.remove('dragover');[...event.dataTransfer.files].forEach(f=>addRecvSlip(f))">
+        <div class="dz-icon">📎</div>
+        <div class="dz-label">ลากสลิปมาวางที่นี่ หรือกดเพื่อเลือกรูป</div>
+        <div class="dz-sub">รองรับ JPG, PNG — เพิ่มได้หลายรูป</div>
       </div>
-      <input type="file" id="slip-file" accept="image/*" style="display:none" onchange="previewSlip(this)">
+      <input type="file" id="slip-file" accept="image/*" multiple style="display:none" onchange="[...this.files].forEach(f=>addRecvSlip(f));this.value=''">
     </div>
     <div class="fg"><label class="fl">หมายเหตุ (ถ้ามี)</label><input class="fi" id="recv-note" placeholder="เช่น มัดจำงวดแรก 50%"></div>
     <div class="ma"><button class="btn btn-o" onclick="cx('modal-recv')">ปิด</button><button class="btn btn-r" id="modal-recv-save-btn" onclick="saveRecv()">บันทึกการรับเงิน</button></div>
@@ -2831,6 +2825,35 @@ Line: @somchai_jaidee
     <div class="modal-t">📋 Log การยกเลิกรับเงิน</div>
     <div id="cancel-logs-list" style="font-size:12px"></div>
     <div class="ma"><button class="btn btn-o" onclick="cx('modal-cancel-logs')">ปิด</button></div>
+  </div>
+</div>
+
+<!-- MODAL: EDIT SLIP -->
+<div class="overlay" id="modal-edit-slip" style="align-items:center;justify-content:center">
+  <div class="modal" style="width:480px;max-height:90vh;overflow-y:auto">
+    <div class="modal-t">📎 แก้ไขสลิป</div>
+    <input type="hidden" id="edit-slip-gig-id">
+    <input type="hidden" id="edit-slip-pay-idx">
+    <input type="hidden" id="edit-slip-mid">
+    <input type="hidden" id="edit-slip-type">
+    <div id="edit-slip-info" style="background:var(--bg);border-radius:var(--r);padding:10px 14px;font-size:12px;margin-bottom:14px"></div>
+    <div style="font-size:11px;color:var(--ink3);font-weight:600;margin-bottom:8px">สลิปปัจจุบัน</div>
+    <div id="edit-slip-current" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
+    <div style="font-size:11px;color:var(--ink3);font-weight:600;margin-bottom:8px">เพิ่มสลิปใหม่</div>
+    <div class="slip-drop-zone" onclick="document.getElementById('edit-slip-file').click()"
+      ondragover="event.preventDefault();this.classList.add('dragover')"
+      ondragleave="this.classList.remove('dragover')"
+      ondrop="event.preventDefault();this.classList.remove('dragover');[...event.dataTransfer.files].forEach(f=>addEditSlip(f))">
+      <div class="dz-icon">📎</div>
+      <div class="dz-label">ลากสลิปมาวางที่นี่ หรือกดเพื่อเลือกรูป</div>
+      <div class="dz-sub">รองรับ JPG, PNG — เพิ่มได้หลายรูป</div>
+    </div>
+    <input type="file" id="edit-slip-file" accept="image/*" multiple style="display:none" onchange="[...this.files].forEach(f=>addEditSlip(f));this.value=''">
+    <div id="edit-slip-new-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+    <div class="ma" style="margin-top:14px">
+      <button class="btn btn-o" onclick="cx('modal-edit-slip')">ยกเลิก</button>
+      <button class="btn btn-r" onclick="saveEditSlip()">💾 บันทึกสลิป</button>
+    </div>
   </div>
 </div>
 
@@ -3195,7 +3218,12 @@ async function loadFromCloud() {
           :null;
         return{memberId:x.member_id,pct:parseFloat(x.pct),splitMode:x.split_mode||'equal',fixedAmt:parseFloat(x.fixed_amt||0),breakdown:bd};
       });
-      const payments = (gigPayments||[]).filter(x=>x.gig_id===g.id).map(x=>({date:x.date,amount:parseFloat(x.amount),type:x.type,note:x.note||'',slip:x.slip_key||null}));
+      const payments = (gigPayments||[]).filter(x=>x.gig_id===g.id).map(x=>{
+        /* ★ v95: parse comma-separated slip_key → slips array */
+        const rawKey=x.slip_key||'';
+        const slipArr=rawKey.includes(',')?rawKey.split(',').filter(Boolean):rawKey?[rawKey]:[];
+        return{date:x.date,amount:parseFloat(x.amount),type:x.type,note:x.note||'',slip:slipArr[0]||null,slips:slipArr.length?slipArr:null};
+      });
       const memberPayRaw = (gigMemberPays||[]).filter(x=>x.gig_id===g.id);
       const memberPayments = {};
       memberPayRaw.forEach(x=>{
@@ -3370,15 +3398,19 @@ async function syncGig(gig) {
 async function syncPayment(gigId, payment) {
   if(!SUPABASE_URL) return;
   try {
-    /* Upload slip if it's a local key */
-    let slipKey = payment.slip;
-    if(slipKey && slipKey.startsWith('slip_')) {
-      const data = await SlipStore.load(slipKey);
-      if(data) slipKey = await sbUploadSlip('slips', slipKey, data) || slipKey;
+    /* ★ v95: upload ทุก slip ใน array */
+    const slipArr=Array.isArray(payment.slips)&&payment.slips.length?[...payment.slips]:payment.slip?[payment.slip]:[];
+    for(let i=0;i<slipArr.length;i++){
+      const sk=slipArr[i];
+      if(sk&&sk.startsWith('slip_')){
+        const data=await SlipStore.load(sk).catch(()=>null);
+        if(data) slipArr[i]=await sbUploadSlip('slips',sk,data)||sk;
+      }
     }
+    const slipKeyStr=slipArr.join(',')||null;
     await sbInsert('gig_payments', {
       gig_id: gigId, type: payment.type, amount: payment.amount,
-      date: payment.date, note: payment.note||null, slip_key: slipKey||null
+      date: payment.date, note: payment.note||null, slip_key: slipKeyStr
     });
   } catch(e) { console.error('syncPayment', e); }
 }
@@ -6230,9 +6262,10 @@ function renderRecvPageList(){
               <span style="color:var(--ink3)">${p.type==='deposit'?'มัดจำ':'รับเต็มจำนวน'}</span>
               ${p.cancelReason?`<div style="font-size:10px;color:#B91C1C;margin-top:2px">🚫 ยกเลิก: ${p.cancelReason}</div>`:''}
             </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              ${p.slip?`${slipImg(p.slip,32)}`:''}
+            <div style="display:flex;align-items:center;gap:6px">
+              ${(()=>{const sl=Array.isArray(p.slips)&&p.slips.length?p.slips:p.slip?[p.slip]:[];return sl.map(s=>slipImg(s,32)).join('');})()}
               <strong style="color:${p.cancelled?'var(--ink3)':'var(--green)'}${p.cancelled?';text-decoration:line-through':''}">+฿${f(p.amount)}</strong>
+              ${(currentUser?.role==='admin'&&!p.cancelled)?`<button onclick="openEditRecvSlip('${g.id}',${pi})" style="padding:3px 10px;font-size:10px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--ink2);cursor:pointer;font-family:var(--f);font-weight:500">แก้ไข</button>`:''}
               ${(_showHistoryRecv&&currentUser?.role==='admin'&&!p.cancelled)?`<button onclick="openCancelRecvLog('${g.id}',${pi})" style="padding:2px 8px;font-size:10px;border:1px solid var(--red);border-radius:4px;background:none;color:var(--red);cursor:pointer;font-family:var(--f)">ยกเลิก</button>`:''}
             </div>
           </div>`).join('')}
@@ -6330,6 +6363,7 @@ function renderPayPageList(){
                 <div style="display:flex;gap:4px;flex-wrap:wrap">
                   ${(()=>{const sl=Array.isArray(payData?.slips)&&payData.slips.length?payData.slips:slip?[slip]:[];return sl.map(s=>slipImg(s,32)).join('');})()}
                 </div>
+                ${isPaid&&currentUser?.role==='admin'?`<button onclick="event.stopPropagation();openEditPaySlip('${g.id}','${mu.memberId}')" style="padding:3px 10px;font-size:10px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--ink2);cursor:pointer;font-family:var(--f);font-weight:500;flex-shrink:0">แก้ไข</button>`:''}
                 <div style="text-align:right">
                   <div style="font-size:13px;font-weight:700;color:${isPaid?'var(--green)':isPartial?'#D97706':'var(--red)'}">฿${f(paidAmt||cut)}</div>
                   <div style="font-size:10px;font-weight:600;color:${isPaid?'var(--green)':isPartial?'#D97706':'var(--ink3)'}">${isPaid?'✓ จ่ายแล้ว':isPartial?`บางส่วน`:'รอจ่าย'}</div>
@@ -6346,13 +6380,14 @@ function renderPayPageList(){
 
 function renderRecvList(){renderRecvPageList();}
 function renderPayListPage(){renderPayPageList();}
-let recvSlipData=null;
+let recvSlipKeys=[]; /* ★ v95: multi-slip array */
 function openRecv(gigId){
   /* member สามารถดูประวัติได้ แต่บันทึกไม่ได้ */
   const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
-  recvSlipData=null;
-  gigState._recvType=null;       /* ★ v95 fix: reset */
-  gigState._recvNewStatus=null;  /* ★ v95 fix: reset */
+  recvSlipKeys=[];
+  gigState._recvType=null;
+  gigState._recvNewStatus=null;
+  renderRecvSlipPreviews();
   document.getElementById('recv-gig-id').value=gigId;
   document.getElementById('recv-modal-title').textContent='รับเงิน — '+g.name;
   const pays=g.payments||[];const paidTotal=pays.reduce((s,p)=>s+p.amount,0);
@@ -6550,33 +6585,161 @@ async function viewSlipByKey(key, fallbackSrc) {
 }
 
 function clearRecvSlip(){
-  recvSlipData=null;
-  const prev=document.getElementById('recv-slip-preview-wrap');
-  const dzc=document.getElementById('recv-slip-dz-content');
-  if(prev) prev.style.display='none';
-  if(dzc) dzc.style.display='block';
-  const fi=document.getElementById('slip-file');if(fi)fi.value='';
+  recvSlipKeys=[];
+  renderRecvSlipPreviews();
 }
-async function _processRecvSlipFile(file){
+
+/* ══════════════════════════════════════
+   EDIT SLIP — แก้ไขสลิปย้อนหลัง (รับเงิน + จ่ายเงิน)
+══════════════════════════════════════ */
+let _editSlipKeys=[];
+
+/* เปิด modal แก้ไขสลิป — หน้ารับเงิน */
+function openEditRecvSlip(gigId,payIdx){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
+  const p=g.payments[payIdx];if(!p)return;
+  _editSlipKeys=[...(Array.isArray(p.slips)&&p.slips.length?p.slips:p.slip?[p.slip]:[])];
+  document.getElementById('edit-slip-gig-id').value=gigId;
+  document.getElementById('edit-slip-pay-idx').value=payIdx;
+  document.getElementById('edit-slip-mid').value='';
+  document.getElementById('edit-slip-type').value='recv';
+  document.getElementById('edit-slip-info').innerHTML=`<strong>รับเงิน</strong> — ${g.name} · ${fd(p.date)} · ฿${f(p.amount)}`;
+  renderEditSlipCurrent();
+  document.getElementById('edit-slip-new-preview').innerHTML='';
+  document.getElementById('modal-edit-slip').classList.add('open');
+}
+
+/* เปิด modal แก้ไขสลิป — หน้าจ่ายเงินสมาชิก */
+function openEditPaySlip(gigId,mid){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
+  const payData=(g.memberPayments||{})[mid];
+  _editSlipKeys=[...(Array.isArray(payData?.slips)&&payData.slips.length?payData.slips:payData?.slip?[payData.slip]:[])];
+  const mem=S.members.find(m=>String(m.id)===String(mid));
+  document.getElementById('edit-slip-gig-id').value=gigId;
+  document.getElementById('edit-slip-pay-idx').value='';
+  document.getElementById('edit-slip-mid').value=mid;
+  document.getElementById('edit-slip-type').value='pay';
+  document.getElementById('edit-slip-info').innerHTML=`<strong>จ่ายเงิน</strong> — ${mem?mem.name:'?'} · ${g.name}`;
+  renderEditSlipCurrent();
+  document.getElementById('edit-slip-new-preview').innerHTML='';
+  document.getElementById('modal-edit-slip').classList.add('open');
+}
+
+function renderEditSlipCurrent(){
+  const wrap=document.getElementById('edit-slip-current');
+  if(!wrap)return;
+  if(!_editSlipKeys.length){wrap.innerHTML='<span style="font-size:11px;color:var(--ink3)">ยังไม่มีสลิป</span>';return;}
+  wrap.innerHTML=_editSlipKeys.map((key,i)=>{
+    const id='es_'+Math.random().toString(36).slice(2,7);
+    setTimeout(async()=>{
+      const el=document.getElementById(id);if(!el)return;
+      let data=await SlipStore.load(key).catch(()=>null);
+      if(!data&&SUPABASE_URL&&_sbBandId){
+        const pubUrl=`${SUPABASE_URL}/storage/v1/object/public/slips/${_sbBandId}/${key}`;
+        try{const probe=await fetch(pubUrl,{method:'HEAD'});if(probe.ok)data=pubUrl;}catch(e){}
+      }
+      if(!data&&SUPABASE_URL&&_sbBandId){data=await sbGetSignedUrl('slips',key).catch(()=>null);}
+      if(data){el.src=data;el.style.display='block';}
+    },50);
+    return`<div style="position:relative;flex-shrink:0">
+      <img id="${id}" src="" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--bd);display:none;cursor:pointer" onclick="viewSlip('${key}')">
+      <button type="button" onclick="removeEditSlip(${i})"
+        style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeEditSlip(idx){
+  _editSlipKeys.splice(idx,1);
+  renderEditSlipCurrent();
+}
+
+async function addEditSlip(file){
   if(!file||!file.type.startsWith('image/'))return toast('รองรับเฉพาะไฟล์รูปภาพ');
   try{
     const compressed=await compressImage(file);
     const key=newSlipKey();
     await SlipStore.save(key,compressed);
-    recvSlipData=key;
-    /* แสดง preview ใน drop zone */
-    const prev=document.getElementById('recv-slip-preview-wrap');
-    const img=document.getElementById('recv-slip-preview-img');
-    const dzc=document.getElementById('recv-slip-dz-content');
-    if(img) img.src=compressed;
-    if(prev) prev.style.display='block';
-    if(dzc) dzc.style.display='none';
+    _editSlipKeys.push(key);
+    renderEditSlipCurrent();
+    toast('✅ เพิ่มสลิปแล้ว');
   }catch(e){toast('บีบอัดรูปไม่สำเร็จ');console.error(e);}
 }
-function handleRecvSlipDrop(file){_processRecvSlipFile(file);}
-async function previewSlip(inp){
-  if(!inp.files[0])return;
-  await _processRecvSlipFile(inp.files[0]);
+
+async function saveEditSlip(){
+  const gigId=document.getElementById('edit-slip-gig-id').value;
+  const type=document.getElementById('edit-slip-type').value;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
+
+  /* ★ v95: upload สลิปใหม่ขึ้น Supabase Storage ก่อน */
+  if(CLOUD_ENABLED()){
+    for(let i=0;i<_editSlipKeys.length;i++){
+      const key=_editSlipKeys[i];
+      if(key&&key.startsWith('slip_')){
+        const data=await SlipStore.load(key).catch(()=>null);
+        if(data){
+          const uploaded=await sbUploadSlip('slips',key,data).catch(()=>null);
+          if(uploaded) _editSlipKeys[i]=uploaded;
+        }
+      }
+    }
+  }
+
+  if(type==='recv'){
+    const payIdx=parseInt(document.getElementById('edit-slip-pay-idx').value);
+    const p=g.payments[payIdx];if(!p)return;
+    p.slip=_editSlipKeys[0]||null;
+    p.slips=_editSlipKeys.length?[..._editSlipKeys]:null;
+    /* ★ ใช้ syncGigPaymentsToCloud ที่ delete + re-insert ทั้งหมด */
+    if(CLOUD_ENABLED()) await syncGigPaymentsToCloud(g).catch(console.error);
+  } else {
+    const mid=document.getElementById('edit-slip-mid').value;
+    if(!g.memberPayments) g.memberPayments={};
+    const payData=g.memberPayments[mid];
+    if(payData&&typeof payData==='object'){
+      payData.slip=_editSlipKeys[0]||null;
+      payData.slips=_editSlipKeys.length?[..._editSlipKeys]:null;
+      /* ★ v95 fix: ใช้ syncMemberPayment ไม่ใช่ syncGig เพราะ syncGig ไม่ sync member_payments */
+      if(CLOUD_ENABLED()) await syncMemberPayment(g.id,mid,payData).catch(console.error);
+    }
+  }
+
+  cx('modal-edit-slip');
+  toast('✅ บันทึกสลิปแล้ว');
+  renderRecvPageList();renderPayPageList();rg();
+}
+/* ★ v95: multi-slip functions */
+async function addRecvSlip(file){
+  if(!file||!file.type.startsWith('image/'))return toast('รองรับเฉพาะไฟล์รูปภาพ');
+  try{
+    const compressed=await compressImage(file);
+    const key=newSlipKey();
+    await SlipStore.save(key,compressed);
+    recvSlipKeys.push(key);
+    renderRecvSlipPreviews();
+  }catch(e){toast('บีบอัดรูปไม่สำเร็จ');console.error(e);}
+}
+function removeRecvSlip(idx){
+  recvSlipKeys.splice(idx,1);
+  renderRecvSlipPreviews();
+}
+function renderRecvSlipPreviews(){
+  const wrap=document.getElementById('recv-slips-preview');
+  if(!wrap)return;
+  if(!recvSlipKeys.length){wrap.innerHTML='';return;}
+  wrap.innerHTML=recvSlipKeys.map((key,i)=>{
+    const id='rsp_'+Math.random().toString(36).slice(2,7);
+    setTimeout(async()=>{
+      const el=document.getElementById(id);if(!el)return;
+      const data=await SlipStore.load(key).catch(()=>null);
+      if(data){el.src=data;el.style.display='block';}
+    },50);
+    return`<div style="position:relative;flex-shrink:0">
+      <img id="${id}" src="" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--bd);display:none;cursor:pointer" onclick="viewSlip('${key}')">
+      <button type="button" onclick="event.stopPropagation();removeRecvSlip(${i})"
+        style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+    </div>`;
+  }).join('');
 }
 
 /* Render slip img tag — handles both key and legacy base64 */
@@ -6644,7 +6807,7 @@ function saveRecv(){
     return;
   }
   if(!g.payments)g.payments=[];
-  const newPay={date:document.getElementById('recv-date').value||new Date().toISOString().split('T')[0],amount,type:gigState._recvType||'deposit',note:document.getElementById('recv-note').value,slip:recvSlipData||null};
+  const newPay={date:document.getElementById('recv-date').value||new Date().toISOString().split('T')[0],amount,type:gigState._recvType||'deposit',note:document.getElementById('recv-note').value,slip:recvSlipKeys[0]||null,slips:recvSlipKeys.length?[...recvSlipKeys]:null};
   g.payments.push(newPay);
   /* ──────────────────────────────────────────────────
      ★ v95 fix: คำนวณ status จาก payments จริง ไม่พึ่ง _recvNewStatus
@@ -6788,9 +6951,10 @@ function openPay(gigId){
         <div id="pay-slip-area-${mid}" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px">
           ${(()=>{
             const slips=Array.isArray(payData?.slips)&&payData.slips.length?payData.slips:existSlip?[existSlip]:[];
-            return slips.map(s=>`<img src="" data-slip-key="${s}" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--bd2)" onclick="viewSlip('${s}')">`).join('');
+            return slips.map(s=>slipImg(s,52,'border-radius:6px')).join('');
           })()}
-          <div class="add-slip-btn"
+          ${readOnly?''
+          :`<div class="add-slip-btn"
             onclick="triggerPaySlip('${mid}')"
             ondragover="event.preventDefault();this.style.borderColor='var(--red)';this.style.background='var(--rl)'"
             ondragleave="this.style.borderColor='';this.style.background=''"
@@ -6798,9 +6962,9 @@ function openPay(gigId){
             style="width:52px;height:52px;border:1.5px dashed var(--bd2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);font-size:9px;gap:2px;background:var(--bg);transition:all .15s">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             สลิป
-          </div>
+          </div>`}
         </div>
-        <input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip('${mid}',this)">
+        ${readOnly?'':`<input type="file" id="pay-slip-file-${mid}" accept="image/*" style="display:none" onchange="previewPaySlip('${mid}',this)">`}
       </div>
     </div>`;
   }).join('');
@@ -8464,29 +8628,36 @@ function confirmCancelRecv(){
 async function syncGigPaymentsToCloud(g){
   if(!SUPABASE_URL||!_sbBandId) return;
   const dbId=g.id;
-  if(!dbId||typeof dbId==='number') return; /* skip ถ้ายังไม่มี UUID */
+  if(!dbId||typeof dbId==='number') return;
   try{
-    /* ลบ gig_payments ทั้งหมดของงานนี้ */
     await fetch(`${SUPABASE_URL}/rest/v1/gig_payments?gig_id=eq.${dbId}`,{
       method:'DELETE',headers:sbHeaders({'Prefer':''})
     });
-    /* insert ใหม่เฉพาะ payments ที่เหลือ */
     const remaining=g.payments||[];
     for(const pay of remaining){
-      let slipKey=pay.slip;
-      if(slipKey&&slipKey.startsWith('slip_')){
-        const data=await SlipStore.load(slipKey).catch(()=>null);
-        if(data) slipKey=await sbUploadSlip('slips',slipKey,data)||slipKey;
+      /* ★ v95: collect all slip keys — prefer slips array */
+      let allSlipKeys=Array.isArray(pay.slips)&&pay.slips.length?[...pay.slips]:pay.slip?[pay.slip]:[];
+      /* upload ทุก slip ที่ยังเป็น local key */
+      for(let i=0;i<allSlipKeys.length;i++){
+        const sk=allSlipKeys[i];
+        if(sk&&sk.startsWith('slip_')){
+          const d=await SlipStore.load(sk).catch(()=>null);
+          if(d){
+            const uploaded=await sbUploadSlip('slips',sk,d).catch(()=>null);
+            if(uploaded) allSlipKeys[i]=uploaded;
+          }
+        }
       }
+      const slipKeyStr=allSlipKeys.join(',')||null;
       await sbInsert('gig_payments',{
         gig_id:dbId,type:pay.type,amount:pay.amount,
-        date:pay.date,note:pay.note||null,slip_key:slipKey||null
+        date:pay.date,note:pay.note||null,slip_key:slipKeyStr
       });
     }
-    console.log('✅ syncGigPaymentsToCloud: deleted & re-inserted',remaining.length,'payments for gig',dbId);
+    console.log('✅ syncGigPaymentsToCloud:',remaining.length,'payments for gig',dbId);
   }catch(e){
     console.error('❌ syncGigPaymentsToCloud error:',e);
-    toast('⚠ Sync payments ไม่สำเร็จ — ตรวจสอบอินเทอร์เน็ต');
+    toast('⚠ Sync payments ไม่สำเร็จ');
   }
 }
 
@@ -10580,10 +10751,15 @@ async function doExportSlipZip(){
     /* recv slips */
     if(wantRecv){
       (g.payments||[]).forEach((p,pi)=>{
-        if(!p.slip) return;
-        const slipIdx=tasks.filter(t=>t.type==='recv'&&t.gigId===g.id).length;
-        const suffix=slipIdx>0?`_${slipIdx+1}`:'';
-        tasks.push({type:'recv',key:p.slip,name:`${safeJob}_${safeName}_recv${suffix}.jpg`,gigId:g.id});
+        /* ★ v95: รวม slips array + slip เดี่ยว */
+        const allRecvSlips=Array.isArray(p.slips)&&p.slips.length
+          ?p.slips
+          :(p.slip?[p.slip]:[]);
+        allRecvSlips.forEach((s,si)=>{
+          if(!s) return;
+          const suffix=allRecvSlips.length>1?`_${si+1}`:(pi>0?`_pay${pi+1}`:'');
+          tasks.push({type:'recv',key:s,name:`${safeJob}_${safeName}_recv${pi+1}${suffix}.jpg`,gigId:g.id});
+        });
       });
     }
     /* pay slips */
