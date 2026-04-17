@@ -3,34 +3,190 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BandestCo v3 — Band Management</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>BandestCo v95 — Band Management</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Brand */
   --red:#C0392B;--rh:#96281B;--rl:#FEF2F2;--rp:#FECACA;--rm:#F87171;--rb:#FECACA;
   /* Neutrals */
-  --wh:#FFFFFF;--bg:#F4F6F9;--bg2:#EEF1F6;--ink:#0F172A;--ink2:#475569;--ink3:#94A3B8;
-  --bd:rgba(15,23,42,0.07);--bd2:rgba(15,23,42,0.12);
+  --wh:#FFFFFF;--bg:#F7F8FB;--bg2:#EEF1F6;--ink:#0F172A;--ink2:#475569;--ink3:#94A3B8;
+  --bd:rgba(15,23,42,0.06);--bd2:rgba(15,23,42,0.10);
   /* Semantic */
   --green:#059669;--gbg:#ECFDF5;--gtxt:#065F46;
   --amber:#D97706;--abg:#FFFBEB;--atxt:#92400E;
   --blue:#2563EB;--bbg:#EFF6FF;--btxt:#1E40AF;
   --purple:#7C3AED;--pbg:#F5F3FF;--ptxt:#4C1D95;
   /* Sidebar */
-  --sb-bg:#0F172A;--sb-text:rgba(255,255,255,.65);--sb-text-active:#FFFFFF;
-  --sb-accent:#F87171;--sb-hover:rgba(255,255,255,.06);--sb-active:rgba(248,113,113,.15);
+  --sb-bg:#0C1222;--sb-text:rgba(255,255,255,.58);--sb-text-active:#FFFFFF;
+  --sb-accent:#F87171;--sb-hover:rgba(255,255,255,.05);--sb-active:rgba(248,113,113,.12);
   /* Radius */
-  --r:8px;--rlg:14px;--rxl:18px;
+  --r:10px;--rlg:16px;--rxl:20px;
   /* Sidebar width */
-  --sw:220px;
+  --sw:230px;
   /* Font */
-  --f:'IBM Plex Sans Thai',sans-serif;
+  --f:'IBM Plex Sans Thai','Sarabun',sans-serif;
+  --f-display:'Outfit','IBM Plex Sans Thai',sans-serif;
   /* Shadows */
-  --sh-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-  --sh-md:0 4px 16px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
-  --sh-lg:0 10px 40px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.06);
+  --sh-sm:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.03);
+  --sh-md:0 4px 20px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.03);
+  --sh-lg:0 12px 48px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.05);
+  /* Transition */
+  --ease:cubic-bezier(.4,0,.2,1);
 }
+
+/* ══ DARK MODE ══ */
+body.dark-mode{
+  --wh:#1E293B;--bg:#0F172A;--bg2:#1E293B;--ink:#F1F5F9;--ink2:#CBD5E1;--ink3:#64748B;
+  --bd:rgba(255,255,255,0.08);--bd2:rgba(255,255,255,0.14);
+  --rl:#2D1F1F;--rp:#4A2020;--rb:#3B1C1C;
+  --gbg:#0D2818;--gtxt:#6EE7B7;--abg:#2D2305;--atxt:#FCD34D;
+  --bbg:#0D1B2A;--btxt:#60A5FA;--pbg:#1A0F2E;--ptxt:#A78BFA;
+  --sh-sm:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+  --sh-md:0 4px 16px rgba(0,0,0,.3),0 2px 4px rgba(0,0,0,.2);
+  --sh-lg:0 10px 40px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.2);
+}
+body.dark-mode .sidebar{background:#0B1120}
+body.dark-mode #login-screen{background:linear-gradient(135deg,#020617 0%,#0F172A 50%,#020617 100%)}
+body.dark-mode .login-card{background:#1E293B;border-color:rgba(255,255,255,.1)}
+body.dark-mode .topbar{background:rgba(15,23,42,.92)}
+body.dark-mode .b-confirmed{background:#1E3A5F;color:#93C5FD}
+body.dark-mode .b-deposit{background:#422006;color:#FCD34D}
+body.dark-mode .b-paid{background:#064E3B;color:#6EE7B7}
+body.dark-mode .b-cancelled{background:#1E293B;color:#64748B}
+body.dark-mode .b-pay-none{background:#3B1111;color:#FCA5A5}
+body.dark-mode .b-pay-part{background:#422006;color:#FCD34D}
+body.dark-mode .b-pay-full{background:#064E3B;color:#6EE7B7}
+body.dark-mode table thead th{background:#1E293B}
+body.dark-mode .chart-sel{background:#1E293B;color:var(--ink);border-color:var(--bd2)}
+body.dark-mode .mob-bottom-nav{background:rgba(15,23,42,.95);border-top-color:rgba(255,255,255,.08)}
+body.dark-mode .gig-tabs{background:#1E293B;border-bottom-color:rgba(255,255,255,.08)}
+body.dark-mode .gig-tab-count{background:#3B1C1C;color:#FCA5A5}
+body.dark-mode .cal-head{background:#1E293B}
+body.dark-mode .cal-cell{background:#1E293B;border-color:rgba(255,255,255,.06)}
+body.dark-mode .cal-cell.empty{background:#0F172A}
+body.dark-mode .cal-cell.tod{background:#2D1F1F}
+body.dark-mode .cal-topbar{background:#1E293B;border-color:rgba(255,255,255,.08)}
+body.dark-mode .overlay{background:rgba(0,0,0,.65)}
+body.dark-mode .modal{background:#1E293B;border-color:rgba(255,255,255,.1)}
+body.dark-mode .fi{background:#0F172A;border-color:rgba(255,255,255,.15);color:var(--ink)}
+body.dark-mode .btn-o{background:#1E293B;color:var(--ink2);border-color:rgba(255,255,255,.15)}
+body.dark-mode .recv-head{background:#0F172A}
+body.dark-mode .plan-card{border-color:rgba(255,255,255,.12)}
+body.dark-mode .plan-card:hover{background:#2D1F1F;border-color:var(--red)}
+body.dark-mode .ltab{background:#0F172A;color:var(--ink3);border-color:rgba(255,255,255,.1)}
+body.dark-mode .ltab.active{background:var(--red);color:#fff}
+body.dark-mode .bar{background:#334155}
+body.dark-mode .kpi::before{opacity:.8}
+body.dark-mode .mem-card{border-color:rgba(255,255,255,.08)}
+body.dark-mode .recv-card{border-color:rgba(255,255,255,.08)}
+body.dark-mode .chart-card{border-color:rgba(255,255,255,.08)}
+body.dark-mode .tc{border-color:rgba(255,255,255,.08)}
+body.dark-mode .tb-btn{background:#1E293B;border-color:rgba(255,255,255,.12);color:var(--ink3)}
+body.dark-mode .badge{opacity:.9}
+body.dark-mode .cal-popup{background:#1E293B;border-color:rgba(255,255,255,.1)}
+
+/* ══ NOTIFICATION CENTER ══ */
+.notif-panel{
+  position:fixed;top:0;right:-380px;width:380px;height:100vh;
+  background:var(--wh);border-left:1px solid var(--bd);
+  z-index:500;box-shadow:-8px 0 40px rgba(0,0,0,.12);
+  transition:right .28s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+.notif-panel.open{right:0}
+.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:499;display:none;backdrop-filter:blur(2px)}
+.notif-overlay.open{display:block}
+.notif-head{padding:18px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.notif-head-t{font-size:15px;font-weight:700;color:var(--ink)}
+.notif-list{flex:1;overflow-y:auto;padding:10px}
+.notif-item{padding:12px 14px;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:background .12s;border:1px solid transparent}
+.notif-item:hover{background:var(--bg)}
+.notif-item.unread{background:var(--rl);border-color:var(--rb)}
+.notif-item-t{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.notif-item-d{font-size:11px;color:var(--ink3)}
+.notif-item-time{font-size:10px;color:var(--ink3);margin-top:4px}
+.notif-empty{text-align:center;padding:60px 20px;color:var(--ink3)}
+.notif-badge{
+  position:absolute;top:-2px;right:-2px;
+  min-width:16px;height:16px;padding:0 4px;
+  background:var(--red);color:#fff;
+  border-radius:10px;font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--wh);
+}
+
+/* ══ QUICK SEARCH OVERLAY ══ */
+.qsearch-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;
+  display:none;align-items:flex-start;justify-content:center;padding-top:12vh;
+  backdrop-filter:blur(6px);
+}
+.qsearch-overlay.open{display:flex}
+.qsearch-box{
+  width:520px;max-width:92vw;background:var(--wh);
+  border-radius:16px;box-shadow:var(--sh-lg);border:1px solid var(--bd);overflow:hidden;
+}
+.qsearch-input{
+  width:100%;padding:16px 20px;border:none;font-family:var(--f);font-size:15px;
+  color:var(--ink);background:transparent;outline:none;
+}
+.qsearch-results{max-height:320px;overflow-y:auto;border-top:1px solid var(--bd)}
+.qsearch-item{padding:10px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .1s}
+.qsearch-item:hover{background:var(--bg)}
+.qsearch-item-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.qsearch-item-text{flex:1;min-width:0}
+.qsearch-item-title{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qsearch-item-sub{font-size:11px;color:var(--ink3)}
+.qsearch-hint{padding:12px 20px;font-size:11px;color:var(--ink3);border-top:1px solid var(--bd);display:flex;gap:14px}
+.qsearch-hint kbd{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;height:20px;padding:0 5px;
+  background:var(--bg);border:1px solid var(--bd2);border-radius:4px;
+  font-size:10px;font-weight:600;color:var(--ink2);font-family:var(--f);
+}
+
+/* ══ SKELETON & PROGRESS ══ */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{
+  background:linear-gradient(90deg,var(--bg) 25%,var(--bg2) 50%,var(--bg) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;
+}
+.g-progress{
+  position:fixed;top:0;left:0;height:3px;z-index:9999;
+  background:linear-gradient(90deg,var(--red),#F87171,var(--red));
+  background-size:200% 100%;animation:shimmer 1s infinite;
+  transition:width .3s;border-radius:0 2px 2px 0;
+}
+
+/* ══ DARK MODE TOGGLE BUTTON ══ */
+.dm-toggle{
+  width:38px;height:20px;border-radius:12px;
+  background:var(--bd2);cursor:pointer;
+  position:relative;transition:background .2s;border:none;
+  display:flex;align-items:center;padding:0 2px;
+}
+.dm-toggle.on{background:var(--red)}
+.dm-toggle-knob{
+  width:16px;height:16px;border-radius:50%;
+  background:#fff;transition:transform .2s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.dm-toggle.on .dm-toggle-knob{transform:translateX(18px)}
+
+/* ══ VERSION BADGE ══ */
+.v-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:2px 7px;border-radius:6px;font-size:9px;font-weight:700;
+  background:rgba(248,113,113,.15);color:var(--sb-accent);
+  letter-spacing:.04em;
+}
+
+/* ══ PULSE ══ */
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse-dot{animation:pulse-dot 1.5s ease-in-out infinite}
+
 *{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
 body{font-family:var(--f);background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5}
 .shell{display:flex;height:100vh;overflow:hidden}
@@ -41,10 +197,11 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);font-size:13px;l
   background:var(--sb-bg);
   display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;
   border-right:none;
+  background-image:linear-gradient(180deg,rgba(248,113,113,.03) 0%,transparent 40%);
 }
 .sidebar::-webkit-scrollbar{width:0}
-.sb-logo{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sb-logo-name{font-size:19px;font-weight:700;color:#fff;letter-spacing:-0.03em}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-logo-name{font-family:var(--f-display);font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.04em}
 .sb-logo-name span{color:var(--sb-accent)}
 .sb-logo-sub{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:0.14em;text-transform:uppercase;margin-top:3px}
 .sb-sec{padding:16px 0 2px}
@@ -789,6 +946,15 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
   /* ═══ MEMBER DROPDOWN ═══ */
   [id^="gmem-drop-"]{max-height:160px}
   [id^="gmem-drop-"] div{padding:6px 10px!important;font-size:11px!important}
+
+  /* ═══ v95 MOBILE ═══ */
+  .notif-panel{width:100vw;right:-100vw}
+  .qsearch-box{width:95vw}
+  .qsearch-input{font-size:16px;padding:14px 16px}
+  .dm-toggle{width:34px;height:18px}
+  .dm-toggle-knob{width:14px;height:14px;font-size:8px}
+  .dm-toggle.on .dm-toggle-knob{transform:translateX(16px)}
+  #notif-bell-btn .notif-badge{top:-4px;right:-4px}
 }
 @media(min-width:769px){
   .mob-hamburger{display:none!important}
@@ -852,7 +1018,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
   <div class="login-card" style="width:420px">
     <div class="login-logo">
       <div class="login-logo-name">BandestCo</div>
-      <div class="login-logo-sub">Band Management</div>
+      <div class="login-logo-sub">Band Management <span style="background:rgba(192,57,43,.12);color:var(--red);padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700">v95</span></div>
     </div>
     <!-- Tabs -->
     <div class="ltabs">
@@ -953,7 +1119,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
         <div class="sb-logo-name">BandestCo</div>
-        <div class="sb-logo-sub">Band Management</div>
+        <div class="sb-logo-sub">Band Management <span class="v-badge">v95</span></div>
       </div>
       <!-- ปุ่มซ่อน sidebar — แสดงเฉพาะ mobile -->
       <button id="sb-close-btn" onclick="toggleMobSidebar()"
@@ -1056,7 +1222,17 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
         <select id="kpi-filter-year" class="chart-sel" style="height:30px;padding:4px 10px;font-size:12px" onchange="rd();renderCompareChart();renderForecast()">
           <option value="2026">2026</option><option value="2025">2025</option><option value="2027">2027</option>
         </select>
-        <button class="tb-btn" onclick="renderAll()">&#8635;</button>
+        <button class="tb-btn" onclick="renderAll()" title="รีเฟรช">&#8635;</button>
+        <button class="tb-btn" onclick="openQuickSearch()" title="ค้นหา (Ctrl+K)" style="position:relative">
+          <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 12l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="tb-btn" onclick="toggleNotifPanel()" title="แจ้งเตือน" style="position:relative" id="notif-bell-btn">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6a4 4 0 018 0c0 4 2 5 2 5H2s2-1 2-5zM6 13a2 2 0 004 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+        </button>
+        <button class="dm-toggle" id="dm-toggle" onclick="toggleDarkMode()" title="Dark Mode">
+          <div class="dm-toggle-knob" id="dm-knob">☀</div>
+        </button>
       </div>
     </div>
     <div class="content">
@@ -1275,6 +1451,9 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
       </button>
       <div class="tb-title" style="margin-left:8px">รับเงินจากลูกค้า</div>
       <div class="tb-right">
+        <button onclick="quickNavToPay()" style="height:32px;padding:0 14px;border:1.5px solid var(--green);border-radius:var(--r);background:var(--gbg);color:var(--gtxt);font-size:11px;cursor:pointer;font-family:var(--f);white-space:nowrap;flex-shrink:0;font-weight:600;display:flex;align-items:center;gap:5px">
+          💸 จ่ายเงินสมาชิก →
+        </button>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--ink2);white-space:nowrap;user-select:none">
           <input type="checkbox" id="recv-show-history" onchange="renderRecvPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
           ดูประวัติย้อนหลัง
@@ -1314,6 +1493,9 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
       </button>
       <div class="tb-title" style="margin-left:8px">จ่ายค่าตัวสมาชิก</div>
       <div class="tb-right">
+        <button onclick="quickNavToRecv()" style="height:32px;padding:0 14px;border:1.5px solid var(--blue);border-radius:var(--r);background:var(--bbg);color:var(--btxt);font-size:11px;cursor:pointer;font-family:var(--f);white-space:nowrap;flex-shrink:0;font-weight:600;display:flex;align-items:center;gap:5px">
+          ← ตรวจรับเงิน
+        </button>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--ink2);white-space:nowrap;user-select:none">
           <input type="checkbox" id="pay-show-history" onchange="renderPayPageList()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer">
           ดูประวัติย้อนหลัง
@@ -1377,15 +1559,16 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
       <div id="income-kpi" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px"></div>
       <!-- Member income table -->
       <div class="tc" style="margin-bottom:16px">
-        <div id="itable-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="itable-table" style="width:100%;border-collapse:collapse">
+        <div id="itable-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="itable-table" style="width:100%;border-collapse:collapse;table-layout:fixed">
           <thead><tr>
-            <th style="text-align:left;min-width:130px">สมาชิก</th>
-            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap;text-align:right">💰 รายได้ (paid)</th>
-            <th style="background:#FEF9F0;color:#92400E;white-space:nowrap;text-align:right">🎁 ทิป</th>
-            <th style="background:#F0FDF4;color:#166534;white-space:nowrap;text-align:right;font-weight:700">✅ รวมรายได้</th>
-            <th style="background:#FEF2F2;color:#B91C1C;text-align:center;white-space:nowrap">งาน paid</th>
-            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap;text-align:right">📋 คาดการณ์</th>
-            <th style="background:#EFF6FF;color:#1D4ED8;text-align:center;white-space:nowrap">งาน</th>
+            <th style="text-align:left;width:200px">สมาชิก</th>
+            <th style="background:#F8FAFC;text-align:center;white-space:nowrap;width:80px">รวมงาน</th>
+            <th style="background:#F0FDF4;color:#166534;text-align:center;white-space:nowrap;width:90px">จ่ายแล้ว</th>
+            <th style="background:#FEF2F2;color:#B91C1C;text-align:center;white-space:nowrap;width:90px">ค้างจ่าย</th>
+            <th style="background:#EFF6FF;color:#1D4ED8;white-space:nowrap;text-align:right;width:130px">📋 คาดการณ์</th>
+            <th style="background:#FEF2F2;color:#B91C1C;white-space:nowrap;text-align:right;width:130px">💰 รับแล้ว</th>
+            <th style="background:#FFF7ED;color:#92400E;white-space:nowrap;text-align:right;width:90px">🎁 ทิป</th>
+            <th style="background:#F0FDF4;color:#166534;white-space:nowrap;text-align:right;font-weight:700;width:130px">✅ รายได้รวม</th>
           </tr></thead>
           <tbody id="itable"></tbody>
         </table></div>
@@ -1394,16 +1577,16 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="sec-t" id="idetail-label">รายละเอียดต่องาน</div>
       </div>
-      <div class="tc"><div id="idetail-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;min-width:600px">
+      <div class="tc"><div id="idetail-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;min-width:800px;table-layout:fixed">
         <thead><tr>
-          <th style="white-space:nowrap">Order ID</th>
-          <th>งาน</th>
-          <th style="white-space:nowrap">วันที่</th>
-          <th style="background:#FEF9F9;color:#B91C1C;white-space:nowrap">รายได้ย่อย</th>
-          <th style="background:#FFF7ED;color:#92400E;white-space:nowrap">ทิป</th>
-          <th style="background:#F0FDF4;color:#166534;white-space:nowrap">รวม</th>
-          <th style="white-space:nowrap">จ่ายแล้ว</th>
-          <th style="white-space:nowrap">สถานะ</th>
+          <th style="white-space:nowrap;width:100px">Order ID</th>
+          <th style="width:180px">งาน</th>
+          <th style="white-space:nowrap;width:100px">วันที่</th>
+          <th style="background:#FEF9F9;color:#B91C1C;white-space:nowrap;width:160px">รายได้ย่อย</th>
+          <th style="background:#FFF7ED;color:#92400E;white-space:nowrap;width:90px;text-align:center">ทิป</th>
+          <th style="background:#F0FDF4;color:#166534;white-space:nowrap;width:100px;text-align:center">รวม</th>
+          <th style="white-space:nowrap;width:100px">จ่ายแล้ว</th>
+          <th style="white-space:nowrap;width:80px">สถานะ</th>
         </tr></thead>
         <tbody id="idetail"></tbody>
       </table></div></div>
@@ -1863,6 +2046,42 @@ Line: @somchai_jaidee
 </div>
 </div><!-- /shell -->
 
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div class="notif-overlay" id="notif-overlay" onclick="closeNotifPanel()"></div>
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-head">
+    <div class="notif-head-t">การแจ้งเตือน</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-family:var(--f);font-weight:600">อ่านทั้งหมด</button>
+      <button onclick="closeNotifPanel()" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bd2);background:var(--bg);cursor:pointer;color:var(--ink3);font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">
+      <div style="font-size:32px;margin-bottom:8px">🔔</div>
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">ไม่มีการแจ้งเตือน</div>
+      <div style="font-size:11px">เมื่อมีงานใหม่หรือมัดจำถึง จะแจ้งเตือนที่นี่</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUICK SEARCH ══ -->
+<div class="qsearch-overlay" id="qsearch-overlay" onclick="if(event.target===this)closeQuickSearch()">
+  <div class="qsearch-box">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 20px">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="var(--ink3)" stroke-width="1.5"/><path d="M12 12l4 4" stroke="var(--ink3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input class="qsearch-input" id="qsearch-input" placeholder="ค้นหางาน, สมาชิก, ลูกค้า..." oninput="doQuickSearch(this.value)" autocomplete="off">
+      <kbd style="display:inline-flex;align-items:center;padding:2px 6px;background:var(--bg);border:1px solid var(--bd2);border-radius:4px;font-size:10px;color:var(--ink3);font-family:var(--f)">ESC</kbd>
+    </div>
+    <div class="qsearch-results" id="qsearch-results" style="display:none"></div>
+    <div class="qsearch-hint">
+      <span><kbd>↑↓</kbd> เลื่อน</span>
+      <span><kbd>Enter</kbd> เปิด</span>
+      <span><kbd>Esc</kbd> ปิด</span>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: ADD EXPENSE -->
 <div class="overlay" id="modal-expense">
   <div class="modal" style="width:460px">
@@ -2244,7 +2463,8 @@ Line: @somchai_jaidee
             <div class="fg" style="margin-bottom:0;grid-column:1/-1">
               <label class="fl">เบอร์</label>
               <div id="gcphone-tags" style="display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px 8px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);align-items:center;cursor:text" onclick="document.getElementById('gcphone-inp').focus()">
-                <input id="gcphone-inp" maxlength="10" placeholder="กดพิมพ์เบอร์แล้ว Enter"
+                <input id="gcphone-inp" maxlength="13" placeholder="กดพิมพ์เบอร์แล้ว Enter"
+                onpaste="setTimeout(()=>{this.value=this.value.replace(/[-\s().]/g,'')},0)"
                   style="border:none;outline:none;background:transparent;font-size:12px;font-family:var(--f);width:180px;min-width:80px;color:var(--ink)"
                   oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
                   onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addPhoneTag();}">
@@ -2267,7 +2487,8 @@ Line: @somchai_jaidee
           <div class="fg" style="margin-bottom:6px">
             <label class="fl">เบอร์</label>
             <div id="gcphone-new-tags" style="display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px 8px;background:var(--wh);border:1px solid var(--bd2);border-radius:var(--r);align-items:center;cursor:text" onclick="document.getElementById('gcphone-new-inp').focus()">
-              <input id="gcphone-new-inp" maxlength="10" placeholder="กดพิมพ์เบอร์แล้ว Enter"
+              <input id="gcphone-new-inp" maxlength="13" placeholder="กดพิมพ์เบอร์แล้ว Enter"
+                onpaste="setTimeout(()=>{this.value=this.value.replace(/[-\s().]/g,'')},0)"
                 style="border:none;outline:none;background:transparent;font-size:12px;font-family:var(--f);width:180px;min-width:80px;color:var(--ink)"
                 oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
                 onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addPhoneTagNew();}">
@@ -2850,11 +3071,38 @@ async function sbDoRefreshToken(){
           sessionStorage.setItem('bco_session',JSON.stringify(sess));
         }
       }catch(e){}
+      _sessionStart=Date.now(); /* ★ v95 fix: reset session start on successful refresh */
       startTokenRefreshTimer(d.expires_in||3600);
     } else {
-      /* refresh ไม่ได้ → logout */
-      toast('⚠️ Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
-      setTimeout(()=>doLogout(),1500);
+      /* ★ v95 fix: ลองอีกครั้งหลัง 10 วินาที ก่อน logout */
+      console.warn('⚠️ Token refresh failed, retrying in 10s...',r.status);
+      setTimeout(async()=>{
+        try{
+          const r2=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON},
+            body:JSON.stringify({refresh_token:_sbRefreshToken})
+          });
+          const d2=await r2.json();
+          if(r2.ok&&d2.access_token){
+            _sbToken=d2.access_token;
+            if(d2.refresh_token) _sbRefreshToken=d2.refresh_token;
+            _sessionStart=Date.now();
+            try{
+              const sess=JSON.parse(sessionStorage.getItem('bco_session')||'null');
+              if(sess){sess.token=_sbToken;sess.refreshToken=_sbRefreshToken||sess.refreshToken;sess.ts=Date.now();sessionStorage.setItem('bco_session',JSON.stringify(sess));}
+            }catch(e){}
+            startTokenRefreshTimer(d2.expires_in||3600);
+            console.log('✅ Token refresh retry succeeded');
+          } else {
+            toast('⚠️ Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+            setTimeout(()=>doLogout(),1500);
+          }
+        }catch(e2){
+          toast('⚠️ Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+          setTimeout(()=>doLogout(),1500);
+        }
+      },10000);
     }
   }catch(e){console.error('token refresh error:',e);}
 }
@@ -3303,6 +3551,22 @@ const mi=(mem,m,y)=>{const activeM=S.members.filter(x=>x.status==='active').leng
 const BD={confirmed:['b-confirmed','ยังไม่จ่าย'],deposit:['b-deposit','จ่ายมัดจำ'],paid:['b-paid','จ่ายเต็ม'],cancelled:['b-cancelled','ยกเลิก'],pending:['bs','ยังไม่จ่าย'],active:['bg','Active'],inactive:['bs','Inactive']};
 const gigExpTotal=g=>{const e=g.expenses||{};if(e.expenseRows) return e.expenseRows.reduce((s,r)=>s+(r.fee||0),0);return(e.soundFee||0)+(e.adsFee||0)+(e.otherFee||0);};
 const gigNet=g=>Math.max(0,g.fee-gigExpTotal(g));
+/* ★ v95 fix: centralized client lookup — ถ้าหา ID ไม่เจอ fallback หาจากชื่อ */
+function findGigClient(g){
+  if(!g) return null;
+  if(g.clientId){
+    const cl=S.clients.find(x=>String(x.id)===String(g.clientId));
+    if(cl) return cl;
+    /* fallback: ID ไม่เจอ (อาจเป็น Date.now ที่ยังไม่ได้ replace ด้วย UUID) → หาจากชื่อ */
+    if(g.clientName){
+      const byName=S.clients.find(x=>x.name&&x.name.trim().toLowerCase()===g.clientName.trim().toLowerCase());
+      if(byName) return byName;
+    }
+  }
+  return null;
+}
+function getGigClientName(g){const cl=findGigClient(g);return cl?cl.name:(g.clientName||'—');}
+function getGigClientPhone(g){const cl=findGigClient(g);return cl?.phone||(g.clientPhone||'');}
 const gigPayBadge=g=>{const ps=getGigPayStatus(g);const map={'ยังไม่จ่าย':'b-pay-none','จ่ายบางส่วน':'b-pay-part','จ่ายครบทั้งวง':'b-pay-full'};return`<span class="badge ${map[ps.label]||'bs'}" style="font-size:10px"><span class="bd2"></span>${ps.label}</span>`;};
 const gigTipBadge=g=>{
   const mus=g.musicians||[];
@@ -3318,9 +3582,22 @@ const tl={event:'Event',private:'Private',corporate:'Corporate'};
 const avx=(n,sz=28)=>`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:var(--rp);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:${Math.round(sz*.34)}px;font-weight:600;flex-shrink:0">${n}</div>`;
 
 function nav(id,el){
-  /* session guard — ถ้าไม่มี session ให้ redirect ไป login */
+  /* session guard — ถ้าไม่มี session ให้ลอง refresh ก่อน ไม่ logout ทันที */
   if(!currentUser||!_sbToken){
-    doLogout();return;
+    /* ★ v95 fix: ลอง restore จาก sessionStorage ก่อน logout */
+    try{
+      const raw=sessionStorage.getItem('bco_session');
+      if(raw){
+        const sess=JSON.parse(raw);
+        if(sess&&sess.token){
+          _sbToken=sess.token;_sbBandId=sess.bandId;currentUser=sess.user;
+          if(sess.refreshToken) _sbRefreshToken=sess.refreshToken;
+          _sessionStart=sess.ts||Date.now();
+          sbDoRefreshToken();
+          /* ดำเนินต่อไม่ logout */
+        } else { doLogout();return; }
+      } else { doLogout();return; }
+    }catch(e){ doLogout();return; }
   }
   /* จำหน้าปัจจุบัน */
   try{sessionStorage.setItem('bco_last_page',id);}catch(e){}
@@ -3467,7 +3744,7 @@ function rd(){
   rc();
   renderCompareChart();
 
-  document.getElementById('orders').innerHTML=[...S.gigs].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8).map(g=>{
+  document.getElementById('orders').innerHTML=[...S.gigs].filter(g=>g.status!=='cancelled').sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8).map(g=>{
     const recv=gigRevenuePaid(g);
     return`<tr><td class="tid">${oid(g)}</td><td>สมาชิกวง</td><td style="font-weight:500">${g.name}</td><td>1</td><td class="tamt">฿${f(recv)}</td><td>${bx(g.status)}</td><td style="color:var(--ink3)">${fd(g.date)}</td></tr>`;
   }).join('');
@@ -3734,8 +4011,9 @@ function rg(){
   if(filterSt==='active') list=list.filter(g=>g.status!=='cancelled');
   else if(filterSt) list=list.filter(g=>g.status===filterSt);
   document.getElementById('gigs-b').innerHTML=list.map(g=>{
-    const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
+    const cl=findGigClient(g);
     const clName=cl?cl.name:(g.clientName||'—');
+    const clPhone=cl?.phone||(g.clientPhone||'');
     const timeStr=(g.timeStart&&g.timeEnd)?`${g.timeStart}–${g.timeEnd}`:g.timeStart||g.timeEnd||'—';
     const netVal=gigNet(g);
     const isCancelled=g.status==='cancelled';
@@ -3870,26 +4148,25 @@ function ri(){
   };
 
   /* ── KPI ── */
-  /* รายได้รวม = sum payments จากลูกค้า เฉพาะงาน paid */
+  /* ★ v95 fix: รายได้รวม = ค่าตัวงาน (fee) เฉพาะงาน status=paid — ไม่ใช้ยอด payments */
   let totalRealIncome=0,paidGigSet=new Set();
   let totalForecastIncome=0,unpaidGigSet=new Set();
   allGigs.forEach(g=>{
+    if(g.status==='cancelled') return;
     if(g.status==='paid'){
-      totalRealIncome+=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+      totalRealIncome+=g.fee||0;
       paidGigSet.add(g.id);
-    } else if(g.status!=='cancelled'){
+    } else {
       /* forecast = งานที่ assign แต่ยังไม่ paid */
       if(g.musicians&&g.musicians.length) unpaidGigSet.add(g.id);
     }
   });
-  /* forecast income รวม */
-  S.members.forEach(mem=>{
-    allGigs.forEach(g=>{
-      if(g.status==='cancelled'||g.status==='paid') return;
-      if(!isMemAssigned(g,mem)) return;
-      const cut=getMemCut(g,mem);
-      if(cut) totalForecastIncome+=cut;
-    });
+  /* forecast income = ค่าตัวงาน (fee) ของงานที่ยังไม่ paid */
+  allGigs.forEach(g=>{
+    if(g.status==='cancelled'||g.status==='paid') return;
+    if(g.musicians&&g.musicians.length){
+      totalForecastIncome+=g.fee||0;
+    }
   });
 
   const kpiEl=document.getElementById('income-kpi');
@@ -3897,12 +4174,12 @@ function ri(){
     <div class="kpi cr">
       <div class="kpi-lbl">รายได้รวม (Paid)</div>
       <div class="kpi-val r">฿${f(totalRealIncome)}</div>
-      <div class="kpi-sub">รับเงินครบจากลูกค้าแล้ว · ${periodLabel}</div>
+      <div class="kpi-sub">ค่าตัวงานที่กดรับเงินครบแล้ว · ${periodLabel}</div>
     </div>
     <div class="kpi cb">
       <div class="kpi-lbl">รายได้คาดการณ์ (Unpaid)</div>
       <div class="kpi-val" style="color:var(--blue)">฿${f(totalForecastIncome)}</div>
-      <div class="kpi-sub">Assign แล้ว แต่ยังไม่กดจ่าย</div>
+      <div class="kpi-sub">ค่าตัวงานที่ยังไม่กดรับเงินครบ</div>
     </div>
     <div class="kpi cg">
       <div class="kpi-lbl">จำนวนงาน (Paid)</div>
@@ -3912,7 +4189,7 @@ function ri(){
     <div class="kpi ca">
       <div class="kpi-lbl">จำนวนงาน (Unpaid)</div>
       <div class="kpi-val" style="color:var(--amber)">${unpaidGigSet.size}</div>
-      <div class="kpi-sub">Assign แล้ว ยังรอจ่าย</div>
+      <div class="kpi-sub">Assign แล้ว ยังรอรับเงิน</div>
     </div>`;
 
   /* ── member table — member role เห็นแค่ตัวเอง ── */
@@ -3929,18 +4206,18 @@ function ri(){
       if(isMemAssigned(g,mem)){
         const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
         if(g.status==='paid'){
-          /* รายได้ = sum breakdown (ยกเว้น tip) */
+          /* ★ v95 fix: รายได้ = ตรงกับตาราง detail ทุกประการ
+             - มี breakdown → sum(fee+travel+oil+overtime+other)
+             - ไม่มี breakdown → 0 (เหมือน detail แสดง "—" และ "รวม ฿0")
+          */
           if(mu?.breakdown){
             const bd=mu.breakdown;
             bdIncome+=(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
-          } else {
-            bdIncome+=getMemCut(g,mem);
           }
-          /* ทิป = breakdown.tip */
+          /* ไม่มี breakdown → bdIncome += 0 (ตรงกับ detail ที่แสดง ฿0) */
           tipIncome+=mu?.breakdown?.tip||0;
           paidGigCount++;
         } else {
-          /* forecast = ส่วนแบ่งรวม breakdown ทั้งหมด */
           forecastIncome+=getMemCut(g,mem);
           unpaidGigCount++;
         }
@@ -3952,7 +4229,8 @@ function ri(){
       }
     });
     const totalIncome=bdIncome+tipIncome;
-    return{...mem,bdIncome,tipIncome,totalIncome,forecastIncome,paidGigCount,unpaidGigCount};
+    const totalGigCount=paidGigCount+unpaidGigCount;
+    return{...mem,bdIncome,tipIncome,totalIncome,forecastIncome,paidGigCount,unpaidGigCount,totalGigCount};
   }).sort((a,b)=>(b.totalIncome+b.forecastIncome)-(a.totalIncome+a.forecastIncome));
 
   if(!incomeSelectedMid) incomeSelectedMid=(memData.find(m=>m.realIncome>0||m.forecastIncome>0)||memData[0])?.id||null;
@@ -3965,7 +4243,7 @@ function ri(){
     document.getElementById('itable-table').style.width='100%';
     document.getElementById('itable').innerHTML=memData.map(mem=>{
       const isSelected=String(mem.id)===String(incomeSelectedMid);
-      return`<tr><td colspan="7" style="padding:0 0 6px">
+      return`<tr><td colspan="8" style="padding:0 0 6px">
         <div onclick="selectIncomeMember('${mem.id}')"
           style="background:var(--wh);border-radius:10px;overflow:hidden;cursor:pointer;
             box-shadow:${isSelected?'0 0 0 2px var(--red)':'0 0 0 1px var(--bd2)'}">
@@ -3977,32 +4255,41 @@ function ri(){
               <div style="font-weight:700;font-size:13px;color:${isSelected?'var(--red)':'var(--ink)'}">${mem.name}${mem.lastname?' '+mem.lastname:''}</div>
               <div style="font-size:10px;color:var(--ink3)">${mem.role}</div>
             </div>
-          </div>
-          <!-- Stats -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--bd)">
-            <div style="padding:9px 4px;text-align:center;border-right:1px solid var(--bd)">
-              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">รายได้</div>
-              <div style="font-weight:700;font-size:12px;color:#DC2626">฿${f(mem.bdIncome)}</div>
+            <div style="text-align:right">
+              <div style="font-size:9px;color:var(--ink3)">งานทั้งหมด</div>
+              <div style="font-weight:700;font-size:14px;color:var(--ink)">${mem.totalGigCount}</div>
             </div>
-            <div style="padding:9px 4px;text-align:center;border-right:1px solid var(--bd)">
+          </div>
+          <!-- Stats row 1: งาน -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--bd)">
+            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
+              <div style="font-size:9px;color:#166534;margin-bottom:2px">จ่ายแล้ว</div>
+              <div style="font-weight:700;font-size:13px;color:#16A34A">${mem.paidGigCount}</div>
+            </div>
+            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd);background:#FEF2F2">
+              <div style="font-size:9px;color:#B91C1C;margin-bottom:2px">ค้างจ่าย</div>
+              <div style="font-weight:700;font-size:13px;color:#DC2626">${mem.unpaidGigCount}</div>
+            </div>
+            <div style="padding:7px 4px;text-align:center;background:#EFF6FF">
+              <div style="font-size:9px;color:#1D4ED8;margin-bottom:2px">คาดการณ์</div>
+              <div style="font-weight:600;font-size:11px;color:#2563EB">${mem.forecastIncome>0?'฿'+f(mem.forecastIncome):'—'}</div>
+            </div>
+          </div>
+          <!-- Stats row 2: เงิน -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--bd)">
+            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd)">
+              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">รับแล้ว</div>
+              <div style="font-weight:700;font-size:12px;color:#DC2626">${mem.bdIncome>0?'฿'+f(mem.bdIncome):'฿0'}</div>
+            </div>
+            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd)">
               <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ทิป</div>
               <div style="font-weight:600;font-size:12px;color:#B45309">${mem.tipIncome>0?'฿'+f(mem.tipIncome):'—'}</div>
             </div>
-            <div style="padding:9px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
-              <div style="font-size:9px;color:#166534;font-weight:600;margin-bottom:2px">รวม</div>
+            <div style="padding:7px 4px;text-align:center;background:#F0FDF4">
+              <div style="font-size:9px;color:#166534;font-weight:600;margin-bottom:2px">รายได้รวม</div>
               <div style="font-weight:800;font-size:13px;color:#15803D">฿${f(mem.totalIncome)}</div>
             </div>
-            <div style="padding:9px 4px;text-align:center">
-              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">งาน</div>
-              <div style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;background:${mem.paidGigCount>0?'#DC2626':'#D1D5DB'};color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:0 5px">${mem.paidGigCount}</div>
-            </div>
           </div>
-          ${mem.forecastIncome>0?`
-          <div style="display:flex;justify-content:space-between;align-items:center;
-            padding:5px 14px;background:#EFF6FF;border-top:1px solid #BFDBFE">
-            <span style="font-size:10px;color:#1D4ED8">คาดการณ์ · ${mem.unpaidGigCount} งาน</span>
-            <span style="font-weight:700;font-size:12px;color:#2563EB">฿${f(mem.forecastIncome)}</span>
-          </div>`:''}
         </div>
       </td></tr>`;
     }).join('');
@@ -4023,23 +4310,26 @@ function ri(){
             </div>
           </div>
         </td>
+        <td style="background:#F8FAFC;text-align:center;padding:10px 10px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.totalGigCount>0?'var(--ink)':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.totalGigCount}</span>
+        </td>
+        <td style="background:#F0FDF4;text-align:center;padding:10px 10px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.paidGigCount>0?'#16A34A':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.paidGigCount}</span>
+        </td>
+        <td style="background:#FEF2F2;text-align:center;padding:10px 10px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.unpaidGigCount>0?'#DC2626':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.unpaidGigCount}</span>
+        </td>
+        <td style="background:#EFF6FF;text-align:right;padding:10px 14px;white-space:nowrap">
+          <div style="font-weight:600;color:#2563EB;font-size:13px">${mem.forecastIncome>0?'฿'+f(mem.forecastIncome):'—'}</div>
+        </td>
         <td style="background:#FEF2F2;text-align:right;padding:10px 14px;white-space:nowrap">
-          <div style="font-weight:700;color:#DC2626;font-size:14px">฿${f(mem.bdIncome)}</div>
+          <div style="font-weight:700;color:#DC2626;font-size:14px">${mem.bdIncome>0?'฿'+f(mem.bdIncome):'฿0'}</div>
         </td>
         <td style="background:#FFF7ED;text-align:right;padding:10px 14px;white-space:nowrap">
           <div style="font-weight:600;color:#92400E;font-size:13px">${mem.tipIncome>0?'฿'+f(mem.tipIncome):'—'}</div>
         </td>
         <td style="background:#F0FDF4;text-align:right;padding:10px 14px;white-space:nowrap;border-left:2px solid #BBF7D0">
           <div style="font-weight:800;color:#166534;font-size:15px">฿${f(mem.totalIncome)}</div>
-        </td>
-        <td style="background:#FEF2F2;text-align:center;padding:10px 10px">
-          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.paidGigCount>0?'#DC2626':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.paidGigCount}</span>
-        </td>
-        <td style="background:#EFF6FF;text-align:right;padding:10px 14px;white-space:nowrap">
-          <div style="font-weight:600;color:#2563EB;font-size:13px">${mem.forecastIncome>0?'฿'+f(mem.forecastIncome):'—'}</div>
-        </td>
-        <td style="background:#EFF6FF;text-align:center;padding:10px 10px">
-          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;background:${mem.unpaidGigCount>0?'#2563EB':'#E5E7EB'};color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:0 8px">${mem.unpaidGigCount}</span>
         </td>
       </tr>`;
     }).join('');
@@ -4084,14 +4374,14 @@ function renderIncomeDetail(m,y,gg){
     const bdTotal=bdItems.reduce((s,x)=>s+x.val,0);
     const totalHtml=`<span style="font-size:11px;font-weight:700;color:#166534">฿${f(bdTotal+tipAmt)}</span>`;
     return`<tr>
-      <td class="tid">${oid(g)}</td>
-      <td style="font-weight:500">${g.name}</td>
-      <td>${fd(g.date)}</td>
-      <td style="background:#FEF9F9;min-width:140px">${bdHtml}</td>
-      <td style="background:#FFF7ED;text-align:center">${tipHtml}</td>
-      <td style="background:#F0FDF4;text-align:center">${totalHtml}</td>
-      <td style="font-weight:600;color:${isPaid?'var(--green)':'var(--ink3)'}">${isPaid?`<span style="display:flex;align-items:center;gap:4px">✓ จ่ายแล้ว${hasSlip?`${slipImg(payData.slip,20)}`:''}</span>`:'รอจ่าย'}</td>
-      <td>${bx(g.status)}</td>
+      <td class="tid" style="width:100px">${oid(g)}</td>
+      <td style="font-weight:500;width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.name}</td>
+      <td style="width:100px;white-space:nowrap">${fd(g.date)}</td>
+      <td style="background:#FEF9F9;width:160px">${bdHtml}</td>
+      <td style="background:#FFF7ED;text-align:center;width:90px">${tipHtml}</td>
+      <td style="background:#F0FDF4;text-align:center;width:100px">${totalHtml}</td>
+      <td style="font-weight:600;color:${isPaid?'var(--green)':'var(--ink3)'};width:100px">${isPaid?`<span style="display:flex;align-items:center;gap:4px">✓ จ่ายแล้ว${hasSlip?`${slipImg(payData.slip,20)}`:''}</span>`:'รอจ่าย'}</td>
+      <td style="width:80px">${bx(g.status)}</td>
     </tr>`;
   }).filter(Boolean).join('')||`<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--ink3)">ไม่มีงานที่รับเงินครบในช่วงนี้</td></tr>`;
 }
@@ -4197,7 +4487,7 @@ function renderCalFilterBar(){
 
 function openCalPopup(gigId){
   const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
-  const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
+  const cl=findGigClient(g);
   const clName=cl?cl.name:(g.clientName||'—');
   const clPhone=cl?cl.phone:(g.clientPhone||'—');
   const timeStr=g.timeStart?(g.timeStart+(g.timeEnd?'–'+g.timeEnd:'')):'ไม่ระบุ';
@@ -4340,7 +4630,7 @@ function rp(){
   const clientMap={};
   S.gigs.filter(g=>g.status!=='cancelled').forEach(g=>{
     const clId=g.clientId?('c'+g.clientId):(g.clientName?('n_'+g.clientName):'unknown');
-    const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
+    const cl=findGigClient(g);
     const clName=cl?cl.name:(g.clientName||'ไม่ระบุลูกค้า');
     const clPhone=cl?cl.phone:(g.clientPhone||'—');
     if(!clientMap[clId]){clientMap[clId]={id:clId,name:clName,phone:clPhone,gigs:[],totalRevenue:0,totalReceived:0,sources:new Set(),types:new Set()};}
@@ -5068,9 +5358,10 @@ function editGig(id){
   populateSourceDropdown();
   if(g.clientId){
     setCtype('old');
-    gigState.selectedClientId=g.clientId; /* ← fix: set selectedClientId */
-    const cl=S.clients.find(x=>String(x.id)===String(g.clientId));
+    /* ★ v95 fix: ใช้ findGigClient เพื่อ fallback หาจากชื่อถ้า ID ไม่เจอ */
+    const cl=findGigClient(g);
     if(cl){
+      gigState.selectedClientId=cl.id; /* ใช้ ID ที่หาเจอจริง */
       document.getElementById('gclient-search').value=cl.name;
       setPhoneTags(cl.phone||'');
       document.getElementById('gcbank-name').value=cl.bankName||'';
@@ -5178,7 +5469,7 @@ function editGig(id){
     },300);
   }
 }
-function sg(){
+async function sg(){
   if(!requireAdmin('บันทึกงาน'))return;
   /* ป้องกัน double save */
   const saveBtn=document.querySelector('[onclick="sg()"]');
@@ -5247,21 +5538,34 @@ function sg(){
     }
     const cbName=document.getElementById('gcbank-name-new')?.value.trim()||'';
     const cbNo=document.getElementById('gcbank-no-new')?.value.trim()||'';
-    const nc={id:Date.now(),name:clientName,phone:clientPhone,bankName:cbName,bankNo:cbNo};
-    S.clients.push(nc);clientId=nc.id;renderClientMaster();
-    /* sync ลูกค้าใหม่ขึ้น Supabase */
+    const ccNew=document.getElementById('gccontact-new')?.value.trim()||'';
+    const nc={id:Date.now(),name:clientName,phone:clientPhone,bankName:cbName,bankNo:cbNo,contact:ccNew};
+    S.clients.push(nc);
+    /* ★ v95 fix: sync ลูกค้าใหม่ขึ้น Supabase แบบ await — รอ UUID กลับมาก่อน set clientId */
     if(CLOUD_ENABLED()){
-      fetch(`${SUPABASE_URL}/rest/v1/clients`,{
-        method:'POST',
-        headers:{...sbHeaders(),'Prefer':'return=representation'},
-        body:JSON.stringify({band_id:_sbBandId,name:nc.name,phone:nc.phone||null,bank_name:nc.bankName||null,bank_no:nc.bankNo||null})
-      }).then(r=>r.json()).then(d=>{
-        if(d&&d[0]){
+      try{
+        const r=await fetch(`${SUPABASE_URL}/rest/v1/clients`,{
+          method:'POST',
+          headers:{...sbHeaders(),'Prefer':'return=representation'},
+          body:JSON.stringify({band_id:_sbBandId,name:nc.name,phone:nc.phone||null,bank_name:nc.bankName||null,bank_no:nc.bankNo||null,contact:nc.contact||null})
+        });
+        const d=await r.json();
+        if(d&&d[0]&&d[0].id){
           const i=S.clients.findIndex(x=>x.id===nc.id);
-          if(i>=0){S.clients[i].id=d[0].id;clientId=d[0].id;}
+          if(i>=0) S.clients[i].id=d[0].id;
+          clientId=d[0].id; /* ★ ใช้ UUID จาก Supabase */
+          console.log('✅ Client created with UUID:',d[0].id);
+        } else {
+          clientId=nc.id; /* fallback */
         }
-      }).catch(console.error);
+      }catch(e){
+        console.error('Client insert error:',e);
+        clientId=nc.id; /* fallback */
+      }
+    } else {
+      clientId=nc.id;
     }
+    renderClientMaster();
   }
   const gv=id=>parseFloat(document.getElementById(id)?.value)||0;
   const income={band:gv('gf-band'),travelOil:gv('gf-travel-oil'),travelCar:gv('gf-travel-car'),after:gv('gf-after'),sound:gv('gf-sound'),soundOil:gv('gf-sound-oil'),soundCar:gv('gf-sound-car'),other:gv('gf-other'),otherNote:document.getElementById('gf-other-note')?.value||'',discount:gv('gf-discount')};
@@ -5293,7 +5597,10 @@ function cancelGig(id){
   if(!confirm('ต้องการยกเลิกงาน "'+g.name+'" ใช่ไหม?\nงานจะยังคงอยู่ในระบบ แต่ status จะเปลี่ยนเป็น "ยกเลิก"'))return;
   g.status='cancelled';g.cancelledAt=new Date().toISOString().split('T')[0];
   if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
-  rg();rd();updateGigTabCounts();toast('ยกเลิกงานแล้ว');
+  rg();rd();updateGigTabCounts();
+  /* ★ v95 fix: refresh income page ด้วยถ้ากำลังเปิดอยู่ */
+  if(document.getElementById('page-income')?.classList.contains('active')) ri();
+  toast('ยกเลิกงานแล้ว — ไม่นำมาคำนวณรายได้');
 }
 
 /* ══════════════════════════════════════
@@ -5328,22 +5635,26 @@ function renderTipTab(){
       const tip=mu.breakdown?.tip||0;
       if(tip<=0) return;
       const mem=S.members.find(x=>String(x.id)===String(mu.memberId));
-      tipHistory.push({gigName:g.name,gigDate:g.date,memName:mem?`${mem.name} (${mem.nick})`:'?',role:mem?.role||'',tip,gigId:g.id});
+      tipHistory.push({gigName:g.name,gigDate:g.date,memName:mem?`${mem.name} (${mem.nick})`:'?',role:mem?.role||'',tip,gigId:g.id,memberId:mu.memberId});
     });
   });
   /* เรียงล่าสุดก่อน */
   tipHistory.sort((a,b)=>b.gigDate.localeCompare(a.gigDate));
   const histHtml=tipHistory.length
     ? `<div style="margin-top:20px">
-        <div style="font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">🎁 ประวัติการจ่ายทิปล่าสุด</div>
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">🎁 ประวัติการจ่ายทิปล่าสุด (${tipHistory.length} รายการ)</div>
         <div style="display:flex;flex-direction:column;gap:6px">
-          ${tipHistory.slice(0,20).map(h=>`
-            <div style="display:flex;align-items:center;gap:10px;background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;cursor:pointer" onclick="selectTipGigById('${h.gigId}')">
-              <div style="flex:1;min-width:0">
+          ${tipHistory.slice(0,30).map(h=>`
+            <div style="display:flex;align-items:center;gap:10px;background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:10px 14px">
+              <div style="flex:1;min-width:0;cursor:pointer" onclick="selectTipGigById('${h.gigId}')">
                 <div style="font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.gigName}</div>
                 <div style="font-size:10px;color:var(--ink3);margin-top:2px">${fd(h.gigDate)} · ${h.memName} · ${h.role}</div>
               </div>
               <div style="font-size:14px;font-weight:700;color:var(--green);white-space:nowrap">+฿${f(h.tip)}</div>
+              <div style="display:flex;gap:4px;flex-shrink:0">
+                <button onclick="selectTipGigById('${h.gigId}')" title="แก้ไขทิป" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--ink3)">✏️</button>
+                <button onclick="deleteSingleTip('${h.gigId}','${h.memberId}')" title="ลบทิปรายการนี้" style="width:28px;height:28px;border-radius:6px;border:1px solid #FECACA;background:#FEF2F2;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:#DC2626">✕</button>
+              </div>
             </div>`).join('')}
         </div>
       </div>`
@@ -5358,23 +5669,29 @@ function filterTipGigs(){
   const dd=document.getElementById('tip-gig-dropdown');
   const gigsWithMus=S.gigs.filter(g=>{
     if(g.status==='cancelled'||!g.musicians||!g.musicians.length) return false;
-    /* ซ่อนงานที่จ่ายทิปครบทุกคนแล้ว */
-    const hasTip=g.musicians.some(mu=>(mu.breakdown?.tip||0)>0);
-    if(hasTip) return false;
     if(q&&!g.name.toLowerCase().includes(q)&&!fd(g.date).includes(q)) return false;
     return true;
-  }).slice(0,10);
+  }).slice(0,15);
   if(!gigsWithMus.length){
     dd.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--ink3)">ไม่พบงาน</div>';
     dd.style.display='block';return;
   }
-  dd.innerHTML=gigsWithMus.map(g=>`
+  dd.innerHTML=gigsWithMus.map(g=>{
+    const hasTip=g.musicians.some(mu=>(mu.breakdown?.tip||0)>0);
+    const tipTotal=g.musicians.reduce((s,mu)=>s+(mu.breakdown?.tip||0),0);
+    return`
     <div class="cmb-opt" data-gid="${g.id}"
       style="padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--bg2)"
       onclick="selectTipGigById(this.dataset.gid)">
-      <div style="font-weight:600;font-size:13px;color:var(--ink)">${g.name}</div>
-      <div style="font-size:10px;color:var(--ink3);margin-top:2px">${fd(g.date)} · ฿${f(gigNet(g))} · ${g.musicians.length} คน</div>
-    </div>`).join('');
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:var(--ink)">${g.name}</div>
+          <div style="font-size:10px;color:var(--ink3);margin-top:2px">${fd(g.date)} · ฿${f(gigNet(g))} · ${g.musicians.length} คน</div>
+        </div>
+        ${hasTip?`<span style="font-size:10px;font-weight:600;color:var(--green);background:var(--gbg);padding:2px 8px;border-radius:10px">🎁 ฿${f(tipTotal)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
   dd.style.display='block';
 }
 
@@ -5403,10 +5720,16 @@ function renderTipForm(g){
   const mus=g.musicians||[];
   if(!mus.length){el.innerHTML='<div style="padding:20px;color:var(--ink3)">ไม่มีสมาชิกใน assignment</div>';return;}
   const netFee=gigNet(g);
+  const hasAnyTip=mus.some(mu=>(mu.breakdown?.tip||0)>0);
   el.innerHTML=`
     <div style="background:var(--wh);border:1.5px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px">${g.name}</div>
-      <div style="font-size:11px;color:var(--ink3)">${fd(g.date)} · ค่าตัวสุทธิ ฿${f(netFee)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px">${g.name}</div>
+          <div style="font-size:11px;color:var(--ink3)">${fd(g.date)} · ค่าตัวสุทธิ ฿${f(netFee)}</div>
+        </div>
+        ${hasAnyTip?`<button onclick="deleteAllTipForGig('${g.id}')" style="display:flex;align-items:center;gap:4px;padding:6px 12px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--f)">🗑 ลบทิปทั้งหมด</button>`:''}
+      </div>
     </div>
     <!-- tip header -->
     <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap">
@@ -5424,7 +5747,7 @@ function renderTipForm(g){
       ${mus.map((mu,i)=>{
         const mem=S.members.find(x=>String(x.id)===String(mu.memberId));
         const existTip=mu.breakdown?.tip||0;
-        return`<div style="display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:10px;padding:10px 14px">
+        return`<div style="display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:10px;padding:10px 14px" id="tip-row-${i}">
           <div style="flex:1">
             <div style="font-weight:600;font-size:13px">${mem?mem.name:'?'} <span style="color:var(--ink3);font-weight:400;font-size:11px">(${mem?.nick||'?'})</span></div>
             <div style="font-size:10px;color:var(--ink3)">${mem?.role||''}</div>
@@ -5434,6 +5757,7 @@ function renderTipForm(g){
             <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ทิป (฿)</div>
             <input class="fi" id="tip-mem-${i}" type="number" min="0" placeholder="0" value="${existTip||0}" style="width:100px;font-weight:600;color:var(--red)" oninput="updateTipTotal()">
           </div>
+          ${existTip>0?`<button onclick="deleteSingleTipByIndex('${g.id}',${i})" title="ลบทิปสมาชิกนี้" style="width:28px;height:28px;border-radius:6px;border:1px solid #FECACA;background:#FEF2F2;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:#DC2626;flex-shrink:0">✕</button>`:''}
         </div>`;
       }).join('')}
     </div>
@@ -5490,6 +5814,56 @@ function saveTip(gigId){
   if(document.getElementById('page-income')?.classList.contains('active')) ri();
 }
 
+/* ── ลบทิปรายการเดียว (จากประวัติ) ── */
+function deleteSingleTip(gigId,memberId){
+  if(!confirm('ต้องการลบทิปรายการนี้?')) return;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g||!g.musicians) return;
+  const mu=g.musicians.find(x=>String(x.memberId)===String(memberId));
+  if(mu&&mu.breakdown){
+    mu.breakdown.tip=0;
+    if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
+    toast('🗑 ลบทิปแล้ว');
+    renderTipTab();
+    if(document.getElementById('page-income')?.classList.contains('active')) ri();
+  }
+}
+
+/* ── ลบทิปสมาชิกใน form (by index) ── */
+function deleteSingleTipByIndex(gigId,idx){
+  if(!confirm('ต้องการลบทิปสมาชิกนี้?')) return;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g||!g.musicians||!g.musicians[idx]) return;
+  const mu=g.musicians[idx];
+  if(mu.breakdown){
+    mu.breakdown.tip=0;
+    if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
+    toast('🗑 ลบทิปสมาชิกนี้แล้ว');
+    renderTipForm(g);
+    if(document.getElementById('page-income')?.classList.contains('active')) ri();
+  }
+}
+
+/* ── ลบทิปทั้งหมดของงาน ── */
+function deleteAllTipForGig(gigId){
+  if(!confirm('ต้องการลบทิปทั้งหมดของงานนี้?')) return;
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g||!g.musicians) return;
+  let changed=false;
+  g.musicians.forEach(mu=>{
+    if(mu.breakdown&&mu.breakdown.tip>0){
+      mu.breakdown.tip=0;
+      changed=true;
+    }
+  });
+  if(changed){
+    if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
+    toast('🗑 ลบทิปทั้งหมดของงานนี้แล้ว');
+    renderTipForm(g);
+    if(document.getElementById('page-income')?.classList.contains('active')) ri();
+  }
+}
+
 function updateGigTabCounts(){
   /* mobile dot */
   const dot=document.getElementById('mob-income-dot');
@@ -5527,7 +5901,10 @@ function updateGigTabCounts(){
    รับเงิน
 ══════════════════════════════════════ */
 function goToRecvPage(){
-  if(!currentUser||!_sbToken){doLogout();return;}
+  if(!currentUser||!_sbToken){
+    /* ★ v95 fix: ลอง restore session ก่อน */
+    try{const raw=sessionStorage.getItem('bco_session');if(raw){const sess=JSON.parse(raw);if(sess&&sess.token){_sbToken=sess.token;_sbBandId=sess.bandId;currentUser=sess.user;if(sess.refreshToken)_sbRefreshToken=sess.refreshToken;_sessionStart=sess.ts||Date.now();sbDoRefreshToken();}else{doLogout();return;}}else{doLogout();return;}}catch(e){doLogout();return;}
+  }
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.setProperty('display','none','important');});
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-recv');
@@ -5540,7 +5917,10 @@ function goToRecvPage(){
 }
 
 function goToPayPage(){
-  if(!currentUser||!_sbToken){doLogout();return;}
+  if(!currentUser||!_sbToken){
+    /* ★ v95 fix: ลอง restore session ก่อน */
+    try{const raw=sessionStorage.getItem('bco_session');if(raw){const sess=JSON.parse(raw);if(sess&&sess.token){_sbToken=sess.token;_sbBandId=sess.bandId;currentUser=sess.user;if(sess.refreshToken)_sbRefreshToken=sess.refreshToken;_sessionStart=sess.ts||Date.now();sbDoRefreshToken();}else{doLogout();return;}}else{doLogout();return;}}catch(e){doLogout();return;}
+  }
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.setProperty('display','none','important');});
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-pay');
@@ -5560,6 +5940,64 @@ function backToGigs(){
   const gigsSb=document.querySelector('.sb-item[onclick*="gigs"]');
   if(gigsSb)gigsSb.classList.add('active');
   rg();updateGigTabCounts();
+}
+
+/* ══ Quick Navigation: รับเงิน ↔ จ่ายเงิน ══ */
+
+/* จากหน้ารับเงิน → ไปหน้าจ่ายเงิน (ไม่ระบุงาน) */
+function quickNavToPay(){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.setProperty('display','none','important');});
+  const pg=document.getElementById('page-pay');
+  pg.classList.add('active');pg.style.removeProperty('display');
+  const el=document.getElementById('pay-search');if(el)el.value='';
+  const ph=document.getElementById('pay-show-history');if(ph)ph.checked=false;
+  const pm=document.getElementById('pay-filter-month');if(pm)pm.value='';
+  const ps=document.getElementById('pay-sort');if(ps)ps.value='date-desc';
+  renderPayPageList();
+}
+
+/* จากหน้าจ่ายเงิน → ไปหน้ารับเงิน (ไม่ระบุงาน) */
+function quickNavToRecv(){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.setProperty('display','none','important');});
+  const pg=document.getElementById('page-recv');
+  pg.classList.add('active');pg.style.removeProperty('display');
+  const el=document.getElementById('recv-search');if(el)el.value='';
+  const rh=document.getElementById('recv-show-history');if(rh)rh.checked=false;
+  const rm=document.getElementById('recv-filter-month');if(rm)rm.value='';
+  const rs=document.getElementById('recv-sort');if(rs)rs.value='date-desc';
+  renderRecvPageList();
+}
+
+/* จากหน้ารับเงิน → ไปหน้าจ่ายเงิน พร้อมกรองงานที่เลือก */
+function quickNavToPayGig(gigId){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g){quickNavToPay();return;}
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.setProperty('display','none','important');});
+  const pg=document.getElementById('page-pay');
+  pg.classList.add('active');pg.style.removeProperty('display');
+  /* ใส่ชื่องานใน search เพื่อกรองอัตโนมัติ */
+  const el=document.getElementById('pay-search');if(el)el.value=g.name;
+  const ph=document.getElementById('pay-show-history');if(ph)ph.checked=false;
+  const pm=document.getElementById('pay-filter-month');if(pm)pm.value='';
+  const ps=document.getElementById('pay-sort');if(ps)ps.value='date-desc';
+  renderPayPageList();
+  toast(`💸 กรองงาน "${g.name}" ในหน้าจ่ายเงิน`);
+}
+
+/* จากหน้าจ่ายเงิน → ไปหน้ารับเงิน พร้อมกรองงานที่เลือก */
+function quickNavToRecvGig(gigId){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g){quickNavToRecv();return;}
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.setProperty('display','none','important');});
+  const pg=document.getElementById('page-recv');
+  pg.classList.add('active');pg.style.removeProperty('display');
+  /* ใส่ชื่องานใน search เพื่อกรองอัตโนมัติ */
+  const el=document.getElementById('recv-search');if(el)el.value=g.name;
+  const rh=document.getElementById('recv-show-history');if(rh)rh.checked=true; /* เปิดประวัติ เพราะงานอาจ paid แล้ว */
+  const rm=document.getElementById('recv-filter-month');if(rm)rm.value='';
+  const rs=document.getElementById('recv-sort');if(rs)rs.value='date-desc';
+  renderRecvPageList();
+  toast(`🔍 กรองงาน "${g.name}" ในหน้ารับเงิน`);
 }
 
 function renderRecvPageList(){
@@ -5600,7 +6038,7 @@ function renderRecvPageList(){
   if(listEl)listEl.style.display='grid';
 
   listEl.innerHTML=list.map(g=>{
-    const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
+    const cl=findGigClient(g);
     const clName=cl?cl.name:(g.clientName||'—');
     const clPhone=cl?.phone||(g.clientPhone||'');
     const pays=g.payments||[];
@@ -5669,7 +6107,8 @@ function renderRecvPageList(){
             </div>
           </div>`).join('')}
         </div>`:''}
-        ${(()=>{const isHist=_showHistoryRecv||currentUser?.role!=='admin';if(isHist)return '';return `<button class="btn btn-r view-allowed" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" data-gid="${g.id}" onclick="openRecv(this.dataset.gid)">+ บันทึกการรับเงิน</button>`;})()} 
+        ${(()=>{const isHist=_showHistoryRecv||currentUser?.role!=='admin';if(isHist)return '';return `<button class="btn btn-r view-allowed" style="width:100%;margin-top:14px;padding:10px 0;font-size:13px" data-gid="${g.id}" onclick="openRecv(this.dataset.gid)">+ บันทึกการรับเงิน</button>`;})()}
+        ${g.musicians&&g.musicians.length?`<button onclick="quickNavToPayGig('${g.id}')" style="width:100%;margin-top:8px;padding:8px 0;font-size:12px;border:1.5px solid var(--green);border-radius:var(--r);background:var(--gbg);color:var(--gtxt);cursor:pointer;font-family:var(--f);font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">💸 ไปจ่ายเงินสมาชิก →</button>`:''} 
       </div>
     </div>`;
   }).join('');
@@ -5769,7 +6208,7 @@ function renderPayPageList(){
             </div>`;
           }).join('')}
         </div>
-        ${(()=>{const isHistP=showPayHistory||currentUser?.role!=='admin';return `<button class="btn ${isHistP?'btn-o':'btn-r'} view-allowed" style="width:100%;padding:10px 0;font-size:13px" onclick="openPay('${g.id}')">${isHistP?'👁 ดูประวัติการจ่าย':'💰 จัดการการจ่ายเงิน'}</button>`;})()}
+        ${(()=>{const isHistP=showPayHistory||currentUser?.role!=='admin';return `<div style="display:flex;gap:8px;margin-top:0"><button class="btn ${isHistP?'btn-o':'btn-r'} view-allowed" style="flex:1;padding:10px 0;font-size:13px" onclick="openPay('${g.id}')">${isHistP?'👁 ดูประวัติการจ่าย':'💰 จัดการการจ่ายเงิน'}</button><button onclick="quickNavToRecvGig('${g.id}')" style="padding:10px 14px;font-size:12px;border:1.5px solid var(--blue);border-radius:var(--r);background:var(--bbg);color:var(--btxt);cursor:pointer;font-family:var(--f);font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:4px">← รับเงิน</button></div>`;})()}
       </div>
     </div>`;
   }).join('');
@@ -5782,6 +6221,8 @@ function openRecv(gigId){
   /* member สามารถดูประวัติได้ แต่บันทึกไม่ได้ */
   const g=S.gigs.find(x=>String(x.id)===String(gigId));if(!g)return;
   recvSlipData=null;
+  gigState._recvType=null;       /* ★ v95 fix: reset */
+  gigState._recvNewStatus=null;  /* ★ v95 fix: reset */
   document.getElementById('recv-gig-id').value=gigId;
   document.getElementById('recv-modal-title').textContent='รับเงิน — '+g.name;
   const pays=g.payments||[];const paidTotal=pays.reduce((s,p)=>s+p.amount,0);
@@ -6075,23 +6516,31 @@ function saveRecv(){
   if(!g.payments)g.payments=[];
   const newPay={date:document.getElementById('recv-date').value||new Date().toISOString().split('T')[0],amount,type:gigState._recvType||'deposit',note:document.getElementById('recv-note').value,slip:recvSlipData||null};
   g.payments.push(newPay);
-  /* คำนวณยอดรวมก่อน ถ้าครบให้ set paid ทันที ไม่ใช้ _recvNewStatus */
+  /* ──────────────────────────────────────────────────
+     ★ v95 fix: คำนวณ status จาก payments จริง ไม่พึ่ง _recvNewStatus
+     - ไม่มี payment → confirmed
+     - มี payment แต่ยังไม่ครบ → deposit
+     - รับครบแล้ว → paid
+  ────────────────────────────────────────────────── */
   const totalPaid=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
   const remaining=Math.max(0, g.fee>0?g.fee-totalPaid:0);
-  const isFullyPaid=g.fee>0&&remaining===0&&g.status!=='cancelled';
-  if(isFullyPaid){
-    g.status='paid';
-  } else {
-    if(gigState._recvNewStatus) g.status=gigState._recvNewStatus;
+  if(g.status!=='cancelled'){
+    if(g.fee>0&&remaining===0){
+      g.status='paid';
+    } else if(totalPaid>0){
+      g.status='deposit';
+    }
+    /* ถ้า totalPaid===0 ไม่ควรเกิดเพราะเราเพิ่ง push payment */
   }
+  const isFullyPaid=g.status==='paid';
   if(CLOUD_ENABLED()) syncGig(g).catch(console.error);
   if(CLOUD_ENABLED()) syncPayment(g.id, newPay).catch(console.error);
   cx('modal-recv');
   rg();rd();updateGigTabCounts();
   if(isFullyPaid){
-    toast('✅ รับเงินครบแล้ว');
+    toast('✅ รับเงินครบแล้ว — สถานะเปลี่ยนเป็น "จ่ายเต็ม"');
   } else {
-    toast('บันทึกการรับเงินแล้ว');
+    toast(`💰 บันทึกรับเงิน ฿${f(amount)} แล้ว — สถานะ "จ่ายมัดจำ"`);
   }
   renderRecvPageList();
 }
@@ -7299,13 +7748,15 @@ function esc(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-/* Session timeout: 8 hours */
+/* Session timeout: 24 hours */
 let _sessionStart=0;
 const SESSION_TIMEOUT_MS=24*60*60*1000; /* 24 ชั่วโมง */
 function checkSessionTimeout(){
   if(!currentUser)return;
+  /* ข้าม check ถ้ายังไม่เคย set _sessionStart (เช่น restore session ยังไม่เสร็จ) */
+  if(_sessionStart===0) return;
   if(Date.now()-_sessionStart>SESSION_TIMEOUT_MS){
-    toast('⏰ Session หมดอายุ กรุณา Login ใหม่');
+    toast('⏰ Session หมดอายุ (24 ชม.) กรุณา Login ใหม่');
     setTimeout(doLogout,1500);
   }
 }
@@ -7829,20 +8280,43 @@ function confirmCancelRecv(){
     payDate:p.date,payAmount:p.amount,payType:p.type,
     cancelledAt:new Date().toISOString(),
     cancelledBy:currentUser?.username||'unknown',
-    reason
+    reason,
+    oldStatus:g.status
   };
   if(!S._cancelLogs) S._cancelLogs=[];
   S._cancelLogs.unshift(logEntry);
-  /* ลบ payment ออก */
+  /* ลบ payment ออกจาก memory */
   g.payments.splice(payIdx,1);
-  /* recalculate status */
+  /* ──────────────────────────────────────────────────
+     recalculate สถานะรับเงิน (status) ใหม่ทั้งหมด
+     - ไม่มี payment เลย → confirmed (ยังไม่จ่าย)
+     - มี payment แต่ยังรับไม่ครบ → deposit (จ่ายมัดจำ/บางส่วน)
+     - รับครบแล้ว → paid (จ่ายเต็ม) — ปกติไม่ควรเกิดหลังยกเลิก
+  ────────────────────────────────────────────────── */
   const totalPaid=(g.payments||[]).reduce((s,p2)=>s+p2.amount,0);
   const remaining=Math.max(0,g.fee-totalPaid);
-  if(g.status==='paid'&&remaining>0) g.status='deposit';
-  /* sync Supabase */
+
+  if(totalPaid<=0){
+    /* ยกเลิกจนไม่เหลือ payment → กลับไป confirmed */
+    g.status='confirmed';
+  } else if(remaining>0){
+    /* ยังรับเงินไม่ครบ → deposit (จ่ายบางส่วน) */
+    g.status='deposit';
+  }
+
+  /* ──────────────────────────────────────────────────
+     sync ขึ้น Supabase — ต้อง sync BOTH:
+     1) gig status (ผ่าน syncGig)
+     2) payments ใหม่ทั้งหมด (delete all + re-insert เฉพาะที่เหลือ)
+  ────────────────────────────────────────────────── */
   if(CLOUD_ENABLED()){
+    /* 1) sync gig status + musicians + income + expenses */
     syncGig(g).catch(console.error);
-    /* บันทึก log ขึ้น Supabase */
+
+    /* 2) sync payments: ลบทั้งหมดแล้ว insert ใหม่เฉพาะที่เหลือ */
+    syncGigPaymentsToCloud(g).catch(console.error);
+
+    /* 3) บันทึก cancel log ขึ้น Supabase */
     sbInsert('payment_cancel_logs',{
       band_id:_sbBandId,gig_id:gigId,
       cancelled_by:currentUser?.username||null,
@@ -7850,9 +8324,40 @@ function confirmCancelRecv(){
     }).catch(console.error);
   }
   cx('modal-cancel-recv');
-  toast(`🚫 ยกเลิกรายการรับเงิน ฿${f(p.amount)} แล้ว`);
+  const newStatusLabel=g.status==='confirmed'?'ยังไม่จ่าย':g.status==='deposit'?'จ่ายมัดจำ':'จ่ายเต็ม';
+  toast(`🚫 ยกเลิกรายการรับเงิน ฿${f(p.amount)} แล้ว → สถานะเปลี่ยนเป็น "${newStatusLabel}"`);
   rg();rd();updateGigTabCounts();
   renderRecvPageList();
+}
+
+/* ── Sync gig_payments ทั้งหมดขึ้น Supabase (delete all + re-insert) ── */
+async function syncGigPaymentsToCloud(g){
+  if(!SUPABASE_URL||!_sbBandId) return;
+  const dbId=g.id;
+  if(!dbId||typeof dbId==='number') return; /* skip ถ้ายังไม่มี UUID */
+  try{
+    /* ลบ gig_payments ทั้งหมดของงานนี้ */
+    await fetch(`${SUPABASE_URL}/rest/v1/gig_payments?gig_id=eq.${dbId}`,{
+      method:'DELETE',headers:sbHeaders({'Prefer':''})
+    });
+    /* insert ใหม่เฉพาะ payments ที่เหลือ */
+    const remaining=g.payments||[];
+    for(const pay of remaining){
+      let slipKey=pay.slip;
+      if(slipKey&&slipKey.startsWith('slip_')){
+        const data=await SlipStore.load(slipKey).catch(()=>null);
+        if(data) slipKey=await sbUploadSlip('slips',slipKey,data)||slipKey;
+      }
+      await sbInsert('gig_payments',{
+        gig_id:dbId,type:pay.type,amount:pay.amount,
+        date:pay.date,note:pay.note||null,slip_key:slipKey||null
+      });
+    }
+    console.log('✅ syncGigPaymentsToCloud: deleted & re-inserted',remaining.length,'payments for gig',dbId);
+  }catch(e){
+    console.error('❌ syncGigPaymentsToCloud error:',e);
+    toast('⚠ Sync payments ไม่สำเร็จ — ตรวจสอบอินเทอร์เน็ต');
+  }
 }
 
 function openCancelLogs(){
@@ -9087,6 +9592,11 @@ function onGigCbChange(){
     editBtn.style.display='inline-flex';
     if(dupBtn)dupBtn.style.display='inline-flex';
     cancelBtn.style.display=g&&g.status!=='cancelled'?'inline-flex':'none';
+    /* ★ v95 fix: scroll ให้เห็นแถวที่เลือก — ป้องกัน action bar + sticky header บังแถวบนสุด */
+    setTimeout(()=>{
+      const row=document.getElementById('gig-row-'+String(_selectedGigId));
+      if(row) row.scrollIntoView({block:'nearest',behavior:'smooth'});
+    },100);
   } else {
     _selectedGigId=null;
     editBtn.style.display='none';
@@ -9146,9 +9656,9 @@ function gigActionDuplicate(){
     calcExpenses();
     /* ลูกค้า */
     if(g.clientId){
-      const cl=S.clients.find(x=>String(x.id)===String(g.clientId));
+      const cl=findGigClient(g);
       if(cl){
-        setCtype('old');gigState.selectedClientId=g.clientId;
+        setCtype('old');gigState.selectedClientId=cl.id;
         document.getElementById('gclient-search').value=cl.name;
         setPhoneTags(cl.phone||'');
         document.getElementById('gcbank-name').value=cl.bankName||'';
@@ -9420,7 +9930,7 @@ function validateRegPass2(){
 function exportContractPDF(gigId){
   const g=S.gigs.find(x=>String(x.id)===String(gigId));
   if(!g){toast('ไม่พบข้อมูลงาน');return;}
-  const cl=g.clientId?S.clients.find(x=>String(x.id)===String(g.clientId)):null;
+  const cl=findGigClient(g);
   const clName=cl?cl.name:(g.clientName||'—');
   const clPhone=cl?cl.phone:(g.clientPhone||'—');
   const band=S.bandInfo?.name||'BandestCo';
@@ -9719,11 +10229,17 @@ ${text}
       const matchedMusicians=[];
       parsed.musicians.forEach(mu=>{
         if(!mu||!mu.nick) return; /* skip ถ้าไม่มี nick */
-        const nickLow=(mu.nick||'').toLowerCase();
+        const nickLow=(mu.nick||'').toLowerCase().trim();
+        /* ★ v95 fix: matching priority — exact match ก่อน, partial match ทีหลัง
+           ป้องกัน "โม" match เป็น "นีโม่" */
         const match=activeMembers.find(m=>
-          m.nick&&(m.nick.toLowerCase()===nickLow||
-          m.name.toLowerCase().includes(nickLow)||
-          nickLow.includes(m.nick.toLowerCase()))
+          m.nick&&m.nick.toLowerCase()===nickLow /* exact nick */
+        ) || activeMembers.find(m=>
+          m.name&&m.name.toLowerCase()===nickLow /* exact name */
+        ) || activeMembers.find(m=>
+          m.nick&&nickLow.length>=2&&m.nick.toLowerCase().startsWith(nickLow) /* nick starts with */
+        ) || activeMembers.find(m=>
+          m.nick&&nickLow.length>=3&&m.nick.toLowerCase().includes(nickLow)&&m.nick.length<=nickLow.length+2 /* nick contains but similar length */
         );
         if(match){
           const pct=totalFee>0?Math.round(((mu.fee||0)/totalFee)*100):Math.round(100/parsed.musicians.length);
@@ -9868,11 +10384,16 @@ function _reApplyAIFill(p){
     const matchedMusicians=[];
     p.musicians.forEach(mu=>{
       if(!mu||!mu.nick) return;
-      const nickLow=(mu.nick||'').toLowerCase();
+      const nickLow=(mu.nick||'').toLowerCase().trim();
+      /* ★ v95 fix: matching priority — exact match ก่อน, partial match ทีหลัง */
       const match=activeMembers.find(m=>
-        m.nick&&(m.nick.toLowerCase()===nickLow||
-        m.name.toLowerCase().includes(nickLow)||
-        nickLow.includes(m.nick.toLowerCase()))
+        m.nick&&m.nick.toLowerCase()===nickLow
+      ) || activeMembers.find(m=>
+        m.name&&m.name.toLowerCase()===nickLow
+      ) || activeMembers.find(m=>
+        m.nick&&nickLow.length>=2&&m.nick.toLowerCase().startsWith(nickLow)
+      ) || activeMembers.find(m=>
+        m.nick&&nickLow.length>=3&&m.nick.toLowerCase().includes(nickLow)&&m.nick.length<=nickLow.length+2
       );
       if(match){
         const totalAmt=(mu.fee||0)+(mu.travel||0)+(mu.oil||0)+(mu.overtime||0)+(mu.other||0);
@@ -10109,15 +10630,31 @@ function openExportModal(){
 }
 
 async function doExportExcel(){
+  /* ★ v95 fix: โหลด SheetJS ด้วย error handling ที่ดีกว่า + fallback */
   if(!window.XLSX){
-    toast('⏳ กำลังโหลด SheetJS...');
-    await new Promise((res,rej)=>{
-      const s=document.createElement('script');
-      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload=res;s.onerror=rej;
-      document.head.appendChild(s);
-    });
+    toast('⏳ กำลังโหลดเครื่องมือ Export...');
+    try{
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload=res;
+        s.onerror=()=>{
+          /* fallback CDN */
+          const s2=document.createElement('script');
+          s2.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+          s2.onload=res;s2.onerror=rej;
+          document.head.appendChild(s2);
+        };
+        document.head.appendChild(s);
+      });
+    }catch(e){
+      toast('❌ ไม่สามารถโหลดเครื่องมือ Export ได้ — ตรวจสอบอินเทอร์เน็ต');
+      console.error('XLSX load failed:',e);
+      return;
+    }
   }
+  if(!window.XLSX){toast('❌ SheetJS ไม่พร้อมใช้งาน');return;}
+
   const memId=document.getElementById('export-member').value;
   const fromMRaw=document.getElementById('export-from-month').value;
   const toMRaw=document.getElementById('export-to-month').value;
@@ -10128,107 +10665,116 @@ async function doExportExcel(){
   if(isNaN(fromM)||isNaN(toM)||isNaN(y)){
     toast('⚠ กรุณาเลือกช่วงเดือนและปีให้ครบ');return;
   }
-  const totalPaidGigs=S.gigs.filter(g=>g.status==='paid'&&g.date&&!isNaN(new Date(g.date).getTime())&&new Date(g.date).getFullYear()===y).length;
-  if(totalPaidGigs===0){toast(`⚠ ไม่มีงานที่รับเงินครบในปี ${y}`);cx('modal-export');return;}
+
+  /* ★ v95 fix: กรอง cancelled ออกอย่างชัดเจน */
+  const validGigs=S.gigs.filter(g=>{
+    if(g.status==='cancelled') return false; /* ไม่นับงานยกเลิก */
+    if(g.status!=='paid') return false;
+    if(!g.date||isNaN(new Date(g.date).getTime())) return false;
+    const d=new Date(g.date);
+    if(d.getFullYear()!==y) return false;
+    const mo=d.getMonth();
+    return fromM<=toM ? mo>=fromM&&mo<=toM : mo>=fromM||mo<=toM;
+  });
+
+  if(validGigs.length===0){
+    toast(`⚠ ไม่มีงานที่รับเงินครบ (ไม่รวมยกเลิก) ในช่วงที่เลือก`);cx('modal-export');return;
+  }
+
   const TM2=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
   const TM2b=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const members=memId==='all'?S.members.filter(m=>m.status==='active'):[S.members.find(m=>String(m.id)===String(memId))].filter(Boolean);
-  const wb=XLSX.utils.book_new();
 
-  members.forEach(mem=>{
-    const gigs=S.gigs.filter(g=>{
-      if(g.status!=='paid') return false;
-      if(!g.date) return false;
-      const d=new Date(g.date);
-      if(isNaN(d.getTime())) return false;
-      if(d.getFullYear()!==y) return false;
-      const mo=d.getMonth();
-      return fromM<=toM ? mo>=fromM&&mo<=toM : mo>=fromM||mo<=toM;
-    });
+  try{
+    const wb=XLSX.utils.book_new();
 
-    let totalBdIncome=0,totalTipIncome=0,totalForecast=0,paidCnt=0;
-    const dataRows=[];
+    members.forEach(mem=>{
+      /* ★ ใช้ validGigs ที่กรอง cancelled แล้ว */
+      const gigs=validGigs;
 
-    if(!gigs.length){
-      /* ไม่มีงาน paid ในช่วงนี้ — ยังสร้าง sheet ว่างได้ */
-    }
+      let totalBdIncome=0,totalTipIncome=0,totalForecast=0,paidCnt=0;
+      const dataRows=[];
 
-    gigs.forEach(g=>{
-      if(!g.musicians||!g.musicians.length) return;
-      const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
-      if(!mu) return;
-      const bd=mu.breakdown||{};
-      const bdSum=(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
-      const tip=bd.tip||0;
-      /* ถ้าไม่มี breakdown ใช้ fixedAmt หรือคำนวณจาก pct */
-      const fallback=(mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0
-        ?mu.fixedAmt
-        :Math.round(gigNet(g)*(mu.pct/100));
-      const effectiveBd=bdSum>0?bdSum:fallback;
-      const total=effectiveBd+tip;
-      const isPaid=!!(g.memberPayments||{})[mem.id];
+      gigs.forEach(g=>{
+        if(!g.musicians||!g.musicians.length) return;
+        const mu=g.musicians.find(x=>String(x.memberId)===String(mem.id));
+        if(!mu) return;
+        const bd=mu.breakdown||{};
+        const bdSum=(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
+        const tip=bd.tip||0;
+        const fallback=(mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0
+          ?mu.fixedAmt
+          :Math.round(gigNet(g)*(mu.pct/100));
+        const effectiveBd=bdSum>0?bdSum:fallback;
+        const total=effectiveBd+tip;
+        const isPaid=!!(g.memberPayments||{})[mem.id];
 
-      if(g.status==='paid'){
         totalBdIncome+=effectiveBd;
         totalTipIncome+=tip;
         paidCnt++;
-      } else {
-        totalForecast+=fallback;
-      }
 
-      dataRows.push([
-        'JOB-'+String(g.jobNo||0).padStart(6,'0'),
-        g.name,
-        fd(g.date),
-        g.venue||'',
-        bd.fee||0,
-        bd.travel||0,
-        bd.oil||0,
-        bd.overtime||0,
-        bd.other||0,
-        bd.otherNote||'',
-        tip,
-        total,
-        g.status==='paid'?'จ่ายเต็ม':g.status,
-        isPaid?'✓ จ่ายแล้ว':'รอจ่าย'
-      ]);
+        dataRows.push([
+          'JOB-'+String(g.jobNo||0).padStart(6,'0'),
+          g.name,
+          fd(g.date),
+          g.venue||'',
+          bd.fee||0,
+          bd.travel||0,
+          bd.oil||0,
+          bd.overtime||0,
+          bd.other||0,
+          bd.otherNote||'',
+          tip,
+          total,
+          'จ่ายเต็ม',
+          isPaid?'✓ จ่ายแล้ว':'รอจ่าย'
+        ]);
+      });
+
+      const period=`${TM2[fromM]}${fromM!==toM?' – '+TM2[toM]:''} ${y}`;
+      const wsData=[
+        ['สมาชิก',mem.name+(mem.lastname?' '+mem.lastname:''),'Nick:',mem.nick,'ตำแหน่ง:',mem.role],
+        ['ช่วงเวลา',period,'วง:',S.bandInfo?.name||''],
+        ['หมายเหตุ','ไม่รวมงานที่ยกเลิก'],
+        [],
+        ['สรุป'],
+        ['รายได้ (breakdown)',totalBdIncome],
+        ['ทิป',totalTipIncome],
+        ['รวมรายได้',totalBdIncome+totalTipIncome,'จำนวนงาน',paidCnt],
+        [],
+        [
+          'ORDER ID','ชื่องาน','วันที่','สถานที่',
+          'ค่าตัว (฿)','นั่งรถ (฿)','น้ำมัน (฿)','ต่อเวลา (฿)','อื่นๆ (฿)','หมายเหตุ',
+          'ทิป (฿)','รวมรายได้ (฿)',
+          'สถานะงาน','สถานะจ่ายเงิน'
+        ],
+        ...dataRows
+      ];
+
+      const ws=XLSX.utils.aoa_to_sheet(wsData);
+      /* ★ v95 fix: format ตัวเลขเป็น number ไม่ใช่ string */
+      ws['!cols']=[
+        {wch:14},{wch:28},{wch:14},{wch:18},
+        {wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:16},
+        {wch:12},{wch:14},
+        {wch:12},{wch:14}
+      ];
+      /* format summary rows as number */
+      ['B6','B7','B8'].forEach(ref=>{
+        if(ws[ref]) ws[ref].t='n';
+      });
+      XLSX.utils.book_append_sheet(wb,ws,(mem.nick||mem.name).substring(0,28));
     });
 
-    const period=`${TM2[fromM]}${fromM!==toM?' – '+TM2[toM]:''} ${y}`;
-    const wsData=[
-      ['สมาชิก',mem.name+(mem.lastname?' '+mem.lastname:''),'Nick:',mem.nick,'ตำแหน่ง:',mem.role],
-      ['ช่วงเวลา',period,'วง:',S.bandInfo?.name||''],
-      [],
-      ['สรุป'],
-      ['รายได้ (breakdown)','฿'+f(totalBdIncome)],
-      ['ทิป','฿'+f(totalTipIncome)],
-      ['รวมรายได้','฿'+f(totalBdIncome+totalTipIncome),'จำนวนงาน',paidCnt],
-      ['รายได้คาดการณ์','฿'+f(totalForecast)],
-      [],
-      [
-        'ORDER ID','ชื่องาน','วันที่','สถานที่',
-        'ค่าตัว (฿)','นั่งรถ (฿)','น้ำมัน (฿)','ต่อเวลา (฿)','อื่นๆ (฿)','หมายเหตุ',
-        'ทิป (฿)','รวมรายได้ (฿)',
-        'สถานะงาน','สถานะจ่ายเงิน'
-      ],
-      ...dataRows
-    ];
-
-    const ws=XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols']=[
-      {wch:14},{wch:28},{wch:14},{wch:18},
-      {wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:16},
-      {wch:10},{wch:12},
-      {wch:12},{wch:14}
-    ];
-    XLSX.utils.book_append_sheet(wb,ws,(mem.nick||mem.name).substring(0,28));
-  });
-
-  const bandName=(S.bandInfo?.name||'BandestCo').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
-  const filename=`${bandName}_รายได้_${TM2b[fromM]}${fromM!==toM?'-'+TM2b[toM]:''}_${y}.xlsx`;
-  XLSX.writeFile(wb,filename);
-  cx('modal-export');
-  toast('📥 Export สำเร็จ: '+filename);
+    const bandName=(S.bandInfo?.name||'BandestCo').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+    const filename=`${bandName}_รายได้_${TM2b[fromM]}${fromM!==toM?'-'+TM2b[toM]:''}_${y}.xlsx`;
+    XLSX.writeFile(wb,filename);
+    cx('modal-export');
+    toast('📥 Export สำเร็จ: '+filename);
+  }catch(e){
+    console.error('Export Excel error:',e);
+    toast('❌ Export ไม่สำเร็จ: '+e.message);
+  }
 }
 
 </script>
@@ -10397,6 +10943,7 @@ async function doExportExcel(){
         return;
       }
       /* โหลดข้อมูลและเข้าระบบ */
+      _sessionStart=sess.ts||Date.now(); /* ★ v95 fix: restore _sessionStart เพื่อไม่ให้ checkSessionTimeout logout เอง */
       await loadFromCloud();
       applyAuthUI();applyPlanUI();
       const ls=document.getElementById('login-screen');
@@ -10419,6 +10966,199 @@ async function doExportExcel(){
   setInterval(showFAB, 800);
   setTimeout(showFAB, 100);
 })();
+</script>
+
+<!-- ══ v95 NEW FEATURES SCRIPT ══ -->
+<script>
+/* ── DARK MODE ── */
+function toggleDarkMode(){
+  const body=document.body;
+  const isDark=body.classList.toggle('dark-mode');
+  const toggle=document.getElementById('dm-toggle');
+  const knob=document.getElementById('dm-knob');
+  if(isDark){
+    toggle.classList.add('on');
+    knob.textContent='🌙';
+    localStorage.setItem('bco_dark','1');
+  } else {
+    toggle.classList.remove('on');
+    knob.textContent='☀';
+    localStorage.setItem('bco_dark','0');
+  }
+}
+(function restoreDarkMode(){
+  if(localStorage.getItem('bco_dark')==='1'){
+    document.body.classList.add('dark-mode');
+    const toggle=document.getElementById('dm-toggle');
+    const knob=document.getElementById('dm-knob');
+    if(toggle) toggle.classList.add('on');
+    if(knob) knob.textContent='🌙';
+  }
+})();
+
+/* ── NOTIFICATION CENTER ── */
+let _notifications=[];
+function toggleNotifPanel(){
+  const p=document.getElementById('notif-panel');
+  const o=document.getElementById('notif-overlay');
+  p.classList.toggle('open');
+  o.classList.toggle('open');
+  if(p.classList.contains('open')) renderNotifications();
+}
+function closeNotifPanel(){
+  document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('notif-overlay').classList.remove('open');
+}
+function addNotification(title,desc,type){
+  _notifications.unshift({id:Date.now()+Math.random(),title,desc,type:type||'info',time:new Date(),read:false});
+  updateNotifBadge();
+}
+function markAllNotifRead(){
+  _notifications.forEach(n=>n.read=true);
+  updateNotifBadge();renderNotifications();
+}
+function updateNotifBadge(){
+  const unread=_notifications.filter(n=>!n.read).length;
+  const badge=document.getElementById('notif-badge');
+  if(badge){badge.textContent=unread;badge.style.display=unread>0?'flex':'none';}
+}
+function renderNotifications(){
+  const list=document.getElementById('notif-list');
+  if(!list)return;
+  if(_notifications.length===0){
+    list.innerHTML='<div class="notif-empty"><div style="font-size:32px;margin-bottom:8px">🔔</div><div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">ไม่มีการแจ้งเตือน</div><div style="font-size:11px">เมื่อมีงานใหม่หรือเปลี่ยนสถานะ จะแจ้งที่นี่</div></div>';
+    return;
+  }
+  const icons={info:'💡',gig:'🎵',payment:'💰',warning:'⚠️',success:'✅'};
+  list.innerHTML=_notifications.slice(0,50).map(n=>{
+    const ago=_timeAgo(n.time);
+    return`<div class="notif-item ${n.read?'':'unread'}" onclick="this.classList.remove('unread');_notifications.find(x=>x.id===${n.id}).read=true;updateNotifBadge()">
+      <div class="notif-item-t">${icons[n.type]||'💡'} ${n.title}</div>
+      <div class="notif-item-d">${n.desc}</div>
+      <div class="notif-item-time">${ago}</div>
+    </div>`;
+  }).join('');
+}
+function _timeAgo(d){
+  const s=Math.floor((Date.now()-d.getTime())/1000);
+  if(s<60)return'เมื่อสักครู่';
+  if(s<3600)return Math.floor(s/60)+' นาทีที่แล้ว';
+  if(s<86400)return Math.floor(s/3600)+' ชั่วโมงที่แล้ว';
+  return Math.floor(s/86400)+' วันที่แล้ว';
+}
+function generateAutoNotifications(){
+  if(typeof S==='undefined'||!S.gigs)return;
+  _notifications=[];
+  const today=new Date();
+  S.gigs.filter(g=>{
+    if(g.status==='cancelled')return false;
+    const diff=Math.floor((new Date(g.date)-today)/86400000);
+    return diff>=0&&diff<=3;
+  }).forEach(g=>{
+    const diff=Math.floor((new Date(g.date)-today)/86400000);
+    const lbl=diff===0?'วันนี้':diff===1?'พรุ่งนี้':`อีก ${diff} วัน`;
+    addNotification(`งาน${lbl}: ${g.name}`,`${g.venue||'ไม่ระบุ'} · ฿${(g.fee||0).toLocaleString('th-TH')}`,'gig');
+  });
+  S.gigs.filter(g=>g.status==='confirmed'||g.status==='deposit').forEach(g=>{
+    const recv=(g.payments||[]).reduce((s,p)=>s+p.amount,0);
+    if(recv<g.fee) addNotification(`รอรับเงิน: ${g.name}`,`฿${recv.toLocaleString('th-TH')} / ฿${(g.fee||0).toLocaleString('th-TH')}`,'payment');
+  });
+  updateNotifBadge();
+}
+
+/* ── QUICK SEARCH (Ctrl+K) ── */
+function openQuickSearch(){
+  document.getElementById('qsearch-overlay').classList.add('open');
+  setTimeout(()=>{const i=document.getElementById('qsearch-input');if(i){i.value='';i.focus();}},100);
+  document.getElementById('qsearch-results').style.display='none';
+}
+function closeQuickSearch(){
+  document.getElementById('qsearch-overlay').classList.remove('open');
+}
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openQuickSearch();}
+  if(e.key==='Escape'){closeQuickSearch();closeNotifPanel();}
+});
+let _qsTimer=null;
+function doQuickSearch(val){clearTimeout(_qsTimer);_qsTimer=setTimeout(()=>_execQS(val),120);}
+function _execQS(val){
+  const res=document.getElementById('qsearch-results');
+  if(!val||val.length<1){res.style.display='none';return;}
+  const q=val.toLowerCase();
+  let items=[];
+  if(typeof S!=='undefined'&&S.gigs){
+    S.gigs.filter(g=>(g.name||'').toLowerCase().includes(q)||(g.venue||'').toLowerCase().includes(q)||(g.clientName||'').toLowerCase().includes(q)).slice(0,5).forEach(g=>{
+      items.push({icon:'🎵',bg:g.status==='paid'?'var(--gbg)':'var(--bbg)',title:g.name,sub:`${g.date} · ${g.venue||''} · ฿${(g.fee||0).toLocaleString('th-TH')}`,act:`nav('gigs',document.querySelector('.sb-item[onclick*="\\'gigs\\'"]'))`});
+    });
+  }
+  if(typeof S!=='undefined'&&S.members){
+    S.members.filter(m=>(m.name||'').toLowerCase().includes(q)||(m.nick||'').toLowerCase().includes(q)).slice(0,3).forEach(m=>{
+      items.push({icon:'👤',bg:'var(--rl)',title:`${m.name} (${m.nick||''})`,sub:m.role||'',act:`nav('members',document.querySelector('.sb-item[onclick*="\\'members\\'"]'))`});
+    });
+  }
+  if(typeof S!=='undefined'&&S.clients){
+    S.clients.filter(c=>(c.name||'').toLowerCase().includes(q)).slice(0,3).forEach(c=>{
+      items.push({icon:'🏢',bg:'var(--abg)',title:c.name,sub:c.phone||'',act:`nav('profile',document.querySelector('.sb-item[onclick*="\\'profile\\'"]'))`});
+    });
+  }
+  [{n:'Dashboard',i:'📊',p:'dashboard'},{n:'ข้อมูลงาน',i:'📋',p:'gigs'},{n:'รายได้สมาชิก',i:'💰',p:'income'},{n:'ตารางงาน',i:'📅',p:'calendar'},{n:'สมาชิก',i:'👥',p:'members'},{n:'วิเคราะห์ลูกค้า',i:'📈',p:'profile'},{n:'ค่าใช้จ่าย',i:'💸',p:'expense'},{n:'ตั้งค่า',i:'⚙️',p:'settings'}].filter(x=>x.n.toLowerCase().includes(q)||x.p.includes(q)).forEach(x=>{
+    items.push({icon:x.i,bg:'var(--bg)',title:x.n,sub:'ไปที่หน้านี้',act:`nav('${x.p}',document.querySelector('.sb-item[onclick*="\\'${x.p}\\'"]'))`});
+  });
+  if(!items.length){
+    res.innerHTML=`<div style="padding:24px;text-align:center;color:var(--ink3);font-size:12px">ไม่พบผลลัพธ์สำหรับ "${val}"</div>`;
+  } else {
+    res.innerHTML=items.map(it=>`<div class="qsearch-item" onclick="${it.act};closeQuickSearch()"><div class="qsearch-item-icon" style="background:${it.bg}">${it.icon}</div><div class="qsearch-item-text"><div class="qsearch-item-title">${it.title}</div><div class="qsearch-item-sub">${it.sub}</div></div></div>`).join('');
+  }
+  res.style.display='block';
+}
+/* Arrow key navigation in quick search */
+document.addEventListener('keydown',function(e){
+  const ov=document.getElementById('qsearch-overlay');
+  if(!ov||!ov.classList.contains('open'))return;
+  const items=[...document.querySelectorAll('.qsearch-item')];
+  if(!items.length)return;
+  const cur=items.findIndex(i=>i.style.background);
+  if(e.key==='ArrowDown'){
+    e.preventDefault();items.forEach(i=>i.style.background='');
+    const nx=cur<items.length-1?cur+1:0;
+    items[nx].style.background='var(--bg)';items[nx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();items.forEach(i=>i.style.background='');
+    const pv=cur>0?cur-1:items.length-1;
+    items[pv].style.background='var(--bg)';items[pv].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'&&cur>=0){
+    e.preventDefault();items[cur].click();
+  }
+});
+
+/* ── GLOBAL PROGRESS BAR ── */
+let _gpBar=null;
+function showProgress(){
+  if(!_gpBar){_gpBar=document.createElement('div');_gpBar.className='g-progress';document.body.appendChild(_gpBar);}
+  _gpBar.style.width='0%';_gpBar.style.display='block';
+  setTimeout(()=>_gpBar.style.width='30%',50);
+  setTimeout(()=>_gpBar.style.width='60%',300);
+  setTimeout(()=>_gpBar.style.width='85%',800);
+}
+function hideProgress(){
+  if(_gpBar){_gpBar.style.width='100%';setTimeout(()=>{_gpBar.style.display='none';_gpBar.style.width='0%';},300);}
+}
+
+/* Hook into loadFromCloud to show progress + generate notifications */
+(function hookLoadFromCloud(){
+  if(typeof loadFromCloud!=='function')return;
+  const orig=loadFromCloud;
+  loadFromCloud=async function(){
+    showProgress();
+    try{const r=await orig.apply(this,arguments);generateAutoNotifications();return r;}
+    finally{hideProgress();}
+  };
+})();
+
+/* Auto-generate on interval */
+setInterval(function(){if(typeof S!=='undefined'&&S.gigs)generateAutoNotifications();},300000);
+
+console.log('🎸 BandestCo v95 loaded — Dark Mode, Notifications, Quick Search (Ctrl+K)');
 </script>
 </body>
 </html>
