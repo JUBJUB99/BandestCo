@@ -3731,10 +3731,10 @@ function rd(){
   const paidGigs=gg.filter(g=>g.status==='paid');
   const revenue=paidGigs.reduce((s,g)=>s+gigRevenuePaid(g),0);
 
-  /* 2. Expense (นักดนตรี) = ค่าตัวที่จ่ายไปแล้วให้นักดนตรี (from จ่ายเงิน tab) */
+  /* 2. Expense (ค่าตัว) = ค่าตัวที่จ่ายไปแล้วให้นักดนตรี (from จ่ายเงิน tab) */
   const memberPaid=paidGigs.reduce((s,g)=>s+gigMemberPayTotal(g),0);
 
-  /* 3. Gross Margin = Revenue − Expense(นักดนตรี) */
+  /* 3. Gross Margin = Revenue − Expense(ค่าตัว) */
   const grossMargin=revenue-memberPaid;
 
   /* 4. Other Expense = ค่าใช้จ่ายในงาน (เฉพาะงานจ่ายเต็มแล้ว) + ค่าใช้จ่ายวง sidebar */
@@ -3761,14 +3761,14 @@ function rd(){
       <div class="kpi-sub">รับเงินจริง · ${periodLabel}</div>
     </div>
     <div class="kpi ca">
-      <div class="kpi-lbl">Expense (นักดนตรี)</div>
+      <div class="kpi-lbl">Expense (ค่าตัว)</div>
       <div class="kpi-val" style="color:var(--amber)">฿${f(memberPaid)}</div>
       <div class="kpi-sub">ค่าตัวที่จ่ายไปแล้ว</div>
     </div>
     <div class="kpi cg">
       <div class="kpi-lbl">Gross Margin</div>
       <div class="kpi-val g">฿${f(grossMargin)}</div>
-      <div class="kpi-sub">Revenue − Expense(นักดนตรี)</div>
+      <div class="kpi-sub">Revenue − Expense(ค่าตัว)</div>
     </div>
     <div class="kpi" style="position:relative">
       <div class="kpi-lbl">Other Expense</div>
