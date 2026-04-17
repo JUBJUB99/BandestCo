@@ -4158,6 +4158,12 @@ function getMemberGigPaid(mem,g){
 }
 
 function ri(){
+  /* ★ v95: default filter = เดือนปัจจุบัน (set ครั้งแรกเท่านั้น) */
+  const monthSel=document.getElementById('income-filter-month');
+  if(monthSel&&!monthSel.dataset.inited){
+    monthSel.value=String(new Date().getMonth());
+    monthSel.dataset.inited='1';
+  }
   /* ── populate filter dropdowns from Master ── */
   const srcSel=document.getElementById('income-filter-source');
   if(srcSel&&srcSel.options.length<=1){
