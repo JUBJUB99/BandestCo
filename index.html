@@ -589,6 +589,7 @@ body.view-only .pay-check{
 #gigs-table thead th{position:sticky;top:0;z-index:10;background:var(--bg);box-shadow:0 1px 0 var(--bd)}
 #gigs-table thead th[onclick]:hover{background:var(--rl);color:var(--red)}
 #itable-table thead th[onclick]:hover{background:var(--rl);color:var(--red)}
+#itable-table thead th{position:sticky;top:0;z-index:5;background:var(--wh);box-shadow:0 1px 0 var(--bd)}
 #page-gigs{flex-direction:column;overflow:hidden}
 #page-gigs.active{display:flex;height:100vh}
 #page-gigs:not(.active){display:none!important;height:0}
@@ -883,12 +884,16 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
   #page-income .topbar{flex-wrap:wrap;height:auto;min-height:50px;padding:8px 10px 8px 52px;gap:5px}
   #income-filters{flex-wrap:wrap;gap:4px;margin-left:0!important;width:100%}
   #income-filters .export-label{display:none}
-  #income-filters select{height:28px;font-size:11px;padding:2px 5px;flex:1;min-width:60px}
+  #income-filters select{height:28px;font-size:11px;padding:2px 5px;flex:1;min-width:60px;max-width:120px}
   #income-filters button{padding:3px 8px;font-size:11px;height:28px}
-  #itable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+  #itable-wrap{overflow-x:hidden!important;overflow-y:auto!important;max-height:420px;-webkit-overflow-scrolling:touch;width:100%}
   #itable-table{min-width:unset!important;font-size:11px;width:100%!important}
   #itable thead{display:none}
+  /* detail table: horizontal scroll */
   #idetail-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+  #idetail-wrap table{min-width:700px}
+  /* gig filter count badge */
+  #gig-filter-count{font-size:10px!important;padding:2px 8px!important}
 
   /* ═══ SETTINGS ═══ */
   #page-settings .content{grid-template-columns:1fr!important;gap:8px;padding:10px!important}
@@ -1558,6 +1563,10 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
         <select id="income-filter-type" class="chart-sel" style="height:30px;padding:4px 10px;font-size:12px" onchange="ri()">
           <option value="">ทุกประเภทงาน</option>
         </select>
+        <select id="income-filter-zero" class="chart-sel" style="height:30px;padding:4px 10px;font-size:12px" onchange="ri()">
+          <option value="no">ซ่อนรายได้ = 0</option>
+          <option value="yes">แสดงทั้งหมด</option>
+        </select>
       </div>
     </div>
     <div class="content">
@@ -1565,7 +1574,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
       <div id="income-kpi" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px"></div>
       <!-- Member income table -->
       <div class="tc" style="margin-bottom:16px">
-        <div id="itable-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="itable-table" style="width:100%;border-collapse:collapse;table-layout:fixed">
+        <div id="itable-wrap" style="overflow-x:auto;overflow-y:auto;max-height:370px;-webkit-overflow-scrolling:touch;position:relative"><table id="itable-table" style="width:100%;border-collapse:collapse;table-layout:fixed">
           <thead><tr>
             <th style="text-align:left;width:190px;cursor:pointer;user-select:none" onclick="sortIncomeCol('name')">สมาชิก <span id="is-name" style="font-size:9px;opacity:.5"></span></th>
             <th style="background:#F8FAFC;text-align:center;white-space:nowrap;width:70px;cursor:pointer;user-select:none" onclick="sortIncomeCol('totalGigCount')">รวมงาน <span id="is-totalGigCount" style="font-size:9px;opacity:.5"></span></th>
@@ -4257,12 +4266,8 @@ function ri(){
           forecastIncome+=getMemCut(g,mem);
           unpaidGigCount++;
         }
-      } else if(!g.musicians||!g.musicians.length){
-        if(g.status!=='paid'){
-          const cut=getMemForecastCut(g,mem);
-          if(cut){forecastIncome+=cut;unpaidGigCount++;}
-        }
       }
+      /* ★ v95: ไม่นับ forecast สำหรับงานที่ยังไม่ assign สมาชิก — ต้อง assign ก่อนถึงขึ้นคาดการณ์ */
     });
     const totalIncome=bdIncome+tipIncome;
     const totalGigCount=paidGigCount+unpaidGigCount;
@@ -4278,7 +4283,11 @@ function ri(){
     return (b.totalIncome+b.forecastIncome)-(a.totalIncome+a.forecastIncome);
   });
 
-  if(!incomeSelectedMid) incomeSelectedMid=(memData.find(m=>m.realIncome>0||m.forecastIncome>0)||memData[0])?.id||null;
+  /* ★ v95: filter สมาชิกที่รายได้รวม = 0 */
+  const showZero=document.getElementById('income-filter-zero')?.value||'no';
+  const memDataFiltered=showZero==='yes'?memData:memData.filter(m=>m.totalIncome>0);
+
+  if(!incomeSelectedMid) incomeSelectedMid=(memDataFiltered.find(m=>m.totalIncome>0||m.forecastIncome>0)||memDataFiltered[0])?.id||null;
 
   /* ── KPI — แสดงรวมทั้งหมดทุกสมาชิกเสมอ ── */
   let kpiRealIncome=0, kpiForecastIncome=0, kpiPaidCount=0, kpiUnpaidCount=0;
@@ -4314,59 +4323,62 @@ function ri(){
   const isMob=window.innerWidth<=900;
   if(isMob){
     const wrap=document.getElementById('itable-wrap');
-    if(wrap){wrap.style.overflow='visible';wrap.style.width='100%';}
+    if(wrap){wrap.style.overflowX='hidden';wrap.style.overflowY='auto';wrap.style.width='100%';wrap.style.maxHeight='420px';}
     document.getElementById('itable-table').style.width='100%';
-    document.getElementById('itable').innerHTML=memData.map(mem=>{
+    document.getElementById('itable').innerHTML=memDataFiltered.map(mem=>{
       const isSelected=String(mem.id)===String(incomeSelectedMid);
       return`<tr><td colspan="9" style="padding:0 0 6px">
         <div onclick="selectIncomeMember('${mem.id}')"
-          style="background:var(--wh);border-radius:10px;overflow:hidden;cursor:pointer;
-            box-shadow:${isSelected?'0 0 0 2px var(--red)':'0 0 0 1px var(--bd2)'}">
+          style="background:var(--wh);border-radius:12px;overflow:hidden;cursor:pointer;
+            box-shadow:${isSelected?'0 0 0 2px var(--red)':'0 1px 3px rgba(0,0,0,.08)'}">
           <!-- Header -->
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;
             background:${isSelected?'#FFF0F0':'var(--bg)'}">
-            ${avx(mem.nick)}
-            <div style="flex:1">
-              <div style="font-weight:700;font-size:13px;color:${isSelected?'var(--red)':'var(--ink)'}">${mem.name}${mem.lastname?' '+mem.lastname:''}</div>
+            ${avx(mem.nick,32)}
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13px;color:${isSelected?'var(--red)':'var(--ink)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mem.name}${mem.lastname?' '+mem.lastname:''}</div>
               <div style="font-size:10px;color:var(--ink3)">${mem.role}</div>
             </div>
-            <div style="text-align:right">
-              <div style="font-size:9px;color:var(--ink3)">งานทั้งหมด</div>
-              <div style="font-weight:700;font-size:14px;color:var(--ink)">${mem.totalGigCount}</div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:8px;color:var(--ink3)">งานทั้งหมด</div>
+              <div style="font-weight:700;font-size:15px;color:var(--ink)">${mem.totalGigCount}</div>
             </div>
           </div>
           <!-- Stats row 1: งาน -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--bd)">
-            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
-              <div style="font-size:9px;color:#166534;margin-bottom:2px">จ่ายแล้ว</div>
-              <div style="font-weight:700;font-size:13px;color:#16A34A">${mem.paidGigCount}</div>
+            <div style="padding:6px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
+              <div style="font-size:8px;color:#166534;margin-bottom:1px">จ่ายแล้ว</div>
+              <div style="font-weight:700;font-size:14px;color:#16A34A">${mem.paidGigCount}</div>
             </div>
-            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd);background:#FEF2F2">
-              <div style="font-size:9px;color:#B91C1C;margin-bottom:2px">ค้างจ่าย</div>
-              <div style="font-weight:700;font-size:13px;color:#DC2626">${mem.unpaidGigCount}</div>
+            <div style="padding:6px 4px;text-align:center;border-right:1px solid var(--bd);background:#FEF2F2">
+              <div style="font-size:8px;color:#B91C1C;margin-bottom:1px">ค้างจ่าย</div>
+              <div style="font-weight:700;font-size:14px;color:#DC2626">${mem.unpaidGigCount}</div>
             </div>
-            <div style="padding:7px 4px;text-align:center;background:#EFF6FF">
-              <div style="font-size:9px;color:#1D4ED8;margin-bottom:2px">คาดการณ์</div>
+            <div style="padding:6px 4px;text-align:center;background:#EFF6FF">
+              <div style="font-size:8px;color:#1D4ED8;margin-bottom:1px">คาดการณ์</div>
               <div style="font-weight:600;font-size:11px;color:#2563EB">${mem.forecastIncome>0?'฿'+f(mem.forecastIncome):'—'}</div>
             </div>
           </div>
           <!-- Stats row 2: เงิน -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid var(--bd)">
-            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd)">
-              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">รับแล้ว</div>
-              <div style="font-weight:700;font-size:12px;color:#DC2626">${mem.bdIncome>0?'฿'+f(mem.bdIncome):'฿0'}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--bd)">
+            <div style="padding:6px 4px;text-align:center;border-right:1px solid var(--bd)">
+              <div style="font-size:8px;color:var(--ink3);margin-bottom:1px">💰 รับแล้ว</div>
+              <div style="font-weight:700;font-size:13px;color:#DC2626">${mem.bdIncome>0?'฿'+f(mem.bdIncome):'฿0'}</div>
             </div>
-            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd)">
-              <div style="font-size:9px;color:var(--ink3);margin-bottom:2px">ทิป</div>
-              <div style="font-weight:600;font-size:12px;color:#B45309">${mem.tipIncome>0?'฿'+f2(mem.tipIncome):'—'}</div>
+            <div style="padding:6px 4px;text-align:center">
+              <div style="font-size:8px;color:var(--ink3);margin-bottom:1px">🎁 ทิป</div>
+              <div style="font-weight:600;font-size:13px;color:#B45309">${mem.tipIncome>0?'฿'+f2(mem.tipIncome):'—'}</div>
             </div>
-            <div style="padding:7px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
-              <div style="font-size:9px;color:#166534;font-weight:600;margin-bottom:2px">รายได้รวม</div>
-              <div style="font-weight:800;font-size:13px;color:#15803D">฿${f(mem.totalIncome)}</div>
+          </div>
+          <!-- Stats row 3: รวม -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--bd)">
+            <div style="padding:8px 4px;text-align:center;border-right:1px solid var(--bd);background:#F0FDF4">
+              <div style="font-size:8px;color:#166534;font-weight:600;margin-bottom:1px">✅ รายได้รวม</div>
+              <div style="font-weight:800;font-size:14px;color:#15803D">฿${f(mem.totalIncome)}</div>
             </div>
-            <div style="padding:7px 4px;text-align:center;background:#FDF4FF">
-              <div style="font-size:9px;color:#7C3AED;font-weight:600;margin-bottom:2px">รวมทั้งหมด</div>
-              <div style="font-weight:800;font-size:13px;color:#7C3AED">฿${f(mem.grandTotal)}</div>
+            <div style="padding:8px 4px;text-align:center;background:#FDF4FF">
+              <div style="font-size:8px;color:#7C3AED;font-weight:600;margin-bottom:1px">💎 รวมทั้งหมด</div>
+              <div style="font-weight:800;font-size:14px;color:#7C3AED">฿${f(mem.grandTotal)}</div>
             </div>
           </div>
         </div>
@@ -4376,7 +4388,7 @@ function ri(){
     /* Desktop: table render */
     const wrap=document.getElementById('itable-wrap');
     if(wrap) wrap.style.overflow='auto';
-    document.getElementById('itable').innerHTML=memData.map(mem=>{
+    document.getElementById('itable').innerHTML=memDataFiltered.map(mem=>{
       const isSelected=String(mem.id)===String(incomeSelectedMid);
       return`<tr style="cursor:pointer;${isSelected?'background:var(--rl);':''}transition:background .12s;border-bottom:1px solid var(--bd)" onclick="selectIncomeMember('${mem.id}')">
         <td style="padding:10px 12px">
@@ -9859,6 +9871,11 @@ async function handleSlipUpload(input){
     return;
   }
 
+  /* ★ v95: ตรวจว่าเลือก plan ไหน */
+  const selectedCard=document.querySelector('.plan-card.selected');
+  const selectedPlan=selectedCard?.getAttribute('onclick')?.includes('pro_ai')?'pro_ai':'pro';
+  const requiredAmt=selectedPlan==='pro_ai'?599:499;
+
   setSlipResult('<div style="padding:10px 12px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:8px"><span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> กำลังตรวจสอบสลิป...</div>');
 
   /* Convert image to base64 */
@@ -9894,33 +9911,49 @@ async function handleSlipUpload(input){
   const transRef=slip.transRef||slip.transactionId||slip.ref||'';
   const amount=parseFloat(slip.amount?.amount||slip.amount||0);
   const receiver=slip.receiver?.displayName||slip.receiver?.name||slip.to?.displayName||'';
+  const receiverAcct=slip.receiver?.account?.value||slip.receiver?.proxy?.value||slip.to?.account||'';
   const date=slip.date||new Date().toISOString();
+
+  /* ── ★ v95: ตรวจผู้รับเงิน — ต้องโอนถูกบัญชี ── */
+  const VALID_PROMPTPAY='0049999119821402';
+  const receiverClean=(receiverAcct||'').replace(/\D/g,'');
+  if(receiverClean&&receiverClean!==VALID_PROMPTPAY){
+    setSlipResult(`<div style="padding:12px 14px;background:#FEF2F2;border-radius:10px;border:1px solid #FECACA">
+      <div style="font-weight:600;color:#DC2626;margin-bottom:4px">❌ โอนผิดบัญชี</div>
+      <div style="font-size:11px;color:#B91C1C">พบผู้รับ: ${receiver||receiverClean} — กรุณาโอนไปที่ PromptPay ${VALID_PROMPTPAY}</div>
+    </div>`);
+    return;
+  }
 
   /* ── Duplicate slip check ── */
   if(!S.usedSlips) S.usedSlips=[];
   if(transRef&&S.usedSlips.includes(transRef)){
-    setSlipResult(`<div style="padding:12px 14px;background:#FEF2F2;border-radius:8px;border:1px solid #FECACA">
+    setSlipResult(`<div style="padding:12px 14px;background:#FEF2F2;border-radius:10px;border:1px solid #FECACA">
       <div style="font-weight:600;color:#DC2626;margin-bottom:4px">❌ สลิปซ้ำ — ไม่สามารถใช้ได้</div>
       <div style="font-size:11px;color:#B91C1C">สลิปนี้ถูกใช้ในระบบแล้ว (Ref: ${transRef})</div>
     </div>`);
     return;
   }
 
-  /* ── Amount check: must be >= 499 ── */
-  if(amount<499){
-    setSlipResult(`<div style="padding:12px 14px;background:#FEF2F2;border-radius:8px;border:1px solid #FECACA">
+  /* ── Amount check: ต้องถูกต้องตาม plan ที่เลือก ── */
+  if(amount<requiredAmt){
+    const planLabel=selectedPlan==='pro_ai'?'Pro AI (฿599)':'Pro (฿499)';
+    setSlipResult(`<div style="padding:12px 14px;background:#FEF2F2;border-radius:10px;border:1px solid #FECACA">
       <div style="font-weight:600;color:#DC2626;margin-bottom:4px">❌ ยอดชำระไม่ถูกต้อง</div>
-      <div style="font-size:11px;color:#B91C1C">พบยอด ฿${amount.toLocaleString('th-TH')} ต้องชำระ ฿499 ขึ้นไป</div>
+      <div style="font-size:11px;color:#B91C1C">พบยอด ฿${amount.toLocaleString('th-TH')} — แพ็กเกจ ${planLabel} ต้องชำระ ฿${requiredAmt} ขึ้นไป</div>
     </div>`);
     return;
   }
 
-  /* ── All checks passed → Upgrade to Pro ── */
+  /* ── ★ v95: auto-detect plan จากยอด ถ้าจ่าย ≥599 → pro_ai ── */
+  const actualPlan=amount>=599?'pro_ai':'pro';
+
+  /* ── All checks passed → Upgrade ── */
   if(transRef){ S.usedSlips.push(transRef); if(CLOUD_ENABLED()) syncUsedSlip(transRef, amount).catch(console.error); }
 
-  /* Pro = 30 days from now */
+  /* Plan = 30 days from now */
   const exp=new Date(Date.now()+30*24*60*60*1000);
-  S.plan.type='pro';
+  S.plan.type=actualPlan;
   S.plan.proExpiresAt=exp.toISOString();
   S.plan.lastSlipRef=transRef;
   S.plan.lastSlipDate=date;
@@ -9930,7 +9963,7 @@ async function handleSlipUpload(input){
     fetch(`${SUPABASE_URL}/rest/v1/bands?id=eq.${_sbBandId}`,{
       method:'PATCH', headers:sbHeaders(),
       body:JSON.stringify({
-        plan_type:'pro',
+        plan_type:actualPlan,
         pro_expires_at:exp.toISOString(),
         last_slip_ref:transRef||null
       })
@@ -9940,16 +9973,17 @@ async function handleSlipUpload(input){
   applyPlanUI();
   renderPlanSettings();
 
+  const planLabel=actualPlan==='pro_ai'?'Pro AI':'Pro';
   setSlipResult(`<div style="padding:14px 16px;background:#F0FDF4;border-radius:10px;border:1.5px solid #A7F3D0">
-    <div style="font-size:14px;font-weight:700;color:#059669;margin-bottom:6px">🎉 อัปเกรดสำเร็จ! Pro Plan พร้อมใช้งาน</div>
+    <div style="font-size:14px;font-weight:700;color:#059669;margin-bottom:6px">🎉 อัปเกรดสำเร็จ! ${planLabel} Plan พร้อมใช้งาน</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--ink3)">
       <div>ยอดชำระ: <strong style="color:var(--green)">฿${amount.toLocaleString('th-TH')}</strong></div>
       <div>หมดอายุ: <strong style="color:var(--ink)">${exp.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'})}</strong></div>
-      ${transRef?`<div style="grid-column:1/-1">Ref: <strong>${transRef}</strong></div>`:''}
+      <div>แพ็กเกจ: <strong style="color:${actualPlan==='pro_ai'?'#6366F1':'var(--red)'}">✨ ${planLabel}</strong></div>
+      ${transRef?`<div>Ref: <strong>${transRef}</strong></div>`:''}
     </div>
   </div>`);
-  toast('🎉 อัปเกรด Pro สำเร็จ!');
-  /* Auto close modal after 2 seconds */
+  toast(`🎉 อัปเกรด ${planLabel} สำเร็จ!`);
   setTimeout(()=>closePlanModal(),2000);
 }
 
@@ -10794,7 +10828,15 @@ async function doExportExcel(){
       ['B6','B7','B8'].forEach(ref=>{
         if(ws[ref]) ws[ref].t='n';
       });
-      XLSX.utils.book_append_sheet(wb,ws,(mem.nick||mem.name).substring(0,28));
+      let sheetName=(mem.nick||mem.name).substring(0,28);
+      /* ★ v95 fix: ป้องกันชื่อ sheet ซ้ำ */
+      const existingNames=wb.SheetNames||[];
+      if(existingNames.includes(sheetName)){
+        let idx=2;
+        while(existingNames.includes(sheetName+'_'+idx)) idx++;
+        sheetName=(sheetName.substring(0,25)+'_'+idx);
+      }
+      XLSX.utils.book_append_sheet(wb,ws,sheetName);
     });
 
     const bandName=(S.bandInfo?.name||'BandestCo').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
