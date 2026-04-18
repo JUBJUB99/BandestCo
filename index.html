@@ -12413,7 +12413,7 @@ document.addEventListener('click',function(e){
         <div style="font-size:15px;font-weight:700;color:var(--ink)">📋 แก้ไขรายได้ลูกค้าย้อนหลัง — Bulk Edit</div>
         <button onclick="cx('modal-bulk-oil')" style="width:28px;height:28px;border:1px solid var(--bd2);border-radius:50%;background:var(--bg);cursor:pointer;font-size:12px;color:var(--ink3)">✕</button>
       </div>
-      <div style="font-size:11px;color:var(--ink3)">แก้ไขรายได้ลูกค้าทีละแถว หรือกด <strong>บันทึกทั้งหมด</strong> — ครอบคลุม: ค่าน้ำมัน · ค่าน้ำมันระบบเสียง · ทิปรวม · ส่วนลด</div>
+      <div style="font-size:11px;color:var(--ink3)">แก้ไขรายได้ลูกค้าทีละแถว หรือกด <strong>บันทึกทั้งหมด</strong> — แก้ได้: ค่าน้ำมัน · น้ำมันเสียง · ทิปรวม · ส่วนลด &nbsp;|&nbsp; <span style="color:#6D28D9">รายได้อื่น</span> และ <span style="color:var(--green)">ยอดสุทธิ</span> แสดงเพื่ออ้างอิง (อ่านอย่างเดียว)</div>
       <!-- Filters -->
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
         <input id="boe-search" class="fi" placeholder="ค้นหาชื่องาน..." style="width:180px;height:30px;padding:4px 10px;font-size:12px" oninput="renderBulkOilRows()">
@@ -12436,16 +12436,18 @@ document.addEventListener('click',function(e){
     </div>
     <!-- Table -->
     <div style="flex:1;overflow:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:860px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:1080px">
         <thead>
           <tr style="position:sticky;top:0;z-index:2">
             <th style="padding:8px 10px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--ink3);font-weight:600;white-space:nowrap">Order</th>
             <th style="padding:8px 10px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--ink3);font-weight:600">ชื่องาน</th>
             <th style="padding:8px 6px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--ink3);font-weight:600;white-space:nowrap">วันที่</th>
+            <th style="padding:8px 6px;text-align:right;background:#F5F3FF;border-bottom:1px solid var(--bd);font-size:11px;color:#6D28D9;font-weight:600;white-space:nowrap" title="ค่าตัว + ค่านั่งรถ + After Party + ค่าระบบเสียง + ค่านั่งรถระบบเสียง (อ่านอย่างเดียว)">💰 รายได้อื่น</th>
             <th style="padding:8px 6px;text-align:right;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--amber);font-weight:600;white-space:nowrap">⛽ ค่าน้ำมัน</th>
             <th style="padding:8px 6px;text-align:right;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--amber);font-weight:600;white-space:nowrap">⛽ น้ำมันเสียง</th>
             <th style="padding:8px 6px;text-align:right;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:#92400E;font-weight:600;white-space:nowrap">🎁 ทิปรวม</th>
             <th style="padding:8px 6px;text-align:right;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--red);font-weight:600;white-space:nowrap">💸 ส่วนลด</th>
+            <th style="padding:8px 6px;text-align:right;background:var(--gbg);border-bottom:1px solid var(--bd);font-size:11px;color:var(--green);font-weight:600;white-space:nowrap" title="ผลรวมทุกช่อง − ส่วนลด">= ยอดสุทธิ</th>
             <th style="padding:8px 6px;text-align:center;background:var(--bg2);border-bottom:1px solid var(--bd);font-size:11px;color:var(--ink3);font-weight:600;white-space:nowrap"></th>
           </tr>
         </thead>
@@ -12627,8 +12629,47 @@ function boeInput(g, f){
     id="boe-${f.suf}-${g.id}"
     value="${val||''}"
     style="width:86px;height:28px;padding:4px 6px;border:1.5px solid ${val>0?f.color:'var(--bd2)'};border-radius:6px;font-size:12px;text-align:right;font-family:var(--f);background:var(--wh);color:var(--ink);outline:none;transition:border-color .15s"
-    oninput="this.style.borderColor=this.value>0?'${f.color}':'var(--bd2)'"
+    oninput="this.style.borderColor=this.value>0?'${f.color}':'var(--bd2)';recalcBoeNet('${g.id}')"
     onkeydown="if(event.key==='Enter'){saveBulkOilRow('${g.id}');focusNextBulkRow('${g.id}');}">`;
+}
+
+/* ★ รายได้อื่น: ค่าตัว + นั่งรถ + After + เสียง + นั่งรถเสียง (อ่านอย่างเดียว)
+   return { total, breakdown: [{label, val}, ...] } */
+function boeOtherIncome(g){
+  const inc=g.income||{};
+  const bandVal=inc.band>0?inc.band:(g.fee||0);
+  const items=[
+    {label:'ค่าตัว',        val:bandVal},
+    {label:'นั่งรถ',         val:inc.travel_car||0},
+    {label:'After',          val:inc.after||0},
+    {label:'เสียง',          val:inc.sound||0},
+    {label:'นั่งรถเสียง',    val:inc.sound_car||0},
+  ];
+  const total=items.reduce((s,x)=>s+x.val,0);
+  const nonZero=items.filter(x=>x.val>0);
+  return {total, nonZero, items};
+}
+
+function boeOtherIncomeCell(g){
+  const {total, nonZero}=boeOtherIncome(g);
+  /* breakdown text: "ค่าตัว 10,000 · นั่งรถ 500" */
+  const breakdown=nonZero.length
+    ? nonZero.map(x=>`${x.label} ${f(x.val)}`).join(' · ')
+    : 'ไม่มี';
+  /* full tooltip รวมทุกช่อง (แม้ 0) */
+  const tooltip=[
+    `ค่าตัว: ฿${f(g.income?.band>0?g.income.band:(g.fee||0))}`,
+    `ค่านั่งรถ: ฿${f(g.income?.travel_car||0)}`,
+    `After Party: ฿${f(g.income?.after||0)}`,
+    `ค่าระบบเสียง: ฿${f(g.income?.sound||0)}`,
+    `ค่านั่งรถระบบเสียง: ฿${f(g.income?.sound_car||0)}`,
+    `─────────`,
+    `รวม: ฿${f(total)}`,
+  ].join('\n');
+  return `<td style="padding:6px 8px;text-align:right;background:#FAF9FE;white-space:nowrap;vertical-align:middle" title="${tooltip}">
+    <div style="color:#6D28D9;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;line-height:1.15">฿${f(total)}</div>
+    <div style="color:#8B7FB8;font-size:9px;margin-top:2px;line-height:1.2;max-width:220px;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>
+  </td>`;
 }
 
 function renderBulkOilRows(){
@@ -12636,23 +12677,29 @@ function renderBulkOilRows(){
   document.getElementById('boe-count').textContent=`${gigs.length} งาน`;
   const tbody=document.getElementById('boe-body');
   if(!gigs.length){
-    tbody.innerHTML=`<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--ink3)">ไม่มีงานที่ตรงกับเงื่อนไข</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--ink3)">ไม่มีงานที่ตรงกับเงื่อนไข</td></tr>`;
     return;
   }
   tbody.innerHTML=gigs.map((g,i)=>{
     const d=new Date(g.date);
     const dateStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     const rowBg=i%2===0?'var(--wh)':'var(--bg)';
+    const inc=g.income||{};
+    const {total:otherTotal}=boeOtherIncome(g);
+    /* ยอดสุทธิเริ่มต้น = รายได้อื่น + ทุกช่อง editable − ส่วนลด */
+    const initNet=otherTotal+(inc.travel_oil||0)+(inc.sound_oil||0)+(inc.tipTotal||0)-(inc.discount||0);
     return `<tr data-row-bg="${rowBg}" style="background:${rowBg};transition:background .1s"
       onmouseover="this.style.background='var(--rl)'"
       onmouseout="this.style.background=this.dataset.rowBg">
-      <td style="padding:7px 10px;color:var(--ink3);font-family:var(--f-mono);font-size:11px;white-space:nowrap">#${String(g.jobNo||'').padStart(3,'0')}</td>
-      <td style="padding:7px 10px;color:var(--ink);font-weight:500;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${g.name}">
+      <td style="padding:7px 10px;color:var(--ink3);font-family:var(--f-mono);font-size:11px;white-space:nowrap;vertical-align:middle">#${String(g.jobNo||'').padStart(3,'0')}</td>
+      <td style="padding:7px 10px;color:var(--ink);font-weight:500;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle" title="${g.name}">
         ${g.name}${g.status==='paid'?`<span style="display:inline-block;margin-left:6px;padding:1px 6px;background:var(--gbg);color:var(--green);border:1px solid var(--green);border-radius:4px;font-size:9px;font-weight:600;letter-spacing:.03em">PAID</span>`:''}
       </td>
-      <td style="padding:7px 6px;color:var(--ink3);white-space:nowrap;font-size:11px">${dateStr}</td>
-      ${BOE_FIELDS.map(f=>`<td style="padding:5px 6px;text-align:right">${boeInput(g,f)}</td>`).join('')}
-      <td style="padding:5px 6px;text-align:center">
+      <td style="padding:7px 6px;color:var(--ink3);white-space:nowrap;font-size:11px;vertical-align:middle">${dateStr}</td>
+      ${boeOtherIncomeCell(g)}
+      ${BOE_FIELDS.map(f=>`<td style="padding:5px 6px;text-align:right;vertical-align:middle">${boeInput(g,f)}</td>`).join('')}
+      <td id="boe-net-${g.id}" style="padding:7px 6px;text-align:right;color:var(--green);font-weight:700;background:var(--gbg);white-space:nowrap;font-variant-numeric:tabular-nums;font-size:13px;vertical-align:middle">฿${f(initNet)}</td>
+      <td style="padding:5px 6px;text-align:center;vertical-align:middle">
         <button id="boe-btn-${g.id}" onclick="saveBulkOilRow('${g.id}')"
           style="padding:3px 10px;height:28px;border:1px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--ink3);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--f);white-space:nowrap;transition:all .12s"
           onmouseover="this.style.background='var(--red)';this.style.color='#fff';this.style.borderColor='var(--red)'"
@@ -12662,6 +12709,30 @@ function renderBulkOilRows(){
       </td>
     </tr>`;
   }).join('');
+}
+
+/* ★ คำนวณยอดสุทธิสดๆ: รายได้อื่น (จาก data ปัจจุบัน) + editable inputs − ส่วนลด */
+function recalcBoeNet(gigId){
+  const g=S.gigs.find(x=>String(x.id)===String(gigId));
+  if(!g) return;
+  const {total:otherTotal}=boeOtherIncome(g);
+  const getVal=suf=>{
+    const el=document.getElementById(`boe-${suf}-${gigId}`);
+    return el?(parseFloat(el.value)||0):0;
+  };
+  /* editable suffixes: oil=travel_oil, soil=sound_oil, tip=tipTotal, disc=discount */
+  const net=otherTotal+getVal('oil')+getVal('soil')+getVal('tip')-getVal('disc');
+  const netEl=document.getElementById(`boe-net-${gigId}`);
+  if(netEl){
+    netEl.textContent='฿'+f(net);
+    if(net<0){
+      netEl.style.color='var(--red)';
+      netEl.style.background='var(--rl)';
+    }else{
+      netEl.style.color='var(--green)';
+      netEl.style.background='var(--gbg)';
+    }
+  }
 }
 
 async function saveBulkOilRow(gigId){
@@ -12681,6 +12752,7 @@ async function saveBulkOilRow(gigId){
     const el=document.getElementById(`boe-${f.suf}-${gigId}`);
     if(el) el.style.borderColor=(g.income[f.k]||0)>0?'var(--green)':'var(--bd2)';
   });
+  recalcBoeNet(gigId); /* ★ อัปเดตยอดสุทธิหลังบันทึก */
   if(btn){
     btn.textContent='✓ บันทึกแล้ว';
     btn.style.background='var(--gbg)'; btn.style.color='var(--green)'; btn.style.borderColor='var(--green)';
