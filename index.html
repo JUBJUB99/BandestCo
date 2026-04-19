@@ -1252,7 +1252,7 @@ input[type=date]::-webkit-datetime-edit-year-field{order:3}
     <div class="login-logo">
       <div class="login-mark">M<span>.</span></div>
       <div class="login-logo-name">Membr<span>Co</span></div>
-      <div class="login-logo-sub"><span>Member Management</span><span class="v-pill">V1.0.0</span></div>
+      <div class="login-logo-sub"><span>Member Management</span><span class="v-pill">V10.0.1</span></div>
     </div>
     <!-- Tabs -->
     <div class="ltabs">
@@ -3207,9 +3207,13 @@ async function sbGet(table, params='') {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
       headers: sbHeaders({'Prefer':''})
     });
-    if(!r.ok) { console.error('sbGet', table, await r.text()); return null; }
+    if(!r.ok) { 
+      const errText = await r.text();
+      console.error(`[sbGet] ❌ ${table} HTTP ${r.status}:`, errText); 
+      return null; 
+    }
     return await r.json();
-  } catch(e) { console.error('sbGet', e); return null; }
+  } catch(e) { console.error('[sbGet] exception',table, e); return null; }
 }
 
 async function sbInsert(table, body) {
@@ -3440,7 +3444,8 @@ async function sbDoRefreshToken(){
    เรียกหลัง login สำเร็จ
 ══════════════════════════════════════ */
 async function loadFromCloud() {
-  if(!SUPABASE_URL || !_sbBandId) return false;
+  console.log('[Load] 🔍 loadFromCloud called. SUPABASE_URL=',!!SUPABASE_URL,'_sbBandId=',_sbBandId,'_sbToken=',_sbToken?'set':'null');
+  if(!SUPABASE_URL || !_sbBandId) { console.warn('[Load] ⚠️ Missing SUPABASE_URL or _sbBandId, abort'); return false; }
   toast('☁ กำลังโหลดข้อมูล...');
   try {
     /* Step 1: load gigs first to get IDs */
@@ -3458,6 +3463,17 @@ async function loadFromCloud() {
     ]);
 
     console.log('loadFromCloud: gigs=',gigs?.length,'members=',members?.length);
+    /* ★ v96 debug: log each table result to diagnose RLS issues */
+    console.log('[Load] Results:',{
+      members:members?.length ?? 'null',
+      clients:clients?.length ?? 'null',
+      sources:sources?.length ?? 'null',
+      jobTypes:jobTypes?.length ?? 'null',
+      users:users?.length ?? 'null',
+      gigs:gigs?.length ?? 'null',
+      bandExpenses:bandExpenses?.length ?? 'null',
+      band:band?.length ?? 'null'
+    });
 
     /* Step 2: load child tables by gig_id list */
     const gigIds=(gigs||[]).map(g=>g.id);
@@ -9075,6 +9091,7 @@ function loginSuccess(user){
 
 /* Helper: login สำเร็จ — โหลดข้อมูลจาก cloud แล้วแสดงผล */
 async function afterCloudLogin(user){
+  console.log('[AfterLogin] 🚀 Start — user:',user,'_sbBandId:',_sbBandId,'_sbToken:',_sbToken?'set':'null');
   currentUser=user;
   _sessionStart=Date.now();
   /* บันทึก session ไว้สำหรับ refresh */
@@ -9084,8 +9101,17 @@ async function afterCloudLogin(user){
   setTimeout(()=>{ls.style.display='none';},300);
   /* โหลดข้อมูลจาก Supabase */
   if(CLOUD_ENABLED()){
-    await loadFromCloud();
+    console.log('[AfterLogin] 📥 Calling loadFromCloud...');
+    try{
+      await loadFromCloud();
+      console.log('[AfterLogin] ✅ loadFromCloud returned');
+    }catch(e){
+      console.error('[AfterLogin] ❌ loadFromCloud threw:',e);
+    }
+  } else {
+    console.warn('[AfterLogin] ⚠️ CLOUD_ENABLED=false, skipping loadFromCloud');
   }
+  console.log('[AfterLogin] S.gigs.length=',S.gigs?.length||0,'S.members.length=',S.members?.length||0);
   /* update displayName จาก S ที่โหลดมาแล้ว */
   if(currentUser.memberId && currentUser.memberId!=='__leader__'){
     const mem=S.members.find(m=>String(m.id)===String(currentUser.memberId));
@@ -9265,25 +9291,76 @@ async function doLoginMember(){
     const btn=document.querySelector('[onclick="doLoginMember()"]');
     if(btn){btn.textContent='กำลังเข้าสู่ระบบ...';btn.disabled=true;}
 
-    /* member ใช้ custom auth — ดึงจาก users table แล้วเทียบ hash */
-    const passHash=await hashPassword(pass,uname);
-    const users=await fetch(
+    /* ★ v96: Supabase Auth sign-in ก่อน เพื่อได้ JWT token ใช้ bypass RLS
+       (saveUserAccount สร้าง Auth user ด้วย email = username+'@bandestco.app') */
+    const authEmail=uname.includes('@')?uname:(uname+'@bandestco.app');
+    console.log('[Login] Step 1 — Attempting Supabase Auth sign-in with:', authEmail);
+    const auth=await sbSignIn(authEmail,pass);
+    console.log('[Login] Step 1 result — auth:', auth?'✅ got JWT':'❌ auth failed');
+
+    if(!auth){
+      /* ── Fallback: ลอง legacy path ด้วย anon key (สำหรับบัญชีเก่าที่ยังไม่มี Auth user) ── */
+      console.log('[Login] Step 2 — Fallback: querying users table with anon key');
+      const passHash=await hashPassword(pass,uname);
+      console.log('[Login] Step 2 — username=',uname,'passHash=',passHash.substring(0,16)+'...');
+      const usersRes=await fetch(
+        `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(uname)}&limit=1`,
+        {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}}
+      );
+      const users=await usersRes.json().catch(()=>null);
+      console.log('[Login] Step 2 result — HTTP',usersRes.status,'users=',users);
+
+      if(btn){btn.textContent='เข้าสู่ระบบ — สมาชิกวง';btn.disabled=false;}
+
+      if(!users||!Array.isArray(users)||!users[0]){
+        /* ตรวจว่า HTTP status บอกอะไร */
+        if(usersRes.status===401||usersRes.status===403){
+          showLoginErr('login-err-member','⚠️ RLS บล็อก anon key — ต้องแก้ Policy ใน Supabase (ดู console)');
+          console.error('[Login] ❌ RLS blocked anon key access to users table');
+        } else if(usersRes.status===200&&Array.isArray(users)&&users.length===0){
+          showLoginErr('login-err-member','ไม่พบ username นี้ใน users table');
+          console.error('[Login] ❌ username not found:',uname);
+        } else {
+          showLoginErr('login-err-member','เกิดข้อผิดพลาด — ดู console');
+          console.error('[Login] ❌ unexpected:',usersRes.status,users);
+        }
+        return;
+      }
+      const u=users[0];
+      console.log('[Login] Step 3 — found user:',{id:u.id,username:u.username,hasHash:!!u.password_hash,hasPass:!!u.password});
+      const hashMatch=u.password_hash&&u.password_hash===passHash;
+      const plainMatch=u.password&&u.password===pass;
+      console.log('[Login] Step 3 — hashMatch=',hashMatch,'plainMatch=',plainMatch);
+      if(!hashMatch&&!plainMatch){showLoginErr('login-err-member','Username หรือรหัสผ่านไม่ถูกต้อง');return;}
+
+      /* legacy — ใช้ anon key (อาจ RLS limit) */
+      _sbToken=SUPABASE_ANON;
+      _sbBandId=u.band_id;
+      await afterCloudLogin({username:uname,role:u.role||'member',displayName:u.display_name||uname,memberId:u.member_id||null});
+      if(document.getElementById('remember-member')?.checked) saveRememberMe('member',uname,pass);
+      else clearRememberMe('member');
+      return;
+    }
+
+    /* ── Auth สำเร็จ — ใช้ JWT token query users table ── */
+    _sbToken=auth.access_token;
+    console.log('[Login] Step 3 — Querying users table with JWT');
+    const usersRes=await fetch(
       `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(uname)}&limit=1`,
-      {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}}
-    ).then(r=>r.json()).catch(()=>null);
+      {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+auth.access_token}}
+    );
+    const users=await usersRes.json().catch(()=>null);
+    console.log('[Login] Step 3 result — HTTP',usersRes.status,'users=',users);
 
     if(btn){btn.textContent='เข้าสู่ระบบ — สมาชิกวง';btn.disabled=false;}
 
-    if(!users||!users[0]){showLoginErr('login-err-member','ไม่พบบัญชีนี้ในระบบ');return;}
+    if(!users||!Array.isArray(users)||!users[0]){
+      showLoginErr('login-err-member','Auth สำเร็จ แต่ไม่พบในตาราง users — ดู console');
+      console.error('[Login] ❌ Auth OK but users row missing. Status:',usersRes.status);
+      _sbToken=null;return;
+    }
 
     const u=users[0];
-    /* เทียบ password hash */
-    const hashMatch=u.password_hash&&u.password_hash===passHash;
-    const plainMatch=u.password&&u.password===pass; /* backward compat */
-    if(!hashMatch&&!plainMatch){showLoginErr('login-err-member','Username หรือรหัสผ่านไม่ถูกต้อง');return;}
-
-    /* login ด้วย leader token ของวง (ใช้ anon key สำหรับ member) */
-    _sbToken=SUPABASE_ANON;
     _sbBandId=u.band_id;
     await afterCloudLogin({username:uname,role:u.role||'member',displayName:u.display_name||uname,memberId:u.member_id||null});
     if(document.getElementById('remember-member')?.checked) saveRememberMe('member',uname,pass);
@@ -10011,6 +10088,7 @@ async function saveUserAccount(){
 
       if(CLOUD_ENABLED()){
         /* สร้าง Supabase Auth user ด้วย plain password */
+        console.log('[SaveUser] Creating Supabase Auth user:',username+'@bandestco.app');
         const signupRes=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{
           method:'POST',
           headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON},
@@ -10020,8 +10098,9 @@ async function saveUserAccount(){
             data:{band_id:_sbBandId,user_role:role,display_name:displayName}
           })
         }).then(r=>r.json()).catch(()=>null);
-        console.log('member signup:', signupRes?.user?.id||signupRes?.error||'no id');
+        console.log('[SaveUser] Auth signup result:', signupRes?.user?.id||signupRes?.error||'no id', signupRes);
         /* Insert ลง users table */
+        console.log('[SaveUser] Inserting into users table with username=',username);
         const insRes=await fetch(`${SUPABASE_URL}/rest/v1/users`,{
           method:'POST',
           headers:{...sbHeaders()},
@@ -10031,6 +10110,7 @@ async function saveUserAccount(){
             username,password_hash:passHash,role,display_name:displayName
           })
         }).then(r=>r.json()).catch(()=>null);
+        console.log('[SaveUser] users table insert result:', insRes);
         const newId=insRes&&insRes[0]?insRes[0].id:('u'+Date.now());
         S.users.push({id:newId,memberId,role,username,passwordHash:passHash,password:'',displayName});
         toast('สร้างบัญชีแล้ว ✓');
@@ -12485,7 +12565,7 @@ function hideProgress(){
 /* Auto-generate on interval */
 setInterval(function(){if(typeof S!=='undefined'&&S.gigs)generateAutoNotifications();},300000);
 
-console.log('🎸 MembrCo v95 loaded — Dark Mode, Notifications, Quick Search (Ctrl+K)');
+console.log('🎸 MembrCo v96 loaded — Member Login Fix, Calendar Redesign, Decimal Support');
 console.log('%c📋 DB MIGRATION REQUIRED — run in Supabase SQL Editor:', 'color:orange;font-weight:bold');
 console.log(`ALTER TABLE gigs ADD COLUMN IF NOT EXISTS wht_enabled boolean DEFAULT false;
 ALTER TABLE gigs ADD COLUMN IF NOT EXISTS wht_rate numeric DEFAULT 0;
