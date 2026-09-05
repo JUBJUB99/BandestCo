@@ -5403,30 +5403,31 @@ function ri(){
     incomeSelectedMid=(firstWithIncome||memDataFiltered[0])?.id||null;
   }
 
-  /* ── KPI — แสดงรวมทั้งหมดทุกสมาชิกเสมอ ── */
-  let kpiRealIncome=0, kpiForecastIncome=0, kpiPaidCount=0, kpiUnpaidCount=0;
+  /* ── KPI — concept ใหม่: นับทุกงานที่ไม่ใช่ cancelled ── */
+  let kpiRealIncome=0, kpiGigCount=0, kpiMemberTotal=0;
   allGigs.forEach(g=>{
     if(g.status==='cancelled') return;
     const totalDue=gigIncomeTotalNoTip(g)||g.fee||0;
-    if(g.status==='paid'){ kpiRealIncome+=totalDue; kpiPaidCount++; }
-    else if(g.musicians&&g.musicians.length){ kpiForecastIncome+=totalDue; kpiUnpaidCount++; }
+    if(totalDue>0){ kpiRealIncome+=totalDue; kpiGigCount++; }
   });
+  /* คำนวณ kpiMemberTotal = รวมรายได้สมาชิกทุกคน (bdIncome) จาก memData */
+  memData.forEach(m=>{ kpiMemberTotal+=m.bdIncome||0; });
   const kpiEl=document.getElementById('income-kpi');
   if(kpiEl) kpiEl.innerHTML=`
     <div class="kpi cr">
-      <div class="kpi-lbl">รายได้รวม</div>
+      <div class="kpi-lbl">รายได้รวม (ลูกค้า)</div>
       <div class="kpi-val r">฿${f(kpiRealIncome)}</div>
-      <div class="kpi-sub">ค่าตัวงานทั้งหมด · ${periodLabel}</div>
+      <div class="kpi-sub">รายได้จากลูกค้าทั้งหมด · ${periodLabel}</div>
     </div>
     <div class="kpi cg">
-      <div class="kpi-lbl">จำนวนงาน</div>
-      <div class="kpi-val g">${kpiPaidCount}</div>
-      <div class="kpi-sub">งานที่บันทึกรายได้แล้ว</div>
+      <div class="kpi-lbl">รายได้สมาชิก</div>
+      <div class="kpi-val g">฿${f(kpiMemberTotal)}</div>
+      <div class="kpi-sub">รวมค่าตัวสมาชิกทุกคน</div>
     </div>
     <div class="kpi ca">
-      <div class="kpi-lbl">งานทั้งหมด (งวด)</div>
-      <div class="kpi-val" style="color:var(--amber)">${kpiPaidCount+kpiUnpaidCount}</div>
-      <div class="kpi-sub">รวมทุกงานในช่วงเวลา</div>
+      <div class="kpi-lbl">จำนวนงาน</div>
+      <div class="kpi-val" style="color:var(--amber)">${kpiGigCount}</div>
+      <div class="kpi-sub">งานทั้งหมดในช่วงเวลา</div>
     </div>`;
 
   /* render เป็น card เสมอบน mobile — ไม่เช็ค width */
