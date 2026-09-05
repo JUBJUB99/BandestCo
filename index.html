@@ -4292,25 +4292,18 @@ function gigRevenuePaid(g){
 }
 
 function gigMemberPayTotal(g){
-  /* ถ้างาน paid แล้ว = คำนวณค่าตัวรวมทุกคน (ไม่ต้องรอกด "จ่ายแล้ว") */
-  if(g.status==='paid'){
-    const mus=g.musicians&&g.musicians.length
-      ?g.musicians
-      :S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length,splitMode:'equal',fixedAmt:0}));
-    return mus.reduce((s,mu)=>{
-      if((mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0) return s+r2(mu.fixedAmt);
-      /* ถ้ามี breakdown ใช้ sum breakdown */
-      if(mu.breakdown){
-        const bd=mu.breakdown;
-        return s+(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
-      }
-      return s+r2(gigNet(g)*(mu.pct/100));
-    },0);
-  }
-  /* งานยังไม่ paid → นับเฉพาะที่กดจ่ายแล้วจริงๆ */
-  const paid=g.memberPayments||{};
-  const mus=g.musicians&&g.musicians.length?g.musicians:S.members.filter(m=>m.status==='active').map(m=>({memberId:m.id,pct:100/S.members.filter(x=>x.status==='active').length}));
-  return mus.filter(mu=>{const p=paid[mu.memberId];return p&&(p===true||(typeof p==='object'&&p.paid));}).reduce((s,mu)=>s+r2(gigNet(g)*(mu.pct/100)),0);
+  /* ★ concept ใหม่: นับค่าตัวสมาชิกจาก breakdown เสมอ ไม่ว่า status จะเป็นอะไร */
+  if(g.status==='cancelled') return 0;
+  const mus=g.musicians&&g.musicians.length?g.musicians:[];
+  return mus.reduce((s,mu)=>{
+    if(mu.breakdown){
+      const bd=mu.breakdown;
+      return s+(bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0);
+    }
+    /* ไม่มี breakdown → ใช้ pct/fixedAmt fallback */
+    if((mu.splitMode||g.splitMode)==='amt'&&mu.fixedAmt>0) return s+r2(mu.fixedAmt);
+    return s+r2(gigNet(g)*(mu.pct/100));
+  },0);
 }
 
 function rd(){
@@ -4329,18 +4322,17 @@ function rd(){
   const TM2=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
   const periodLabel=filterMonth!==null?`${TM2[filterMonth]} ${y}`:`ทุกเดือน ปี ${y}`;
 
-  /* 1. Revenue = sum of payments actually received from paid gigs this month */
-  const paidGigs=gg.filter(g=>g.status==='paid');
-  const revenue=paidGigs.reduce((s,g)=>s+gigRevenuePaid(g),0);
+  /* 1. Revenue = รายได้จากทุกงานที่ไม่ยกเลิก (concept ใหม่: ไม่กรองเฉพาะ paid) */
+  const revenue=gg.reduce((s,g)=>s+gigRevenuePaid(g),0);
 
-  /* 2. Expense (ค่าตัว) = ค่าตัวที่จ่ายไปแล้วให้นักดนตรี (from จ่ายเงิน tab) */
-  const memberPaid=paidGigs.reduce((s,g)=>s+gigMemberPayTotal(g),0);
+  /* 2. Expense (ค่าตัว) = ค่าตัวสมาชิกจาก breakdown ทุกงาน */
+  const memberPaid=gg.reduce((s,g)=>s+gigMemberPayTotal(g),0);
 
   /* 3. Gross Margin = Revenue − Expense(ค่าตัว) */
   const grossMargin=revenue-memberPaid;
 
-  /* 4. Other Expense = ค่าใช้จ่ายในงาน (เฉพาะงานจ่ายเต็มแล้ว) + ค่าใช้จ่ายวง sidebar */
-  const gigOtherExp=paidGigs.reduce((s,g)=>s+gigExpTotal(g),0);
+  /* 4. Other Expense = ค่าใช้จ่ายในงาน + ค่าใช้จ่ายวง sidebar */
+  const gigOtherExp=gg.reduce((s,g)=>s+gigExpTotal(g),0);
   const sidebarExp=(S.expenses||[]).filter(e=>{
     if(!e.date)return false;
     const d=new Date(e.date);
@@ -4411,14 +4403,14 @@ function renderCompareChart(){
   const y=parseInt(document.getElementById('cy')?.value||now.getFullYear());
   const CM=now.getMonth();
 
-  /* Revenue = paid gigs only */
+  /* ★ concept ใหม่: นับทุกงานที่ไม่ใช่ cancelled */
   const REV=Array.from({length:12},(_,i)=>
-    S.gigs.filter(g=>g.status==='paid'&&new Date(g.date).getFullYear()===y&&new Date(g.date).getMonth()===i)
+    S.gigs.filter(g=>g.status!=='cancelled'&&new Date(g.date).getFullYear()===y&&new Date(g.date).getMonth()===i)
       .reduce((s,g)=>s+gigRevenuePaid(g),0));
 
-  /* Expense = paid gigs: gig expenses + member pay + sidebar */
+  /* Expense = gig expenses + member pay */
   const EXP=Array.from({length:12},(_,i)=>{
-    const ge=S.gigs.filter(g=>g.status==='paid'&&new Date(g.date).getFullYear()===y&&new Date(g.date).getMonth()===i)
+    const ge=S.gigs.filter(g=>g.status!=='cancelled'&&new Date(g.date).getFullYear()===y&&new Date(g.date).getMonth()===i)
       .reduce((s,g)=>s+gigExpTotal(g)+gigMemberPayTotal(g),0);
     const se=(S.expenses||[]).filter(e=>{if(!e.date)return false;const d=new Date(e.date);return d.getMonth()===i&&d.getFullYear()===y;}).reduce((s,e)=>s+e.amount,0);
     return ge+se;
@@ -4543,7 +4535,7 @@ function rc(){
   if(chartView==='month'){
     const y=parseInt(document.getElementById('cy')?.value||now.getFullYear());
     labels=TS.map(s=>s.replace('.',''));
-    data=Array.from({length:12},(_,i)=>mg(i,y).filter(g=>g.status==='paid').reduce((s,g)=>s+gigRevenuePaid(g),0));
+    data=Array.from({length:12},(_,i)=>mg(i,y).filter(g=>g.status!=='cancelled').reduce((s,g)=>s+gigRevenuePaid(g),0));
     highlight=now.getMonth();
     cnt=S.gigs.filter(g=>new Date(g.date).getFullYear()===y&&g.status!=='cancelled').length;
   } else if(chartView==='week'){
