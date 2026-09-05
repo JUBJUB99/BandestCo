@@ -5387,21 +5387,22 @@ function ri(){
       if(_incomeSortCol==='name') return (a.name||'').localeCompare(b.name||'','th')*dir;
       return ((a[_incomeSortCol]||0)-(b[_incomeSortCol]||0))*dir;
     }
-    return (b.totalIncome+b.forecastIncome)-(a.totalIncome+a.forecastIncome);
+    return (b.bdIncome||0)-(a.bdIncome||0);
   });
 
   /* ★ v95: filter สมาชิกที่รายได้รวม = 0 — รวม forecastIncome ด้วย เพื่อไม่ตัดคนที่มีงานคาดการณ์ออก */
   const showZero=document.getElementById('income-filter-zero')?.value||'no';
   /* ถ้า user เลือก member เจาะจง (multi-select) → ไม่ filter ตัดออก */
+  /* ★ single-field: filter แสดงคนที่มีงานหรือมีรายได้ */
   const memDataFiltered=showZero==='yes'||selectedMids.length>0
     ?memData
-    :memData.filter(m=>m.totalIncome>0||m.forecastIncome>0);
+    :memData.filter(m=>m.bdIncome>0||m.totalGigCount>0);
 
   /* เก็บ selection ถ้า member นั้นยังอยู่ใน filtered list — ถ้าหายค่อย reset */
   const stillSelected=incomeSelectedMid&&memDataFiltered.some(m=>String(m.id)===String(incomeSelectedMid));
   if(!stillSelected){
     /* ไม่มีก็ default เป็น member แรกที่มีรายได้ หรือคนแรกสุด */
-    const firstWithIncome=memDataFiltered.find(m=>m.totalIncome>0||m.forecastIncome>0);
+    const firstWithIncome=memDataFiltered.find(m=>m.bdIncome>0||m.totalGigCount>0);
     incomeSelectedMid=(firstWithIncome||memDataFiltered[0])?.id||null;
   }
 
@@ -5521,35 +5522,14 @@ function renderIncomeDetail(gg){
     const isPaid=!!(g.memberPayments||{})[mem.id];
     const payData=(g.memberPayments||{})[mem.id];
     const hasSlip=payData&&typeof payData==='object'&&payData.slip;
-    /* breakdown column */
+    /* ★ single-field: อ่านรายได้จาก bd.fee ตรงๆ (รวม legacy travel/oil/ot/other ด้วยเพื่อ compat) */
     const bd=mu.breakdown;
-    const bdItems=bd?[
-      {label:'ค่าตัว',val:bd.fee},
-      {label:'นั่งรถ',val:bd.travel},
-      {label:'น้ำมัน',val:bd.oil},
-      {label:'ต่อเวลา',val:bd.overtime},
-      {label:bd.otherNote||'อื่นๆ',val:bd.other}
-    ].filter(x=>x.val>0):[];
-    const tipAmt=bd?.tip||0;
-    /* ถ้าไม่มี breakdown ใช้ getMemCut fallback สำหรับงาน unpaid */
-    const fallbackCut=!isPaidGig&&bdItems.length===0?getMemberCut(g,mem):0;
-    const bdHtml=bdItems.length
-      ?`<div style="display:flex;flex-direction:column;gap:2px">${bdItems.map(x=>`<div style="display:flex;justify-content:space-between;gap:12px;font-size:11.5px;line-height:1.4"><span style="color:var(--ink3);font-weight:500">${x.label}</span><span style="font-weight:500;color:var(--ink2);font-variant-numeric:tabular-nums">฿${f(x.val)}</span></div>`).join('')}</div>`
-      :(fallbackCut>0?`<span style="color:var(--btxt);font-style:italic;font-weight:500">คาดการณ์ ฿${f(fallbackCut)}</span>`:`<span style="color:var(--ink3)">—</span>`);
-    const tipHtml=tipAmt>0?`<span style="font-weight:600;color:var(--atxt);font-variant-numeric:tabular-nums">฿${f2(tipAmt)}</span>`:`<span style="color:var(--ink3)">—</span>`;
-    const bdTotal=bdItems.reduce((s,x)=>s+x.val,0);
-    const displayTotal=bdTotal+tipAmt+(fallbackCut>0&&bdTotal===0?fallbackCut:0);
-    const totalHtml=`<span style="font-weight:600;color:${isPaidGig?'var(--gtxt)':'var(--btxt)'};font-variant-numeric:tabular-nums">฿${f(displayTotal)}</span>`;
-    /* row style: งาน unpaid มี dot indicator แทนที่จะเปลี่ยนพื้นทั้งแถว */
-    const rowBg=isPaidGig?'':'background:#F6F9FE;';
-    const payStatusHtml=isPaidGig
-      ?(isPaid
-        ?`<span style="display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--gtxt)"><span style="width:6px;height:6px;border-radius:50%;background:var(--green)"></span>จ่ายแล้ว${hasSlip?`${slipImg(payData.slip,20)}`:''}</span>`
-        :`<span style="display:inline-flex;align-items:center;gap:5px;color:var(--ink3);font-weight:500"><span style="width:6px;height:6px;border-radius:50%;background:var(--ink3);opacity:.5"></span>รอจ่าย</span>`)
-      :`<span style="display:inline-flex;align-items:center;gap:5px;color:var(--btxt);font-weight:500"><span style="width:6px;height:6px;border-radius:50%;background:var(--blue)"></span>คาดการณ์</span>`;
-    /* ★ single-field: รายได้รวม = bdTotal เท่านั้น (ไม่รวม tip) */
-    const singleTotal=bdTotal>0?bdTotal:(fallbackCut>0?fallbackCut:0);
-    const singleTotalHtml=`<span style="font-weight:700;color:var(--red);font-variant-numeric:tabular-nums">฿${f(singleTotal)}</span>`;
+    const legacyTotal=bd?((bd.fee||0)+(bd.travel||0)+(bd.oil||0)+(bd.overtime||0)+(bd.other||0)):0;
+    const singleTotal=legacyTotal>0?legacyTotal:0;
+    const singleTotalHtml=singleTotal>0
+      ?`<span style="font-weight:700;color:var(--red);font-variant-numeric:tabular-nums">฿${f(singleTotal)}</span>`
+      :`<span style="color:var(--ink3)">—</span>`;
+    const rowBg='';
     return`<tr style="${rowBg}">
       <td class="tid" style="width:100px">${oid(g)}</td>
       <td style="font-weight:500;width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.name)}</td>
